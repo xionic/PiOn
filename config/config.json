@@ -1,0 +1,15 @@
+{
+	"model": {
+		"nodes": [
+			{"name": "xealot_server", "hostname": "xealot", "port": 18080}
+		],
+		
+		"hardware":[
+		
+		],
+		
+		"items": [
+			{"name": "date test", "type": "ItemTest", "typeargs": {}, "node": "xealot"}
+		]
+	}
+}

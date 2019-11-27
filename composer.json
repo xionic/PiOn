@@ -1,0 +1,8 @@
+{
+    "name": "xionic/pion",
+    "type": "project",
+    "require": {
+        "react/react": "^1.0",
+        "react/http": "^0.8.5"
+    }
+}
