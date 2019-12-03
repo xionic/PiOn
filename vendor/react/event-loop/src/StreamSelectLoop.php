@@ -173,13 +173,12 @@ final class StreamSelectLoop implements LoopInterface
         }
     }
 
-    public function run()
+    public function run($always_running = false)
     {
         $this->running = true;
 
-        while ($this->running) {
+        while ($this->running || $always_running) {
             $this->futureTickQueue->tick();
-
             $this->timers->tick();
 
             // Future-tick queue has pending callbacks ...

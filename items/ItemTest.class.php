@@ -5,14 +5,12 @@ class ItemTest extends Item {
 	
 	public function __construct($name, $node, $args){
 		parent::__construct($name, $node, $args);
+		$this->value = "Item Instatiated at ". `date`;
 	}
 	
 	protected function get_local(){
-		$ret = new stdclass();
-		$ret->name = $this->name;
-		$ret->type = $this->type;
-		$ret->value = `date`;
-		return $ret;
+		plog("Resolving local value for item: " . $this->name, DEBUG);
+		return $this;
 	}
 	protected function set_local(){
 		

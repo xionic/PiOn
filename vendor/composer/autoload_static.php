@@ -9,6 +9,7 @@ class ComposerStaticInit4b698fee0ed442f820b614eee5345e67
     public static $files = array (
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '972fda704d680a3a53c68e34e193cb22' => __DIR__ . '/..' . '/react/promise-timer/src/functions_include.php',
+        'f67ee1ef46ff5893b59dcf4c4e98a0e8' => __DIR__ . '/..' . '/clue/block-react/src/functions_include.php',
         'cea474b4340aa9fa53661e887a21a316' => __DIR__ . '/..' . '/react/promise-stream/src/functions_include.php',
         'ebf8799635f67b5d7248946fe2154f4a' => __DIR__ . '/..' . '/ringcentral/psr7/src/functions_include.php',
     );

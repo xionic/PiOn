@@ -11,6 +11,8 @@ function handle_rest_request(Psr\Http\Message\ServerRequestInterface $request){
 		);
 	}
 	$QS = $request->getQueryParams();
+	$_SERVER = $request->getServerParams();
+	plog("HTTP req from " . $_SERVER["REMOTE_ADDR"] . " with params: " . join($QS, " "), VERBOSE);
 	$action = @$QS["action"];
 	$item_name = @$QS["item_name"];
 	plog("action: $action",VERBOSE);
@@ -25,7 +27,7 @@ function handle_rest_request(Psr\Http\Message\ServerRequestInterface $request){
 	
 	switch($action){
 		case "get":
-			$out_obj = get_model()->get_item($item_name)->get();
+			$out_obj = get_model()->get_item($item_name);
 			return new React\Http\Response(
 				200,
 				array('Content-Type' => 'text/json'),

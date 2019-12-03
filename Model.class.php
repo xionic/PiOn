@@ -10,7 +10,7 @@ class Model {
 		
 		//load nodes
 		foreach($model_conf->nodes as $node){
-			$this->nodes[$node->name] = new NodeStandard($node->name, $node->hostname, $node->port);
+			$this->nodes[$node->name] = new NodeStandard($node->name, $node->hostname, $node->port, $node->http_port);
 		}
 		
 		//load hardware
@@ -21,11 +21,21 @@ class Model {
 			$this->items[$item->name] = new $class($item->name, $item->node, $item->typeargs);
 		}
 		
-		var_dump(array($this->nodes, $this->hardware, $this->items));
+		//var_dump(array($this->nodes, $this->hardware, $this->items));
 	}
 	
 	function get_item($item_name){
 		return $this->items[$item_name];
+	}
+	function get_node($name){
+		return $this->nodes[$name];
+	}
+	function get_node_by_hostname($hostname){
+		foreach($this->nodes as $node){
+			if($node->hostname == $hostname)
+				return $node;
+		}
+		return false;
 	}
 	
 }

@@ -18,21 +18,25 @@
 	
 	//Model creation
 	$model = new Model($config->model);
+	$this_node = $model->get_node(NODE_NAME);
 	
 	$loop = React\EventLoop\Factory::create();
 	
 	//start intra-node socket server
-	$sock_server = new React\Socket\Server("0.0.0.0:28080", $loop);
+	$sock_server = new React\Socket\Server("0.0.0.0:" . $this_node->port, $loop);
 	$sock_server->on('connection', function (React\Socket\ConnectionInterface $connection) {
 		plog('Socket connection from ' . $connection->getRemoteAddress() . PHP_EOL, VERBOSE);
 		
 		
 		$connection->on('data', function($data) use ($connection){
-			plog("RAW MESSAGE " . $data, 0);
+			plog("SOCKET RAW MESSAGE " . $data, 3);
 			$sn = new Socket_Message($data);
 			
 			$resp = handle_socket_request($sn) ;
-			$connection->write(json_encode($resp) . PHP_EOL);
+			$json = $resp->to_json();
+			plog("SOCK RAW RESPONSE: ".$json, DEBUG);
+			$connection->write($json . PHP_EOL);
+			
 			//$connection->write('hello there!' . PHP_EOL);
 			//$connection->write("STop sending shit" . PHP_EOL);
 			//$connection->close();
@@ -46,7 +50,9 @@
 		if(substr($path,0,5) == "/web/"){
 			return handle_static_request($request);
 		} else {
-			return handle_rest_request($request);
+			$t = handle_rest_request($request);
+			//echo "TTTTTTTTTTTTTTTTTTTT " . var_export($t,true) . "\n";
+			return $t;
 		}
 	});
 	
@@ -58,13 +64,14 @@
 		}
 	});
 
-	$socket = new React\Socket\Server("0.0.0.0:18080", $loop);
+	$socket = new React\Socket\Server("0.0.0.0:" . $this_node->http_port, $loop);
 	$server->listen($socket);
 
-	echo "Server running at http://127.0.0.1:18080\n";
+	echo "Server running on " . NODE_NAME . ":" . $this_node->port . PHP_EOL;
 
-	$loop->run();
-	
+
+	$loop->run(true);
+	echo "MAIN LOOP ENDED!!!\n";
 	
 	function plog($text, $level){
 		if($level >= 0){
@@ -74,6 +81,13 @@
 	function get_model(){
 		global $model;
 		return $model;
+	}
+	function get_node($name){
+		return get_model()->get_node($name);
+	}
+	function get_loop(){
+		global $loop;
+		return $loop;
 	}
 
 ?>

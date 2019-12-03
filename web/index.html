@@ -1,12 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="PiOnApp">
 <head>
+	<meta charset="UTF-8">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script type="text/javascript" src="angular.min.js"></script>
 	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="sitemap.js"></script>
+	
 </head>
 <body>
-TEST
+<H2>PiOn</h2>
+<div ng-controller="SitemapController as sc">
+<!--<input ng-model="test">{{test}}-->
+	<ul>
+			<li class="roomlist" ng-repeat="(roomname,room) in sc.sm">
+				<h3 class="roomname">
+					{{roomname}}
+				</h3>
+				<ul>
+					<li class="item" ng-repeat="item in room">
+						<span class="itemname">{{item.item_name}}</span>
+						<span class="itemvalue"></span
+					</li>
+				</ul>			
+				
+			</li>
+	</ul>
+
+</div>
 </body>
 
 </html>

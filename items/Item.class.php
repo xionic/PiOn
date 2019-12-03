@@ -1,5 +1,7 @@
 <?php
 
+use Clue\React\Block;
+
 abstract class Item {
 	
 	public $name;
@@ -8,27 +10,48 @@ abstract class Item {
 	public $value;
 	
 	public function get(){
-		if($this->node == NODE_NAME){
+		if(get_node($this->node)->name == NODE_NAME){
+		
 			return $this->get_local();
-		} else { // Item is on a remote node
+		} else { // Item is on a remote node		
+			$target_node = get_model()->get_node($this->node);
 			$req = new Socket_Message();
+			$req->item_name = $this->name;
 			$req->sending_node = NODE_NAME;
+			$req->target_node = $target_node->name;
+			$req->target_port = $target_node->port;
 			$req->action = "get";
 			$req->type = "req";
-			$req->payload = $this->get_local();
 			
-			$connector = new React\Socket\Connector($loop);
-			$connector->connect('127.0.0.1:8080')->then(function (React\Socket\ConnectionInterface $connection) {
+			$value = null;
+			$inner_promise = null;
+			$connector = new React\Socket\Connector(get_loop(), array('timeout' => 5));
+			$to_node = get_node($this->node);
+			$promise = $connector->connect($to_node->hostname . ":" . $to_node->port)->then(function (React\Socket\ConnectionInterface $connection) use ($req, &$value, &$inner_promise) {
+				plog("writing socket message to remote", DEBUG);
 				$connection->write($req->to_json());
+				$connection->on('data', function ($data) use ($connection, &$value){
+						plog("reading socket message from remote: " . $data, DEBUG);
+						$connection->end();
+						$value = $data;
+						get_loop()->stop();
+				});	
 			});
-			 $connection->on('data', function ($data) use ($connection) {
-				$connection->close();
-				return json_decode($data);
-			});
+			//wait for response from remote node			
+			Block\await($promise, get_loop(), 5000);
+			if($value == null){
+				get_loop()->run();
+			}
+			
+			$item = json_decode($value);
+			return $item;
+			
+			
+			
 		}
 		
 	}
-	public function set(){
+	public function set_value(){
 		
 	}
 	

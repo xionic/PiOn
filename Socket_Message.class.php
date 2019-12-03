@@ -4,6 +4,7 @@ class Socket_Message {
 	public $type; //req or resp
 	public $sending_node;
 	public $target_node; //probably only populated for req's
+	public $target_port;
 	public $action; // get or set
 	public $item_name; 
 	public $payload; // object passed as args to the get/set handler function as type appropriate
@@ -13,6 +14,8 @@ class Socket_Message {
 			$obj = json_decode($json);
 			$this->type = $obj->type;
 			$this->sending_node = $obj->sending_node;
+			$this->target_node = $obj->target_node;			
+			$this->target_port = $obj->target_node;
 			$this->action = $obj->action;
 			$this->item_name = $obj->item_name;
 			$this->payload = $obj->payload;

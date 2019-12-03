@@ -19,6 +19,7 @@ function handle_static_request(Psr\Http\Message\ServerRequestInterface $request)
 	$content_type = "text/plain";
 	switch(pathinfo($path, PATHINFO_EXTENSION)){
 		case "html": $content_type = "text/html"; break;
+		case "json":
 		case "js": $content_type = "text/javascript; charset=UTF-8"; break;
 		case "css": $content_type = "text/css"; break;
 	}
