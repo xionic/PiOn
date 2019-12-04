@@ -15,7 +15,7 @@ li {
 	width:98%;
 }
 
-li.roomlist {
+li.roomrow {
 	margin: 5px;
 	border: solid 10px #888888;
 }
@@ -28,7 +28,7 @@ span.itemname{
 	float:left;
 	margin: 5px;
 }
-spane.itemvalue{
+span.itemvalue{
 	float:right;
 	margin: 5px;
 }

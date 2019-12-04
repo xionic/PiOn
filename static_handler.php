@@ -18,17 +18,17 @@ function handle_static_request(Psr\Http\Message\ServerRequestInterface $request)
 	}
 	$content_type = "text/plain";
 	switch(pathinfo($path, PATHINFO_EXTENSION)){
-		case "html": $content_type = "text/html"; break;
+		case "html": $content_type = "text/html; charset=UTF-8"; break;
 		case "json":
 		case "js": $content_type = "text/javascript; charset=UTF-8"; break;
-		case "css": $content_type = "text/css"; break;
+		case "css": $content_type = "text/css; charset=UTF-8"; break;
 	}
 	
 	plog("Serving static file " . $path, VERBOSE);
 	return new React\Http\Response(
         200,
         array('Content-Type' => $content_type),
-		file_get_contents($path)
+		file_get_contents($path) //security
     );
 	
 }
