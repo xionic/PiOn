@@ -6,11 +6,12 @@
 		],
 		
 		"hardware":[
-		
+			{"name": "RPi GPIO", "type": "GPIO", "typeargs": {}, "node": "pi1"}
 		],
 		
 		"items": [
-			{"name": "date test", "type": "ItemTest", "typeargs": {}, "node": "xealot_server", "web_type": "number"}
+			{"name": "date test", "type": "Test", "typeargs": {}, "hardware":{"name": "RPi GPIO", "args": {"pin":15, "mode": "switch"}}, "node": "xealot_server", "web_type": "number"},
+			{"name": "GPIO test", "type": "Switch", "typeargs": {}, "hardware":{"name": "RPi GPIO", "args": {"pin":15, "mode": "switch"}}, "node": "pi1", "web_type": "number"}
 		]
 	}
 }

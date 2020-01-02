@@ -6,9 +6,18 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'ad155f8f1cf0d418fe49e248db8c661b' => $vendorDir . '/react/promise/src/functions_include.php',
-    '972fda704d680a3a53c68e34e193cb22' => $vendorDir . '/react/promise-timer/src/functions_include.php',
-    'f67ee1ef46ff5893b59dcf4c4e98a0e8' => $vendorDir . '/clue/block-react/src/functions_include.php',
-    'cea474b4340aa9fa53661e887a21a316' => $vendorDir . '/react/promise-stream/src/functions_include.php',
-    'ebf8799635f67b5d7248946fe2154f4a' => $vendorDir . '/ringcentral/psr7/src/functions_include.php',
+    'e8aa6e4b5a1db2f56ae794f1505391a8' => $vendorDir . '/amphp/amp/lib/functions.php',
+    '76cd0796156622033397994f25b0d8fc' => $vendorDir . '/amphp/amp/lib/Internal/functions.php',
+    '6cd5651c4fef5ed6b63e8d8b8ffbf3cc' => $vendorDir . '/amphp/byte-stream/lib/functions.php',
+    'bcb7d4fc55f4b1a7e10f5806723e9892' => $vendorDir . '/amphp/sync/src/functions.php',
+    '8dc56fe697ca93c4b40d876df1c94584' => $vendorDir . '/amphp/process/lib/functions.php',
+    '445532134d762b3cbc25500cac266092' => $vendorDir . '/daverandom/libdns/src/functions.php',
+    '7ebf029ad4b246f1e3f66192b40a932f' => $vendorDir . '/amphp/dns/lib/functions.php',
+    'e1e8b49c332434256b5df11b0f0c2a62' => $vendorDir . '/league/uri-parser/src/functions_include.php',
+    '3d8ee50db78074a9235f0c2008c26b42' => $vendorDir . '/amphp/http/src/functions.php',
+    'd4e415514e4352172d58f02433fa50e4' => $vendorDir . '/amphp/socket/src/functions.php',
+    '1c2dcb9d6851a7abaae89f9586ddd460' => $vendorDir . '/amphp/socket/src/Internal/functions.php',
+    '5ac5dbc97af12bd847e1db9fe93e192f' => $vendorDir . '/amphp/log/src/functions.php',
+    '3ff3609f8c8173833eaa97521a843531' => $vendorDir . '/amphp/http-server/src/Middleware/functions.php',
+    'a56027adf84a32da155734de2d858e65' => $vendorDir . '/amphp/http-server/src/functions.php',
 );

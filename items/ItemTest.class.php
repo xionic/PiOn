@@ -1,18 +1,18 @@
 <?php
 
 class ItemTest extends Item {
-	public $type = "test";
 	
-	public function __construct($name, $node, $args){
-		parent::__construct($name, $node, $args);
-		$this->value = "Item Instatiated at ". `date`;
+	
+	public function __construct($name, $node, $args, $hw, $hw_args){
+		parent::__construct($name, $node, $hw, $hw_args);
+		$this->type="test";
 	}
 	
-	protected function get_local(){
+	protected function get_value_local(){
 		plog("Resolving local value for item: " . $this->name, DEBUG);
-		return $this;
+		return trim("Item get_value called at ". `date`);
 	}
-	protected function set_local(){
+	protected function set_value_local($value){
 		
 	}
 	

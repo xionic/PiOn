@@ -4,89 +4,150 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit4b698fee0ed442f820b614eee5345e67
+class ComposerStaticInit7dfda2b92061989023fa3ef9e7100574
 {
     public static $files = array (
-        'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
-        '972fda704d680a3a53c68e34e193cb22' => __DIR__ . '/..' . '/react/promise-timer/src/functions_include.php',
-        'f67ee1ef46ff5893b59dcf4c4e98a0e8' => __DIR__ . '/..' . '/clue/block-react/src/functions_include.php',
-        'cea474b4340aa9fa53661e887a21a316' => __DIR__ . '/..' . '/react/promise-stream/src/functions_include.php',
-        'ebf8799635f67b5d7248946fe2154f4a' => __DIR__ . '/..' . '/ringcentral/psr7/src/functions_include.php',
+        'e8aa6e4b5a1db2f56ae794f1505391a8' => __DIR__ . '/..' . '/amphp/amp/lib/functions.php',
+        '76cd0796156622033397994f25b0d8fc' => __DIR__ . '/..' . '/amphp/amp/lib/Internal/functions.php',
+        '6cd5651c4fef5ed6b63e8d8b8ffbf3cc' => __DIR__ . '/..' . '/amphp/byte-stream/lib/functions.php',
+        'bcb7d4fc55f4b1a7e10f5806723e9892' => __DIR__ . '/..' . '/amphp/sync/src/functions.php',
+        '8dc56fe697ca93c4b40d876df1c94584' => __DIR__ . '/..' . '/amphp/process/lib/functions.php',
+        '445532134d762b3cbc25500cac266092' => __DIR__ . '/..' . '/daverandom/libdns/src/functions.php',
+        '7ebf029ad4b246f1e3f66192b40a932f' => __DIR__ . '/..' . '/amphp/dns/lib/functions.php',
+        'e1e8b49c332434256b5df11b0f0c2a62' => __DIR__ . '/..' . '/league/uri-parser/src/functions_include.php',
+        '3d8ee50db78074a9235f0c2008c26b42' => __DIR__ . '/..' . '/amphp/http/src/functions.php',
+        'd4e415514e4352172d58f02433fa50e4' => __DIR__ . '/..' . '/amphp/socket/src/functions.php',
+        '1c2dcb9d6851a7abaae89f9586ddd460' => __DIR__ . '/..' . '/amphp/socket/src/Internal/functions.php',
+        '5ac5dbc97af12bd847e1db9fe93e192f' => __DIR__ . '/..' . '/amphp/log/src/functions.php',
+        '3ff3609f8c8173833eaa97521a843531' => __DIR__ . '/..' . '/amphp/http-server/src/Middleware/functions.php',
+        'a56027adf84a32da155734de2d858e65' => __DIR__ . '/..' . '/amphp/http-server/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'R' => 
-        array (
-            'RingCentral\\Psr7\\' => 17,
-            'React\\Stream\\' => 13,
-            'React\\Socket\\' => 13,
-            'React\\Promise\\Timer\\' => 20,
-            'React\\Promise\\Stream\\' => 21,
-            'React\\Promise\\' => 14,
-            'React\\Http\\' => 11,
-            'React\\EventLoop\\' => 16,
-            'React\\Dns\\' => 10,
-            'React\\Cache\\' => 12,
-        ),
         'P' => 
         array (
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
+        ),
+        'M' => 
+        array (
+            'Monolog\\' => 8,
+        ),
+        'L' => 
+        array (
+            'LibDNS\\' => 7,
+            'League\\Uri\\' => 11,
+        ),
+        'K' => 
+        array (
+            'Kelunik\\Certificate\\' => 20,
+        ),
+        'A' => 
+        array (
+            'Amp\\WindowsRegistry\\' => 20,
+            'Amp\\Sync\\' => 9,
+            'Amp\\Socket\\' => 11,
+            'Amp\\Process\\' => 12,
+            'Amp\\Parser\\' => 11,
+            'Amp\\Log\\' => 8,
+            'Amp\\Http\\Server\\' => 16,
+            'Amp\\Http\\Client\\' => 16,
+            'Amp\\Http\\' => 9,
+            'Amp\\Dns\\' => 8,
+            'Amp\\Cache\\' => 10,
+            'Amp\\ByteStream\\' => 15,
+            'Amp\\' => 4,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'RingCentral\\Psr7\\' => 
+        'Psr\\Log\\' => 
         array (
-            0 => __DIR__ . '/..' . '/ringcentral/psr7/src',
-        ),
-        'React\\Stream\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/stream/src',
-        ),
-        'React\\Socket\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/socket/src',
-        ),
-        'React\\Promise\\Timer\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/promise-timer/src',
-        ),
-        'React\\Promise\\Stream\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/promise-stream/src',
-        ),
-        'React\\Promise\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/promise/src',
-        ),
-        'React\\Http\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/http/src',
-        ),
-        'React\\EventLoop\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/event-loop/src',
-        ),
-        'React\\Dns\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/dns/src',
-        ),
-        'React\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/cache/src',
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
+        'Monolog\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'LibDNS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/daverandom/libdns/src',
+        ),
+        'League\\Uri\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/uri/src',
+            1 => __DIR__ . '/..' . '/league/uri-interfaces/src',
+            2 => __DIR__ . '/..' . '/league/uri-parser/src',
+        ),
+        'Kelunik\\Certificate\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/kelunik/certificate/lib',
+        ),
+        'Amp\\WindowsRegistry\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/windows-registry/lib',
+        ),
+        'Amp\\Sync\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/sync/src',
+        ),
+        'Amp\\Socket\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/socket/src',
+        ),
+        'Amp\\Process\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/process/lib',
+        ),
+        'Amp\\Parser\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/parser/lib',
+        ),
+        'Amp\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/log/src',
+        ),
+        'Amp\\Http\\Server\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/http-server/src',
+        ),
+        'Amp\\Http\\Client\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/http-client/src',
+        ),
+        'Amp\\Http\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/hpack/src',
+            1 => __DIR__ . '/..' . '/amphp/http/src',
+        ),
+        'Amp\\Dns\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/dns/lib',
+        ),
+        'Amp\\Cache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/cache/lib',
+        ),
+        'Amp\\ByteStream\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/byte-stream/lib',
+        ),
+        'Amp\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/amp/lib',
+        ),
     );
 
     public static $prefixesPsr0 = array (
-        'E' => 
+        'c' => 
         array (
-            'Evenement' => 
+            'cash' => 
             array (
-                0 => __DIR__ . '/..' . '/evenement/evenement/src',
+                0 => __DIR__ . '/..' . '/cash/lrucache/src',
             ),
         ),
     );
@@ -94,9 +155,9 @@ class ComposerStaticInit4b698fee0ed442f820b614eee5345e67
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit4b698fee0ed442f820b614eee5345e67::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit4b698fee0ed442f820b614eee5345e67::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit4b698fee0ed442f820b614eee5345e67::$prefixesPsr0;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7dfda2b92061989023fa3ef9e7100574::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7dfda2b92061989023fa3ef9e7100574::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit7dfda2b92061989023fa3ef9e7100574::$prefixesPsr0;
 
         }, null, ClassLoader::class);
     }

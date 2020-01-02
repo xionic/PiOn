@@ -13,7 +13,7 @@ $().ready(function(){
 		$(sitemap[room]).each(function(key, value){
 			itemli = $("<li>");
 			itemli.append($("<span>",{class: "itemname", text: value.item_name}));
-			var item_value_span = $("<span>",{class: "itemvalue", "data-item_name":value.item_name});
+			var item_value_span = $("<span>",{class: "itemvalue", "data-item_name":value.item_name, "data-type": value.type});
 			itemli.append(item_value_span);
 			$.ajax({
 				url: "../?action=get&item_name="+value.item_name

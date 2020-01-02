@@ -1,21 +1,29 @@
 <?php
 
-use Clue\React\Block;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Request;
+use \Amp\Promise;
 
 abstract class Item {
 	
 	public $name;
-	public $node;
-	public $type_args;
-	public $value;
+	public $node_name;
+	public $hardware;
+	public $hardware_args = array();
+	public $type = null;
 	
-	public function get(){
-		if(get_node($this->node)->name == NODE_NAME){
+	public function get_value(): Promise {
 		
-			return $this->get_local();
-		} else { // Item is on a remote node		
-			$target_node = get_model()->get_node($this->node);
-			$req = new Socket_Message();
+		if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node		
+			plog("Item '" . $this->name . "' is local", VERBOSE);
+			$call = \Amp\Call(function(){
+				return $this->get_value_local();				
+			});
+			return $call;
+		} else { // Item is on a remote node
+			plog("Item '" . $this->name . "' is on another host '" . $this->node_name . "'. Requesting value...", VERBOSE);
+			$target_node = get_model()->get_node($this->node_name);
+			$req = new Rest_Message();
 			$req->item_name = $this->name;
 			$req->sending_node = NODE_NAME;
 			$req->target_node = $target_node->name;
@@ -24,44 +32,46 @@ abstract class Item {
 			$req->type = "req";
 			
 			$value = null;
-			$inner_promise = null;
-			$connector = new React\Socket\Connector(get_loop(), array('timeout' => 5));
-			$to_node = get_node($this->node);
-			$promise = $connector->connect($to_node->hostname . ":" . $to_node->port)->then(function (React\Socket\ConnectionInterface $connection) use ($req, &$value, &$inner_promise) {
-				plog("writing socket message to remote", DEBUG);
-				$connection->write($req->to_json());
-				$connection->on('data', function ($data) use ($connection, &$value){
-						plog("reading socket message from remote: " . $data, DEBUG);
-						$connection->end();
-						$value = $data;
-						get_loop()->stop();
-				});	
-			});
-			//wait for response from remote node			
-			Block\await($promise, get_loop(), 5000);
-			if($value == null){
-				get_loop()->run();
-			}
+			$reponse_received = false;
 			
-			$item = json_decode($value);
-			return $item;
+			$to_node = get_node($this->node_name);
 			
-			
+			$client = Amp\Http\Client\HttpClientBuilder::buildDefault();
+			$url = "http://" . $to_node->hostname . ":" . $to_node->http_port . "/?action=get&item_name=". urlencode($this->name);
+			$call = Amp\Call(static function() use($client, $to_node, $url){
+				plog("Making HTTP request to ". $to_node->hostname. ", url: $url", VERBOSE);
+				$resp = yield $client->request(new Request($url));
+				$json = yield $resp->getBody()->buffer();
+				return json_decode($json)->value;
+			});			
+			plog("Successfully retrieved remote value from node: " . $this->node_name. " Value: $v", DEBUG);
+
+			return $call;		
+		}	
+		
+	}
+	public function set_value($value){
+		if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node
+		
+			return $this->set_value_local($value);
+		} else { // item on remote node
 			
 		}
-		
-	}
-	public function set_value(){
-		
 	}
 	
-	protected abstract function get_local();
-	protected abstract function set_local();
+	protected abstract function get_value_local();
+	protected abstract function set_value_local($value);
 	
-	public function __construct($name,$node,$type_args){
+	public function __construct($name,$node,$hardware, $hardware_args){
 		$this->name = $name;
-		$this->node = $node;
-		$this->type_args = $type_args;
+		$this->node_name = $node;
+		$this->hardware = $hardware;
+		$this->hardware_args = $hardware_args;
+				
+	}
+	
+	public function to_ItemMessage(){
+		return new ItemMessage($this->name, $this->node_name, $this->type);
 	}
 	
 	public function register_itemtype(){}
