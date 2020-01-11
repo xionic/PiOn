@@ -1,8 +1,8 @@
 {
 	"model": {
 		"nodes": [
-			{"name": "xealot_server", "hostname": "xealot", "port": 18080, "http_port": 28080},
-			{"name": "pi1", "hostname": "pi1", "port": 18080, "http_port": 28080}
+			{"name": "xealot_server", "hostname": "xealot", "port": 28080},
+			{"name": "pi1", "hostname": "pi1", "port": 28080}
 		],
 		
 		"hardware":[

@@ -85,7 +85,7 @@
 		$logger = new Logger('server');
 		$logger->pushHandler($logHandler);
 		
-		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->http_port);
+		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
 		$server = new HttpServer($sockets, new CallableRequestHandler(function (Amp\Http\Server\Request $request) {
 			$ip = $request->getClient()->getRemoteAddress()->getHost();
 			$port = $request->getClient()->getRemoteAddress()->getPort();
@@ -121,7 +121,7 @@
 			yield $server->stop();
 		});
 
-		echo "HTTP server running on " . NODE_NAME . ":" . $this_node->http_port . PHP_EOL;
+		echo "HTTP server running on " . NODE_NAME . ":" . $this_node->port . PHP_EOL;
 	
 	
 	});
@@ -135,6 +135,9 @@
 	function get_model(){
 		global $model;
 		return $model;
+	}
+	function get_item($name){
+		return get_model()->get_item($name);
 	}
 	function get_node($name){
 		return get_model()->get_node($name);

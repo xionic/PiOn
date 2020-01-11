@@ -10,7 +10,7 @@ class Model {
 		
 		//load nodes
 		foreach($model_conf->nodes as $node){
-			$this->nodes[$node->name] = new NodeStandard($node->name, $node->hostname, $node->port, $node->http_port);
+			$this->nodes[$node->name] = new NodeStandard($node->name, $node->hostname, $node->port);
 		}
 		
 		//load hardware

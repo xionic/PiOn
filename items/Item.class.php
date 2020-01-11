@@ -1,7 +1,7 @@
 <?php
 
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Request;
+use \Amp\Http\Client\HttpClientBuilder;
+use \Amp\Http\Client\Request;
 use \Amp\Promise;
 
 abstract class Item {
@@ -23,28 +23,28 @@ abstract class Item {
 		} else { // Item is on a remote node
 			plog("Item '" . $this->name . "' is on another host '" . $this->node_name . "'. Requesting value...", VERBOSE);
 			$target_node = get_model()->get_node($this->node_name);
-			$req = new Rest_Message();
-			$req->item_name = $this->name;
-			$req->sending_node = NODE_NAME;
-			$req->target_node = $target_node->name;
-			$req->target_port = $target_node->port;
-			$req->action = "get";
-			$req->type = "req";
 			
+			$item_message = new ItemMessage($this->name, ITEM_GET);
+			
+			$req = new RestMessage(REQ, $this->node_name, NODE_NAME, $target_node->name, $target_node->port, null);
+		
 			$value = null;
 			$reponse_received = false;
 			
-			$to_node = get_node($this->node_name);
-			
 			$client = Amp\Http\Client\HttpClientBuilder::buildDefault();
-			$url = "http://" . $to_node->hostname . ":" . $to_node->http_port . "/?action=get&item_name=". urlencode($this->name);
-			$call = Amp\Call(static function() use($client, $to_node, $url){
-				plog("Making HTTP request to ". $to_node->hostname. ", url: $url", VERBOSE);
+			$url = $target_node->get_base_url() . "/?". urlencode($item_message->to_json());
+			$call = Amp\Call(static function() use($client, $target_node, $url){
+				plog("Making HTTP request to ". $target_node->hostname. ", url: $url", VERBOSE);
 				$resp = yield $client->request(new Request($url));
 				$json = yield $resp->getBody()->buffer();
-				return json_decode($json)->value;
+				if($resp->getStatus() != 200){					
+					throw new Exception("Error status received from " . $target_node->hostname . ": " . $resp->getStatus() . " Body is: " . $json);
+				}
+				var_dump($json);
+				$v = json_decode($json)->value;
+				plog("Successfully retrieved remote value from node: " . $this->node_name. " Value: $v", DEBUG);
+				return $v;
 			});			
-			plog("Successfully retrieved remote value from node: " . $this->node_name. " Value: $v", DEBUG);
 
 			return $call;		
 		}	

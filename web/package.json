@@ -1,0 +1,17 @@
+{
+  "name": "pion",
+  "description": "Home Automation",
+  "main": "main.js",
+  "dependencies": {
+    "@polymer/paper-toggle-button": "^3.0.1",
+    "@polymer/polymer": "^3.0.0",
+    "@webcomponents/webcomponentsjs": "^2.4.0",
+    "lit-element": "^2.2.1"
+  },
+  "devDependencies": {
+    "@polymer/paper-toggle-button": "^3.0.1",
+    "@polymer/polymer": "^3.0.0",
+    "@webcomponents/webcomponentsjs": "^2.4.0",
+    "lit-element": "^2.2.1"
+  }
+}
