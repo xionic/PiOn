@@ -9,24 +9,22 @@
 	<script src="./node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js"></script>
 	<script src="./node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js"></script>
 
-	<script type="text/javascript" src="main.js"></script>
+	<script type="module" src="main.js"></script>
 	<script type="text/javascript" src="sitemap.js"></script>
-	<link rel="import" href="modules.html">
+	<script type="module" src="modules.js"></script>
+	
 
 </head>
 <body>
 	<H2>PiOn</h2>
-	<div data-role="page">
-		<div data-role="main" class="ui-content">
-			<form method="post" action="demoform.asp">
-				
-				<ul id="rooms">
-						
-				</ul>
-			</form>
+	<div >
+		<div >
+			<ul id="rooms">
+					
+			</ul>
 		</div>
 	</div>
-	<simple-greeting></simple-greeting>
+
 </body>
 
 </html>
