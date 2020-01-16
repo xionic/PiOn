@@ -1,5 +1,6 @@
 import {html} from 'lit-element';
-
+import {RestMessage} from './RestMessage.js';
+import {ItemMessage} from './ItemMessage.js';
 
 var module_id_counter = 0; //hack, to give each module element it's own id because I can't work out how to reference the object from the element.
 var modules = new Object();
@@ -20,15 +21,15 @@ function get_module_html(name){
 
 export function item_updated(item_name, value_obj){
 	console.debug("Item update from: " + item_name);
+	let item_message = new ItemMessage(item_name, value_obj, ItemMessage.SET, null, null);
+	let rest_message = new RestMessage(RestMessage.REQ, null, null, null, item_message.to_json());
 	$.ajax({
 		url: "http://xealot:28080/",
 		data: {
-			action: "set",
-			item_name: item_name,
-			value: value_obj
+			data: rest_message.to_json()
 		}
 	}).done(function(data){
-		console.debug("Value update for" + item_name + " was successful");
+		console.debug("Value update for " + item_name + " was successful");
 		
 		
 	});
@@ -47,10 +48,13 @@ $().ready(function(){
 				var item_value_span = $("<span>",{class: "itemvalue", "data-item_name":value.item_name, "data-type": value.type});
 				item_value_span.html(get_module_html(value.type));
 				itemli.append(item_value_span);
+				//request current value
+				let item_message = new ItemMessage(value.item_name, null, ItemMessage.GET, null, null)
+				let rest_message = new RestMessage(RestMessage.REQ, "client", null, null, item_message.to_json())
 				$.ajax({
-					url: "http://xealot:28080/?action=get&item_name="+value.item_name
+					url: "http://xealot:28080/?data=" + rest_message.to_json()
 				}).done(function(data){
-					//console.log(data);
+					console.log(data);
 					$(item_value_span)[0].querySelector(".itemmodule").update_value(data);
 					
 				});

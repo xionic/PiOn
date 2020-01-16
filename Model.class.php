@@ -16,13 +16,13 @@ class Model {
 		//load hardware
 		foreach($model_conf->hardware as $hw){ //SECURITY
 			$class = "Hardware".$hw->type;
-			$this->hardware[$hw->name] = new $class($hw->name, $hw->node, $hw->typeargs);
+			$this->hardware[$hw->name] = new $class($hw->name, $hw->node, $hw->capabilities, $hw->typeargs);
 		}
 		
 		//load items
 		foreach($model_conf->items as $item){ //SECURITY
 			$class = "Item".$item->type;
-			$this->items[$item->name] = new $class($item->name, $item->node, $item->typeargs, $this->get_hardware($item->hardware->name), $item->hardware->args);
+			$this->items[$item->name] = new $class($item->name, $item->node, $item->typeargs, $this->get_hardware(@$item->hardware->name), @$item->hardware->args);
 			
 		}
 		

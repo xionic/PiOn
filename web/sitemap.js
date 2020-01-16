@@ -9,7 +9,11 @@ var sitemap = {
 		{"item_name": "GPIO test", "type": "switch"}
 	],
 	"Living Room": [
-		{"item_name": "livingdate test"},
+		{"item_name": "GPIO Toggler test 1", "type":"switch"},
+		{"item_name": "GPIO Toggler test 2", "type":"switch"},
+		{"item_name": "GPIO Toggler test 3", "type":"switch"},
+		{"item_name": "GPIO Toggler test 4", "type":"switch"},
+		{"item_name": "GPIO Toggler test 5", "type":"switch"},
 		{"item_name": "liviginbed_lights"}
 	]
 }

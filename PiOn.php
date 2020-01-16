@@ -20,58 +20,21 @@
 	use Amp\Log\StreamHandler;
 	use Psr\Log\NullLogger;
 	use Monolog\Logger;
+	use Seld\JsonLint\JsonParser;
 	
-	
-	// TEST
-	/*Loop::run(function(){
-		Loop::repeat(1000, function(){
-			$prom = \Amp\Call(static function(){
-				$n = 0;
-				while(true){
-					echo "CALLED FUNC1:" . $n++ . "\n";
-					yield;
-				}
-				//return "never1";
-			});
-			echo "DELAY\n";
-		});
-		$prom = \Amp\Call(static function(){
-			while(true){
-				echo "CALLED FUNC\n";
-				yield;
-			}
-			//return "never";
-		});
-		echo "ENDING\n";
-	});
-	echo "OUTOFLOOP\n";
-	
-	/*function coroutine(){
-		foreach(get_val() as $v){
-			
-			echo "$v\n";
-		}
-		
-	}
-	
-	function get_val(){
-		$n = 0;
-		while(true){
-			echo "CALLED FUNC1:" . $n++ . "\n";
-			yield $n;
-		}
-	}
-	coroutine();
-	*/
-	
-	//die;
-	//ENDTEST
 	
 	//Load Config
 	$config_json = file_get_contents("config/config.json");
-	$config  = json_decode($config_json) or die ("Failed to parse config.json\n");
-	
-	//var_dump($config);
+	$config = null;
+	$parser = new JsonParser;
+	try {
+		$config = $parser->parse($config_json);
+	} catch(Exception $e){
+		var_dump($e->getDetails());
+		$details = $e->getDetails();
+		plog("Failed to parse config.json. Error at line: {$details['line']}", FATAL);
+	}
+
 	
 	//Model creation
 	$model = new Model($config->model);
@@ -87,15 +50,22 @@
 		
 		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
 		$server = new HttpServer($sockets, new CallableRequestHandler(function (Amp\Http\Server\Request $request) {
-			$ip = $request->getClient()->getRemoteAddress()->getHost();
-			$port = $request->getClient()->getRemoteAddress()->getPort();
-			plog("HTTP req from " . $ip.":".$port . " for " . $request->getUri()->getPath()."?".$request->getURI()->getQuery(), DEBUG);
-			$path = $request->getURI()->getPath();
-			$response = null;
-			if(substr($path,0,5) == "/web/"){
-				return handle_static_request($request);
-			} else {
-				return handle_rest_request($request);
+			try{
+				$ip = $request->getClient()->getRemoteAddress()->getHost();
+				$port = $request->getClient()->getRemoteAddress()->getPort();
+				plog("HTTP req from " . $ip.":".$port . " for " . $request->getUri()->getPath()."?".urldecode($request->getURI()->getQuery()), DEBUG);
+				$path = $request->getURI()->getPath();
+				$response = null;
+				if(substr($path,0,5) == "/web/"){
+					return handle_static_request($request);
+				} else {
+					return handle_rest_request($request);
+				}
+			} catch(\Exception $e){
+				plog("ERROR:" . var_export($e, true), ERROR);
+				return new Response(500, [
+					"content-type" => "text/plain; charset=utf-8"
+				], "ERROR:" . var_export($e, true)); //SECURITY
 			}
         
 		}), $logger);
@@ -128,7 +98,10 @@
 	echo "MAIN LOOP ENDED!!!\n";
 	
 	function plog($text, $level){
-		if($level >= 0){
+		if($level == FATAL){
+			die(date("Y/m/d H:i:s") . ": (FATAL) " . $text . PHP_EOL);
+		}
+		else if($level >= 0){
 			echo date("Y/m/d H:i:s") . ":" . $text . PHP_EOL;
 		}
 	}

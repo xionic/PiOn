@@ -1,29 +1,40 @@
 <?php
 
 class HardwareGPIO extends Hardware {
-	public static $value_certainty = true; //can we be sure the hardware has actually changed when set? i.e. wireless plugs which provide no feedback. The value is "set" and we have to hope the hardware received and completed the order.
+	 
 	
-	function __construct($name, $node_name, $args){
-		parent::__construct($name, $node_name, $args);
+	function __construct($name, $node_name, $capabilities, $args){
+		parent::__construct($name, $node_name, $capabilities,  $args);
 		$this->type = "HardwareGPIO";
+		$this->value_certainty = true;
 	}
 	
-	function get($item_args){
-		plog("HardwareGPIO get for " . json_encode($item_args), DEBUG);
-		//`gpio set $item_args->pin in`;
-		$result = trim(`gpio read $item_args->pin`);
-		return $result;
+	protected function hardware_get($item_args){	
+		return HardwareGPIO::get_pin($item_args->pin);
 	}
 	
-	function set($item_args, $value){
-		plog("HardwareGPIO set for " . json_encode($item_args), DEBUG);
-		//`gpio set $item_args->pin in`;
-		$result = trim(`gpio mode $item_args->pin out`); //TODO do this with process functions instead for error feedback etc.
+	protected function hardware_set($item_args, $value){
+		return HardwareGPIO::set_pin($item_args->pin, $value);
+	}
+	
+	public static function get_pin($board_pin){
+		return trim(`gpio -1 read $board_pin`);
+	}
+	
+	public static function set_pin($board_pin, $value){
+		//echo "--------------------------------- gpio mode $value out\n";
+		$cmd = "gpio -1 mode $board_pin out";
+		plog("HardwareGPIO running command: '$cmd'", DEBUG);
+		$result = trim(shell_exec($cmd)); //TODO do this with process functions instead for error feedback etc.
 		if($result != "")
 			throw new Exception("GPIO error: $result");
-		$result = trim(`gpio write $item_args->pin escapeshellarg($value)`);
+		
+		$cmd = "gpio -1 write $board_pin ". intval($value);
+		plog("HardwareGPIO running command: '$cmd'", DEBUG);
+		$result = trim(shell_exec($cmd));
 		if($result != "")
 			throw new Exception("GPIO error: $result");
+		plog("gpio command issued successfully", DEBUG);
 		return true;
 	}
 	

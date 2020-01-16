@@ -12,6 +12,7 @@
 		"modules/*/*"
 	],
 	"sources": [	
+		"*.js",
 		"*.css",
 		"modules/*/*",		
 		"node_modules/**/*"	

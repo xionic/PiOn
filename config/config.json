@@ -6,12 +6,93 @@
 		],
 		
 		"hardware":[
-			{"name": "RPi GPIO", "type": "GPIO", "typeargs": {}, "node": "pi1"}
+			{"name": "RPi GPIO", "type": "GPIO", "typeargs": {}, "node": "pi1", "capabilities": ["set", "get"]},
+			{
+				"name": "pi1 DualGPIOToggle",
+				"type": "DualGPIOToggle",
+				"typeargs": {
+					"duration": "500",
+					"active_low": true,
+					"1": {"on": 11, "off": 13},
+					"2": {"on": 15, "off": 16},
+					"3": {"on": 31, "off": 33},
+					"4": {"on": 37, "off": 35},
+					"5": {"on": 38, "off": 40}
+				},
+				"node": "pi1",
+				"capabilities": ["set"]
+			}
 		],
 		
 		"items": [
-			{"name": "date test", "type": "Test", "typeargs": {}, "hardware":{"name": "RPi GPIO", "args": {"pin":15, "mode": "switch"}}, "node": "xealot_server", "web_type": "number"},
-			{"name": "GPIO test", "type": "Switch", "typeargs": {}, "hardware":{"name": "RPi GPIO", "args": {"pin":15, "mode": "switch"}}, "node": "pi1", "web_type": "number"}
+			{"name": "date test", "type": "Test", "typeargs": {}, "hardware":{}, "node": "xealot_server", "web_type": "number"},
+			
+			{
+				"name": "GPIO test",
+				"type": "Switch",
+				"typeargs": {},
+				"hardware":{
+					"name": "RPi GPIO",					
+					"args": {"pin":22, "mode": "switch"}
+				},
+				"node": "pi1",
+				"web_type": "number"
+			 },
+			 {
+				"name": "GPIO Toggler test 1",
+				"type": "Switch",
+				"typeargs": {},
+				"hardware":{
+					"name": "pi1 DualGPIOToggle",					
+					"args": {"switch_num": 1}
+				},
+				"node": "pi1",
+				"web_type": "number"
+			 },
+			 {
+				"name": "GPIO Toggler test 2",
+				"type": "Switch",
+				"typeargs": {},
+				"hardware":{
+					"name": "pi1 DualGPIOToggle",					
+					"args": {"switch_num": 2}
+				},
+				"node": "pi1",
+				"web_type": "number"
+			 },
+			 {
+				"name": "GPIO Toggler test 3",
+				"type": "Switch",
+				"typeargs": {},
+				"hardware":{
+					"name": "pi1 DualGPIOToggle",					
+					"args": {"switch_num": 3}
+				},
+				"node": "pi1",
+				"web_type": "number"
+			 },
+			 {
+				"name": "GPIO Toggler test 4",
+				"type": "Switch",
+				"typeargs": {},
+				"hardware":{
+					"name": "pi1 DualGPIOToggle",					
+					"args": {"switch_num": 4}
+				},
+				"node": "pi1",
+				"web_type": "number"
+			 },
+			 {
+				"name": "GPIO Toggler test 5",
+				"type": "Switch",
+				"typeargs": {},
+				"hardware":{
+					"name": "pi1 DualGPIOToggle",					
+					"args": {"switch_num": 5}
+				},
+				"node": "pi1",
+				"web_type": "number"
+			 }
 		]
 	}
 }

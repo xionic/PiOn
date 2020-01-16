@@ -21,7 +21,7 @@ export class module_switch extends LitElement {
 
 	elem_changed(s){
 		this.state = this.shadowRoot.querySelector("paper-toggle-button").checked;
-		item_updated(this.parentNode.dataset.item_name, this.state);
+		item_updated(this.parentNode.dataset.item_name, this.state?1:0);
 	}
 
 	update_value(data){

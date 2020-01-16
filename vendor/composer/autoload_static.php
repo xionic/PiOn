@@ -24,6 +24,10 @@ class ComposerStaticInit7dfda2b92061989023fa3ef9e7100574
     );
 
     public static $prefixLengthsPsr4 = array (
+        'S' => 
+        array (
+            'Seld\\JsonLint\\' => 14,
+        ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
@@ -61,6 +65,10 @@ class ComposerStaticInit7dfda2b92061989023fa3ef9e7100574
     );
 
     public static $prefixDirsPsr4 = array (
+        'Seld\\JsonLint\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/seld/jsonlint/src/Seld/JsonLint',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',

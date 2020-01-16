@@ -1,9 +1,8 @@
 <?php
 
-define("REQ", "rest_reqest");
-define("RESP", "rest_response");
-
 class RestMessage {
+	public const REQ = "req";
+	public const RESP = "resp";
 	public $type; //req or resp (set requests are answered by resp's)
 	public $sending_node;
 	public $target_node; //probably only populated for req's
@@ -18,14 +17,14 @@ class RestMessage {
 		$this->payload = $payload;
 	}
 	
-	public static function from_json(String $json){
+	public static function from_json(String $json): RestMessage {
 		if($json != ""){
 			$obj = json_decode($json);
 			return new RestMessage($obj->type, $obj->sending_node, $obj->target_node, $obj->target_port, $obj->payload);			
 		}
 	}
 	
-	function to_json(){
+	function to_json(): String{
 		return json_encode($this);
 	}
 }

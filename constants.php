@@ -4,6 +4,7 @@
 define("DEBUG",3);
 define("VERBOSE",2);
 define("ERROR",0);
+define("FATAL",-1);
 
 //TESTZ
 if(gethostname() == "xealot")
