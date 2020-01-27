@@ -6,12 +6,10 @@ export class ItemMessage {
 	action_success;
 	error_msg;
 	
-	constructor(item_name, value, action, action_success, error_msg){
+	constructor(item_name, action, value){
 		this.item_name = item_name;
 		this.value = value;
 		this.action = action;
-		this.action_success = action_success;
-		this.error_msg = error_msg;
 	}
 	
 	static get GET(){
@@ -25,9 +23,7 @@ export class ItemMessage {
 		return JSON.stringify({
 			item_name: this.item_name,
 			value: this.value,
-			action: this.action,
-			action_success: this.action_success,
-			error_msg: this.error_msg
+			action: this.action
 		});
 	}
 	

@@ -1,11 +1,11 @@
 import {LitElement, html}  from 'lit-element';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import {register_module, item_updated} from '../../main.js';
+import {Value} from '../../Value.js';
 
 export class module_switch extends LitElement {
 	static get properties() {
 		return { 
-			name: { type: String },
 			state: { type: Boolean}
 		};
 	}
@@ -15,17 +15,20 @@ export class module_switch extends LitElement {
 		/*this.addEventListener('change', function(){
 		alert("COSNT CHANGE");
 		});*/
-		this.state = false; //default
+		this.state = false //default
 
 	}
 
-	elem_changed(s){
-		this.state = this.shadowRoot.querySelector("paper-toggle-button").checked;
-		item_updated(this.parentNode.dataset.item_name, this.state?1:0);
+	elem_changed(){
+		var new_val = new Value(this.parentNode.dataset.item_name,this.shadowRoot.querySelector("paper-toggle-button").checked);
+		this.state = new_val.data;
+		item_updated(this.parentNode.dataset.item_name, new_val);
 	}
 
 	update_value(data){
-		this.state = data.value?true:false;
+		//console.log(data, this.state);
+		this.state = data;
+		//console.log(data, this.state);
 	}
 
 	render() {

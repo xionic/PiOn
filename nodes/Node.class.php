@@ -1,4 +1,5 @@
 <?php
+namespace PiOn\Node;
 
 abstract class Node {
 	

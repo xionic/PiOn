@@ -1,19 +1,29 @@
 <?php
+namespace PiOn\Item;
+
+use \Pion\Hardware\Hardware as Hardware;
+
+use \Amp\Promise;
+use \Amp\Success;
 
 class ItemSwitch extends Item {
 	public const type = "switch";
-	public function __construct($name, $node, $args, $hw, $hw_args){
-		parent::__construct($name, $node, $hw, $hw_args);
-	}
+	private $state = 0; // default to off
 	
-	protected function get_value_local(): ItemMessage{
-		$val = $this->hardware->get($this->hardware_args);
-		$im = new ItemMessage($this->name, ItemMessage::GET, $val, true, null);
-		return $im;		
+	protected function get_value_local(): Promise{
+		if($this->hardware != null){
+			return new Success(new Value($this->hardware->get($this->hardware_args)));			
+		} else {
+			return new Success(new Value($this->state));
+		}
 	}
-	function set_value_local($value): ItemMessage{ //TODO: Validation
-		$this->hardware->set($this->hardware_args, $value);		
-		return new ItemMessage($this->name, ItemMessage::SET, null, true, null);
+	function set_value_local($value): Promise{ //TODO: Validation
+		if($this->hardware != null){
+			return new Success(new Value($this->hardware->set($this->hardware_args, $value)));
+		} else {
+			$this->state = $set_val->value;
+			return new Success(new Value($this->state));
+		}
 		
 	}
 

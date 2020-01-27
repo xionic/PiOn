@@ -51,6 +51,7 @@ final class ConsoleFormatter extends LineFormatter
                 $this->colors = hasColorSupport();
                 break;
         }
+		$this->colors = true; //HACK for piping
     }
 
     private function ansifyLevel(string $level): string

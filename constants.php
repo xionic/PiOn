@@ -3,6 +3,7 @@
 //logging
 define("DEBUG",3);
 define("VERBOSE",2);
+define("INFO",1);
 define("ERROR",0);
 define("FATAL",-1);
 

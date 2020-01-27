@@ -7,9 +7,7 @@ function handle_static_request(Amp\Http\Server\Request $request){
 	$path = trim($path,"/");
 	if(substr($path, 0, 3) != "web"){
 		plog("Non web path given to static handler: $path", ERROR);
-		return new Amp\Http\Server\Response(500, [
-			"content-type" => "text/plain; charset=utf-8"
-		], "NOT FOUND");
+		return respons("NOT FOUND");
 	}
 	$path = preg_replace("/^web/", "", $path);
 	$path = "web/build/default" . $path;
@@ -18,9 +16,7 @@ function handle_static_request(Amp\Http\Server\Request $request){
 
 	if(!is_readable($path)){	
 		plog("File not found, returning 404: $path", DEBUG);
-		return new Amp\Http\Server\Response(404, [
-			"content-type" => "text/plain; charset=utf-8"
-		], "NOT FOUND");
+		return respond("NOT FOUND");
 	};
 	$content_type = "text/plain";
 	$response = null;
@@ -43,9 +39,7 @@ function handle_static_request(Amp\Http\Server\Request $request){
 		$response = file_get_contents($path);
 	plog("Serving static file " . $path, VERBOSE);
 
-	return new Amp\Http\Server\Response(200, [
-		"content-type" => $content_type,
-	], $response); //security	
+	return respond($response, 200); //security	
 }
 
 

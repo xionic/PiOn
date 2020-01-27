@@ -10,7 +10,7 @@ export class module_text extends LitElement {
 
 	constructor() {
 		super();
-		this.text_val = "MORE SHIT";
+		this.text_val = "PLACEHOLDER";
 	}
 
 	render() {
