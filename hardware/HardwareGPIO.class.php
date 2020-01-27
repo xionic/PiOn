@@ -8,7 +8,6 @@ class HardwareGPIO extends Hardware {
 	public const value_certainty = Value::CERTAIN;
 	
 	function __construct($name, $node_name, $capabilities, $args){
-		echo "HEEEERE\n";
 		parent::__construct($name, $node_name, $capabilities,  $args);
 		$this->type = "HardwareGPIO";
 		$this->value_certainty = true;

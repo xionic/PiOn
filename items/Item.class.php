@@ -34,9 +34,7 @@ abstract class Item {
 				$cur_value = null;
 				try{
 					$item_value = yield $this->get_value_local();
-					
 				} catch(OperationNotSupportedException $e){ //GET not supported. return sucess: false and value: null
-				
 					$item_value = new Value($this->last_value->data, true, "OperationNotSupportedException", $this->last_value->timestamp, $this->last_value->certainty);
 					//var_dump($resp_item_message);
 				}
@@ -48,7 +46,7 @@ abstract class Item {
 				
 				//fire item change event if needed
 				//if($resp_item_message->value->value != $this->last_value->value){
-				if(true){					
+				if(true){			
 					EventManager::trigger_event(new ItemEvent(ITEM_VALUE_CHANGED, $this->name, $item_value));
 				}
 				//var_dump($this->resp_item_message->value);die;
