@@ -1,6 +1,6 @@
-config/
-keys/*
-composer.lock
-config-repo
+/config/
+/keys/*
+/composer.lock
+/config-repo
 
-!keys/.gitkeep
+!/keys/.gitkeep
