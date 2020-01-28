@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e # exit on any errors
+
+if [[ ! -r ./config-repo ]]; then
+	echo "config-repo does not exist";
+	exit 1
+fi
+
+REPO=$(cat ./config-repo | head -n1 | tr -d '\n');
+KEY=$(cat ./config-repo | tail -n1);
+KEY="keys/$KEY"
+
+echo $REPO
+echo "$KEY"
+echo "Updating config from repo: $REPO using key: $KEY"
+
+chmod 500 ./keys
+chmod 400 $KEY
+
+if [[ ! -r config/config.json ]]; then
+	ssh-agent bash -c 'ssh-add $KEY; git clone $REPO'
+else
+	cd config
+	ssh-agent bash -c "ssh-add ../$KEY; git pull"
+	cd ..
+fi
+
+
+./PiOn.php

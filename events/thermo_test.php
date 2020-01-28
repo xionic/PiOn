@@ -5,7 +5,7 @@ use \PiOn\Event\WeeklyTimer;
 use \PiOn\Event\EventManager;
 use \PiOn\Item\Value;
 
-$settemp = 22.5;
+$settemp = 23.5;
 
 Scheduler::register_task("Update Nick Temp", "xealot_server", new FixedIntervalTimer(30), function(){
 	echo "TIMER TEST YYAYYYAYAYAYY\n";

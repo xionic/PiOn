@@ -25,7 +25,7 @@ export function item_updated(item_name, value){
 	let item_message = new ItemMessage(item_name, ItemMessage.SET, value, null, null);
 	let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, null, null, null, item_message.to_json());
 	$.ajax({
-		url: "http://xealot:28080/",
+		url: config.backend_url,
 		data: {
 			data: rest_message.to_json()
 		}
@@ -51,7 +51,8 @@ $().ready(function(){
 				let item_message = new ItemMessage(item.item_name, ItemMessage.GET, null)
 				let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, "client", null, null, item_message.to_json())
 				$.ajax({
-					url: "http://xealot:28080/?data=" + rest_message.to_json()
+					url: config.backend_url,
+					data: { data: rest_message.to_json()}
 				}).done(function(data, text_status, jqxhr){
 					//console.log(data);
 					var payload = JSON.parse(data.payload);
