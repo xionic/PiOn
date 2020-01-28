@@ -1,7 +1,6 @@
 vendor
 config/
 keys/*
-web/sitemap.js
 composer.lock
 config-repo
 
