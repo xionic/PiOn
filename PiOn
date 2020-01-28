@@ -19,8 +19,13 @@ chmod 500 ./keys
 chmod 400 $KEY
 
 if [[ ! -r config/config.json ]]; then
+	echo "Config not yet cloned..."
 	ssh-agent bash -c 'ssh-add $KEY; git clone $REPO'
 else
+	if [[ ! -z config ]]; then
+		mkdir config
+	fi
+	echo "Updating repo"
 	cd config
 	ssh-agent bash -c "ssh-add ../$KEY; git pull"
 	cd ..
