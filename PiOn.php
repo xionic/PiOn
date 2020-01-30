@@ -78,28 +78,7 @@
 	$router->setFallback($documentRoot);
 	$server = new HttpServer($sockets, $router, create_logger("server")); 
 	
-	//create HTTP server
 	
-	/*$server = new HttpServer($sockets, new CallableRequestHandler(function (Amp\Http\Server\Request $request) {
-		try{
-
-			$ip = $request->getClient()->getRemoteAddress()->getHost();
-			$port = $request->getClient()->getRemoteAddress()->getPort();
-			plog("HTTP req from " . $ip.":".$port . " for " . $request->getUri()->getPath()."?".urldecode($request->getURI()->getQuery()), DEBUG);
-			$path = $request->getURI()->getPath();
-			$response = null;
-			if(substr($path,0,5) == "/web/"){
-				return handle_static_request($request);
-			} else {					
-				return yield handle_rest_request($request);
-			}
-		} catch(\Exception $e){
-			//plog("ERROR:" . @var_export($e, true), ERROR);
-			throw $e;
-			return respond("ERROR:" . var_export($e, true),500); //SECURITY
-		}
-	
-	}), create_logger("server"));*/
 	$server->setErrorHandler(new \PiOn\HTTPErrorHandler());
 	yield $server->start();		
 

@@ -15,7 +15,7 @@ echo $REPO
 echo "$KEY"
 echo "Updating config from repo: $REPO using key: $KEY"
 
-chmod 500 ./keys
+chmod 700 ./keys #7 or we can't do updates
 chmod 400 $KEY
 
 if [[ ! -r config/config.json ]]; then
