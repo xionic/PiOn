@@ -20,7 +20,6 @@ class ItemThermostat extends Item {
 		$this->heater_switch = get_item($this->item_args->heater_item);
 		$this->temp_item = get_item($this->item_args->temp_item);
 		$this->setpoint = get_item($this->item_args->setpoint_item);
-		$this->setpoint = get_item($this->item_args->setpoint_item);
 	}
 	
 	//returns value structure {state: on|off, setpoint: int, heater_state: bool, current_temp: float}
@@ -33,6 +32,7 @@ class ItemThermostat extends Item {
 			
 		
 			$value = (Object) ["state"=> $state, "heater_state" => $heater, "current_temp" => $temp, "setpoint" => $setpoint];
+			return new Value($value);
 		
 		});		
 	}

@@ -3,6 +3,7 @@
   "description": "Home Automation",
   "main": "main.js",
   "dependencies": {
+    "@lrnwebcomponents/simple-modal": "^2.4.0",
     "@polymer/paper-toggle-button": "^3.0.1",
     "@polymer/polymer": "^3.0.0",
     "@webcomponents/webcomponentsjs": "^2.4.0",

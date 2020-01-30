@@ -36,6 +36,8 @@ function handle_rest_request(Request $request): \Amp\Promise{
 		if(!$rest_message = RestMessage::from_json($json)){
 			return respond("data parameter contains invalid JSON", 400);
 		}
+		plog("Received REST req from $ip:$port with data: $json", DEBUG);
+		
 		//var_dump($rest_message); 
 		$json_str = null;
 		switch($rest_message->context){
@@ -75,7 +77,7 @@ function handle_rest_request(Request $request): \Amp\Promise{
 				}							
 				
 				$json_str = (new ItemMessage($item_message->item_name, $item_message->action, $item_value))->to_json();
-				plog("Item '{$item->name}' {$item_message->action} req returning value: ". var_export($item_value->data, true), DEBUG);
+				plog("Item '{$item->name}' {$item_message->action} req returning actual value: ". json_encode($item_value->data), DEBUG);
 				
 			break;
 			

@@ -18,7 +18,7 @@ var sitemap = {
     "type": "text"
   }, {
     "item_name": "Nick Thermo",
-    "type": "text"
+    "type": "thermostat"
   }],
   "Living Room": [{
     "item_name": "GPIO Toggler test 1",

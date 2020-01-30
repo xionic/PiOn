@@ -34,8 +34,12 @@ abstract class Item {
 				$cur_value = null;
 				try{
 					$item_value = yield $this->get_value_local();
-				} catch(OperationNotSupportedException $e){ //GET not supported. return sucess: false and value: null
-					$item_value = new Value($this->last_value->data, true, "OperationNotSupportedException", $this->last_value->timestamp, $this->last_value->certainty);
+				} catch(OperationNotSupportedException $e){ //GET not supported. return sucess:	
+					if($this->last_value == null){						
+						$item_value = new Value($this->last_value->data, true, "OperationNotSupportedException", $this->last_value->timestamp, $this->last_value->certainty);
+					} else {
+						$item_value = new Value(null, true, "GET not supported and last_value not yet set", time(), Value::CERTAIN);
+					}
 					//var_dump($resp_item_message);
 				}
 
@@ -44,9 +48,14 @@ abstract class Item {
 					$item_value->data = TransformManager::transform($this->item_args->transform, $item_value->data);
 				}
 				
-				//fire item change event if needed
-				//if($resp_item_message->value->value != $this->last_value->value){
-				if(true){			
+				$newval = $item_value->data;
+				$oldval = $this->last_value->data;				
+				//fire item change event if needed				
+				if(
+					(is_object($newval) && is_object($oldval) && $newval == $oldval)
+					|| ($oldval == $newval)
+				){
+				//if(true){			
 					EventManager::trigger_event(new ItemEvent(ITEM_VALUE_CHANGED, $this->name, $item_value));
 				}
 				//var_dump($this->resp_item_message->value);die;
@@ -79,7 +88,7 @@ abstract class Item {
 			}	
 		});
 	}
-	public function set_value($value): Promise { // Resolves to Value
+	public function set_value(Value $value): Promise { // Resolves to Value
 		return \Amp\Call(function() use ($value){
 			plog("Trying to set value of item: '{$this->name}' to '{$value->data}'", DEBUG);
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node	
@@ -96,7 +105,6 @@ abstract class Item {
 			} else { // item on remote node
 				plog("Item '" . $this->name . "' is on another host '" . $this->node_name . "'. Sending value...", VERBOSE);
 				$target_node = get_model()->get_node($this->node_name);
-
 				$item_message = new ItemMessage($this->name, ItemMessage::SET, $value);			
 				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name, $target_node->port, $item_message->to_json());
 				$resp_rest_message = yield send($rest_message);

@@ -13,8 +13,8 @@ class HardwareGPIO extends Hardware {
 		$this->value_certainty = true;
 	}
 	
-	protected function hardware_get(Object $item_args){	
-		return new Value(HardwareGPIO::get_pin($item_args->pin), $this->value_certainty);
+	protected function hardware_get(Object $item_args){
+		return HardwareGPIO::get_pin($item_args->pin);
 	}
 	
 	protected function hardware_set(Object $item_args, Value $value){

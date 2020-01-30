@@ -13,12 +13,12 @@ class HardwareExec extends Hardware{
 		$this->value_certainty = true;
 	 }
 	 
-	 function hardware_get(Object $item_args): Value{		
-		 return new Value($this->do_exec($item_args->get_command), false, null, time(), $this->value_certainty);
+	 function hardware_get(Object $item_args){		
+		 return $this->do_exec($item_args->get_command);
 	 }
 	 
 	 function hardware_set(Object $item_args, Value $value): value {
-		 return new Value($this->do_exec($item_args->set_command));
+		 return $this->do_exec($item_args->set_command);
 	 }
 	 
 	 private function do_exec(String $cmd): String{

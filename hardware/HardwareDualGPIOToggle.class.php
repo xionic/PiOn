@@ -20,7 +20,7 @@ class HardwareDualGPIOToggle extends Hardware {
 	function __construct($name, $node_name, $capabilities, $args){
 		parent::__construct($name, $node_name, $capabilities, $args);
 		$this->type = "HardwareDualGPIOToggle";
-		$this->value_certainty = false;
+		$this->value_certainty = Value::UNCERTAIN;
 		
 		//init toggle states
 		if($node_name == NODE_NAME){
@@ -47,9 +47,11 @@ class HardwareDualGPIOToggle extends Hardware {
 		
 	}
 	
-	function hardware_get(Object $item_args): Value{}
+	function hardware_get(Object $item_args){
+		return $this->states[$item_args->switch_num];
+	}
 	
-	function hardware_set(Object $item_args, Value $value): Value{
+	function hardware_set(Object $item_args, Value $value){
 		$switch_num = $item_args->switch_num;
 		$on_pin = $this->args->switches->$switch_num->on;
 		$off_pin = $this->args->switches->$switch_num->off;
@@ -61,7 +63,9 @@ class HardwareDualGPIOToggle extends Hardware {
 		Loop::delay($this->args->duration, function() use($relevant_pin, $high_state){
 			HardwareGPIO::set_pin($relevant_pin, !$high_state);
 		});
+		
 		$this->states[$item_args->switch_num] = $value->data;
+		//var_dump($this->states);
 		return $value;
 	}
 	

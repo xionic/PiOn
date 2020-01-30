@@ -4,6 +4,7 @@ import {ItemMessage} from './ItemMessage.js';
 import {Value} from './Value.js';
 
 var module_id_counter = 0; //hack, to give each module element it's own id because I can't work out how to reference the object from the element.
+
 var modules = new Object();
 export function register_module(props){
 	console.debug("Registering module: " + props.name);
@@ -57,7 +58,7 @@ $().ready(function(){
 					//console.log(data);
 					var payload = JSON.parse(data.payload);
 					console.debug("Successfully updated value for item: " + item.item_name + " with value: " + data.payload);
-					$(item_value_span)[0].querySelector(".itemmodule").update_value(payload.value.data);
+					$(item_value_span)[0].querySelector(".itemmodule").update_value(payload.value);
 					
 				});
 				//itemli.append();

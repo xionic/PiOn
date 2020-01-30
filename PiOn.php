@@ -180,7 +180,7 @@
 				throw new Exception("Error status received from " . $target_node->hostname . ": " . $resp->getStatus() . " Body is: " . $json);
 			}
 			$rest_message = RestMessage::from_json($json);
-			
+			plog("Responding with: " . json_encode($rest_message), DEBUG);
 
 			//plog("Successfully retrieved remote value from node: " . $THIS->node_name. ", Value: ". ($item_message->value == null ? "NULL":$item_message->value), DEBUG);
 			

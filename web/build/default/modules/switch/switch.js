@@ -21,14 +21,15 @@ export class module_switch extends LitElement {
   }
 
   elem_changed() {
-    var new_val = new Value(this.parentNode.dataset.item_name, this.shadowRoot.querySelector("paper-toggle-button").checked);
-    this.state = new_val.data;
+    var checked_state = this.shadowRoot.querySelector("paper-toggle-button").checked;
+    var new_val = new Value(checked_state ? 1 : 0); //this.state = checked_state;
+
     item_updated(this.parentNode.dataset.item_name, new_val);
   }
 
   update_value(value) {
     //console.log(data, this.state);
-    this.state = value.data; //console.log(data, this.state);
+    this.state = value.data ? true : false; //console.log(data, this.state);
   }
 
   render() {

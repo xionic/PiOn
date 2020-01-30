@@ -33,7 +33,7 @@ abstract class Hardware {
 	
 	function set(Object $item_args, $value){
 		
-		plog("Hardware SET request for type: {$this->type} with value: ".var_export($value->data,true) . " and item_args: ".json_encode($item_args), DEBUG);
+		plog("Hardware SET request for type: {$this->type} with value: ".json_encode($value->data) . " and item_args: ".json_encode($item_args), DEBUG);
 		if(in_array(Hardware::HW_SET, $this->capabilities)){
 			return $this->hardware_set($item_args, $value);
 		} else {
