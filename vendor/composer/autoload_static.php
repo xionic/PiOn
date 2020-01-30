@@ -12,15 +12,19 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         '6cd5651c4fef5ed6b63e8d8b8ffbf3cc' => __DIR__ . '/..' . '/amphp/byte-stream/lib/functions.php',
         'bcb7d4fc55f4b1a7e10f5806723e9892' => __DIR__ . '/..' . '/amphp/sync/src/functions.php',
         '8dc56fe697ca93c4b40d876df1c94584' => __DIR__ . '/..' . '/amphp/process/lib/functions.php',
+        '384cf4f2eb4d2f896db72315a76066ad' => __DIR__ . '/..' . '/amphp/parallel/lib/Worker/functions.php',
+        'd10f490189cfd2d00bda2b165dfbacae' => __DIR__ . '/..' . '/amphp/file/src/functions.php',
+        '3d8ee50db78074a9235f0c2008c26b42' => __DIR__ . '/..' . '/amphp/http/src/functions.php',
         '445532134d762b3cbc25500cac266092' => __DIR__ . '/..' . '/daverandom/libdns/src/functions.php',
         '7ebf029ad4b246f1e3f66192b40a932f' => __DIR__ . '/..' . '/amphp/dns/lib/functions.php',
         'e1e8b49c332434256b5df11b0f0c2a62' => __DIR__ . '/..' . '/league/uri-parser/src/functions_include.php',
-        '3d8ee50db78074a9235f0c2008c26b42' => __DIR__ . '/..' . '/amphp/http/src/functions.php',
         'd4e415514e4352172d58f02433fa50e4' => __DIR__ . '/..' . '/amphp/socket/src/functions.php',
         '1c2dcb9d6851a7abaae89f9586ddd460' => __DIR__ . '/..' . '/amphp/socket/src/Internal/functions.php',
         '5ac5dbc97af12bd847e1db9fe93e192f' => __DIR__ . '/..' . '/amphp/log/src/functions.php',
         '3ff3609f8c8173833eaa97521a843531' => __DIR__ . '/..' . '/amphp/http-server/src/Middleware/functions.php',
         'a56027adf84a32da155734de2d858e65' => __DIR__ . '/..' . '/amphp/http-server/src/functions.php',
+        '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
+        '33c308296b07af966b5bf768a0113f1e' => __DIR__ . '/..' . '/amphp/http-server-static-content/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -46,6 +50,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         array (
             'Kelunik\\Certificate\\' => 20,
         ),
+        'F' => 
+        array (
+            'FastRoute\\' => 10,
+        ),
         'A' => 
         array (
             'Amp\\WindowsRegistry\\' => 20,
@@ -53,10 +61,13 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
             'Amp\\Socket\\' => 11,
             'Amp\\Process\\' => 12,
             'Amp\\Parser\\' => 11,
+            'Amp\\Parallel\\' => 13,
             'Amp\\Log\\' => 8,
+            'Amp\\Http\\Server\\StaticContent\\' => 30,
             'Amp\\Http\\Server\\' => 16,
             'Amp\\Http\\Client\\' => 16,
             'Amp\\Http\\' => 9,
+            'Amp\\File\\' => 9,
             'Amp\\Dns\\' => 8,
             'Amp\\Cache\\' => 10,
             'Amp\\ByteStream\\' => 15,
@@ -95,6 +106,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         array (
             0 => __DIR__ . '/..' . '/kelunik/certificate/lib',
         ),
+        'FastRoute\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nikic/fast-route/src',
+        ),
         'Amp\\WindowsRegistry\\' => 
         array (
             0 => __DIR__ . '/..' . '/amphp/windows-registry/lib',
@@ -115,13 +130,22 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         array (
             0 => __DIR__ . '/..' . '/amphp/parser/lib',
         ),
+        'Amp\\Parallel\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/parallel/lib',
+        ),
         'Amp\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/amphp/log/src',
         ),
+        'Amp\\Http\\Server\\StaticContent\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/http-server-static-content/src',
+        ),
         'Amp\\Http\\Server\\' => 
         array (
             0 => __DIR__ . '/..' . '/amphp/http-server/src',
+            1 => __DIR__ . '/..' . '/amphp/http-server-router/src',
         ),
         'Amp\\Http\\Client\\' => 
         array (
@@ -131,6 +155,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         array (
             0 => __DIR__ . '/..' . '/amphp/hpack/src',
             1 => __DIR__ . '/..' . '/amphp/http/src',
+        ),
+        'Amp\\File\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/file/src',
         ),
         'Amp\\Dns\\' => 
         array (

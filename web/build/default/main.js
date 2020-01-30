@@ -70,7 +70,7 @@ $().ready(function () {
           //console.log(data);
           var payload = JSON.parse(data.payload);
           console.debug("Successfully updated value for item: " + item.item_name + " with value: " + data.payload);
-          $(item_value_span)[0].querySelector(".itemmodule").update_value(payload.value.data);
+          $(item_value_span)[0].querySelector(".itemmodule").update_value(payload.value);
         }); //itemli.append();
 
         roomul.append(itemli);

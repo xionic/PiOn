@@ -17,8 +17,8 @@ export class module_text extends LitElement {
 		return html`<p>${this.text_val}<p>`;
 	}
 	
-	update_value(data){
-		this.text_val = data.value;	  
+	update_value(value){
+		this.text_val = value.data;	  
 	}
 }
 
@@ -27,9 +27,9 @@ customElements.define('module-text', module_text);
 $().ready(function(){
 	register_module({
 		name:"text",
-		update: function(container_elem, data){
+		update: function(container_elem, value){
 			console.log(container_elem);
-			this.text_val = data.value;
+			this.text_val = value.data;
 		}
 	});
 });

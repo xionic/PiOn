@@ -24,7 +24,9 @@ class RestMessage {
 	
 	public static function from_json(String $json): RestMessage {
 		if($json != ""){
-			$obj = json_decode($json);
+			if(!$obj = json_decode($json)){
+				return false;
+			}
 			return new RestMessage($obj->type, $obj->context, $obj->sending_node, $obj->target_node, $obj->target_port, $obj->payload);			
 		}
 	}

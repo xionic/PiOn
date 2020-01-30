@@ -16,7 +16,7 @@ use \Amp\Http\Client\InvalidRequestException;
 function handle_rest_request(Request $request): \Amp\Promise{
 	return \Amp\Call(function() use ($request) {	
 		$path = $request->getURI()->getPath();
-		if($path != "/"){
+		if($path != "/api/"){
 			plog("Invalid REST Path : $path. This should not happen", ERROR);
 			return respond("Incorrect request routing", 500);
 		}
@@ -33,7 +33,9 @@ function handle_rest_request(Request $request): \Amp\Promise{
 			return respond("Missing 'data' parameter", 400);		
 		}		
 		$json = $QS["data"];
-		$rest_message = RestMessage::from_json($json);
+		if(!$rest_message = RestMessage::from_json($json)){
+			return respond("data parameter contains invalid JSON", 400);
+		}
 		//var_dump($rest_message); 
 		$json_str = null;
 		switch($rest_message->context){

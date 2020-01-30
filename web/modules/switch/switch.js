@@ -25,9 +25,9 @@ export class module_switch extends LitElement {
 		item_updated(this.parentNode.dataset.item_name, new_val);
 	}
 
-	update_value(data){
+	update_value(value){
 		//console.log(data, this.state);
-		this.state = data;
+		this.state = value.data;
 		//console.log(data, this.state);
 	}
 

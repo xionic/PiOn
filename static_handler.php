@@ -1,4 +1,17 @@
 <?php
+
+use Amp\Http\Server\RequestHandler\CallableRequestHandler;
+use Amp\Http\Server\Response;
+use Amp\Http\Server\Router;
+use Amp\Http\Server\Server;
+use Amp\Http\Server\StaticContent\DocumentRoot;
+use Amp\Http\Status;
+
+function handle_static_request(Amp\Http\Server\Request $request){
+	
+}
+
+/*
 function handle_static_request(Amp\Http\Server\Request $request){
 	
 	//get and sanitize path
@@ -16,7 +29,7 @@ function handle_static_request(Amp\Http\Server\Request $request){
 
 	if(!is_readable($path)){	
 		plog("File not found, returning 404: $path", DEBUG);
-		return respond("NOT FOUND");
+		return respond("NOT FOUND", 404);
 	};
 	$content_type = "text/plain";
 	$response = null;
@@ -29,18 +42,12 @@ function handle_static_request(Amp\Http\Server\Request $request){
 		case "css": $content_type = "text/css; charset=UTF-8"; break;
 		default: plog("Unknown file type served: " . pathinfo($path, PATHINFO_EXTENSION), ERROR); 
 	}
-	/*if($path == "./web/index.html"){ //template expansion
-		plog("Expanding index.html template", VERBOSE);
-		$out = generate_html_includes();
-		$response = file_get_contents($path);
-		$response = preg_replace("/\{\{ModuleScriptAndStyle\}\}/", $out, $response);
-	}
-	else*/
+	
 		$response = file_get_contents($path);
 	plog("Serving static file " . $path, VERBOSE);
 
-	return respond($response, 200); //security	
+	return respond($response, 200, $content_type); //security	
 }
-
+*/
 
 ?>

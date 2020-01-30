@@ -32,6 +32,8 @@
 	use Monolog\Logger;
 	use Seld\JsonLint\JsonParser;
 	use \Amp\Promise;
+	use \Amp\Http\Server\Router;
+	use \Amp\Http\Server\StaticContent\DocumentRoot;
 	
 	$logger = create_logger("main");
 	
@@ -62,40 +64,51 @@
 	Loop::run(function() use ($this_node){
 		
 	foreach (glob("{events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn being loaded
-		{
-			require_once $filename; //SECURITY
-		}
+	{
+		require_once $filename; //SECURITY
+	}
 		
-		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
-		$server = new HttpServer($sockets, new CallableRequestHandler(function (Amp\Http\Server\Request $request) {
-			try{
-
-				$ip = $request->getClient()->getRemoteAddress()->getHost();
-				$port = $request->getClient()->getRemoteAddress()->getPort();
-				plog("HTTP req from " . $ip.":".$port . " for " . $request->getUri()->getPath()."?".urldecode($request->getURI()->getQuery()), DEBUG);
-				$path = $request->getURI()->getPath();
-				$response = null;
-				if(substr($path,0,5) == "/web/"){
-					return handle_static_request($request);
-				} else {					
-					return yield handle_rest_request($request);
-				}
-			} catch(\Exception $e){
-				//plog("ERROR:" . @var_export($e, true), ERROR);
-				throw $e;
-				return respond("ERROR:" . var_export($e, true),500); //SECURITY
-			}
-        
-		}), create_logger("server"));
-		$server->setErrorHandler(new \PiOn\HTTPErrorHandler());
-		yield $server->start();		
+	$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
+	//static content handler
+	$documentRoot = new DocumentRoot(__DIR__ . '/web/build/default');
+	$router = new Amp\Http\Server\Router;
+	$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {
+		return yield handle_rest_request($request);
+	}));
+	$router->setFallback($documentRoot);
+	$server = new HttpServer($sockets, $router, create_logger("server")); 
 	
-		// Stop the server gracefully when SIGINT is received.
-		// This is technically optional, but it is best to call Server::stop().
-		Amp\Loop::onSignal(SIGINT, function (string $watcherId) use ($server) {
-			Amp\Loop::cancel($watcherId);
-			yield $server->stop();
-		});
+	//create HTTP server
+	
+	/*$server = new HttpServer($sockets, new CallableRequestHandler(function (Amp\Http\Server\Request $request) {
+		try{
+
+			$ip = $request->getClient()->getRemoteAddress()->getHost();
+			$port = $request->getClient()->getRemoteAddress()->getPort();
+			plog("HTTP req from " . $ip.":".$port . " for " . $request->getUri()->getPath()."?".urldecode($request->getURI()->getQuery()), DEBUG);
+			$path = $request->getURI()->getPath();
+			$response = null;
+			if(substr($path,0,5) == "/web/"){
+				return handle_static_request($request);
+			} else {					
+				return yield handle_rest_request($request);
+			}
+		} catch(\Exception $e){
+			//plog("ERROR:" . @var_export($e, true), ERROR);
+			throw $e;
+			return respond("ERROR:" . var_export($e, true),500); //SECURITY
+		}
+	
+	}), create_logger("server"));*/
+	$server->setErrorHandler(new \PiOn\HTTPErrorHandler());
+	yield $server->start();		
+
+	// Stop the server gracefully when SIGINT is received.
+	// This is technically optional, but it is best to call Server::stop().
+	Amp\Loop::onSignal(SIGINT, function (string $watcherId) use ($server) {
+		Amp\Loop::cancel($watcherId);
+		yield $server->stop();
+	});
 	
 	});
 	echo "MAIN LOOP ENDED!!!\n";
@@ -157,7 +170,7 @@
 		
 		$client = Amp\Http\Client\HttpClientBuilder::buildDefault();
 		$target_node = get_node($rest_message->target_node);
-		$url = $target_node->get_base_url() . "/?data=". urlencode($rest_message->to_json());
+		$url = $target_node->get_base_url() . "/api/?data=". urlencode($rest_message->to_json());
 
 		$call = Amp\Call(static function() use($client, $target_node, $url){
 			plog("Making REST request to ". $target_node->hostname. ", url: ".urldecode($url), DEBUG);
