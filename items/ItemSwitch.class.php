@@ -11,19 +11,29 @@ class ItemSwitch extends Item {
 	private $state = 0; // default to off
 	
 	protected function get_value_local(): Promise {//Value
-	echo "HERE\n";
 		if($this->hardware != null){
-			return new Success(new Value($this->hardware->get($this->hardware_args)));			
+			$this->state = intval($this->hardware->get($this->hardware_args));
+			var_dump($this->state);
+			return new Success(new Value([
+				"data" => $this->state,
+				"certainty" => Value::UNCERTAIN,
+			]));
 		} else {
 			return new Success(new Value($this->state));
 		}
 	}
-	function set_value_local($value): Promise {//Value
+	function set_value_local(Value $set_val): Promise {//Value
+		$this->state = intval($set_val->data);
 		if($this->hardware != null){
-			return new Success(new Value($this->hardware->set($this->hardware_args, $value)));
-		} else {
-			$this->state = $set_val->value;
-			return new Success(new Value($this->state));
+			return new Success(new Value([
+				"data" => intval($this->hardware->set($this->hardware_args, $set_val)) ,
+				"certainty" => Value::UNCERTAIN,
+			]));
+		} else {			
+			return new Success(new Value([
+				"data" => $this->state,
+				"certainty" => Value::UNCERTAIN,
+			]));
 		}
 		
 	}

@@ -68,7 +68,7 @@ abstract class Item {
 				$target_node = get_model()->get_node($this->node_name);
 				
 				$item_message = new ItemMessage($this->name, ItemMessage::GET);			
-				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name,$target_node->port, $item_message->to_json());
+				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name,$target_node->port, $item_message);
 				
 				try {
 					$resp_rest_message = yield send($rest_message);
@@ -76,7 +76,7 @@ abstract class Item {
 					plog("Cound not connect to node '{$target_node->name}'", ERROR);
 					return new Value(null, false, "Cound not connect to node '{$target_node->name}'");
 				}
-				$resp_item_message = ItemMessage::from_json($resp_rest_message->payload);
+				$resp_item_message = ItemMessage::from_obj($resp_rest_message->payload);
 				$item_value = Value::from_obj($resp_item_message->value);
 				
 				
@@ -90,7 +90,7 @@ abstract class Item {
 	}
 	public function set_value(Value $value): Promise { // Resolves to Value
 		return \Amp\Call(function() use ($value){
-			plog("Trying to set value of item: '{$this->name}' to '{$value->data}'", DEBUG);
+			plog("Trying to set value of item: '{$this->name}' to '".json_encode($value->data)."'", DEBUG);
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node	
 			
 				//trigger item update event
@@ -106,9 +106,9 @@ abstract class Item {
 				plog("Item '" . $this->name . "' is on another host '" . $this->node_name . "'. Sending value...", VERBOSE);
 				$target_node = get_model()->get_node($this->node_name);
 				$item_message = new ItemMessage($this->name, ItemMessage::SET, $value);			
-				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name, $target_node->port, $item_message->to_json());
+				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name, $target_node->port, $item_message);
 				$resp_rest_message = yield send($rest_message);
-				$resp_item_message = ItemMessage::from_json($resp_rest_message->payload);
+				$resp_item_message = ItemMessage::from_obj($resp_rest_message->payload);
 				return Value::from_obj($resp_item_message->value);
 			}
 		});
@@ -128,7 +128,7 @@ abstract class Item {
 	
 	//abstract protected function init(): Promise;
 	abstract protected function get_value_local(): Promise;
-	abstract protected function set_value_local($value): Promise;
+	abstract protected function set_value_local(Value $value): Promise;
 	
 	
 }

@@ -15,18 +15,43 @@
 	 public $has_error; //bool
 	 public $error_message; //String
 	 
-	 function __construct($data = null, bool $has_error = false, ?String $error_message = null, ?int $timestamp = null, ?String $certainty = Value::CERTAIN){		 
-		 if($timestamp == null){
-			 $timestamp = time();
-		 }
-		 $this->data = $data;
-		 $this->has_error = $has_error;
-		 $this->error_message = $error_message;
-		 $this->timestamp = $timestamp;
-		 $this->certainty = $certainty;
+	 //can take an array of values with same arg names instead as first arg
+	 function __construct($data = null, bool $has_error = false, ?String $error_message = null, ?int $timestamp = null, ?String $certainty = Value::CERTAIN){
+		if(is_array($data)){
+			$d = $data;
+			foreach($d as $key => $value){
+				switch($key){
+					case "data":
+						$data = $value;
+						break;
+					case "has_error":
+						$has_error = $value;
+						break;
+					case "error_message":
+						$error_message = $value;
+						break;
+					case "timestamp":
+						$timestamp = $value;
+						break;
+					case "certainty":
+						$certainty = $value;
+						break;
+					default:
+						throw new Exception("Invalid argument to Value contrsuctor array: $key");
+				}
+			}
+		}	 
+		if($timestamp == null){
+		 $timestamp = time();
+		}
+		$this->data = $data;
+		$this->has_error = $has_error;
+		$this->error_message = $error_message;
+		$this->timestamp = $timestamp;
+		$this->certainty = $certainty;
 	 }
 	 
-	 public static function from_obj($obj): Value{
+	 public static function from_obj(Object $obj): Value{
 		 //var_dump($obj);
 		if($obj == null)
 			throw new \Exception("object cannot be null");

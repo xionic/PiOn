@@ -23,10 +23,14 @@ class EventMessage{
 		)));
 	}
 	
-	static function from_json(String $json): EventMessage {
-		$obj = json_decode($json);
+	static function from_json(String $json): EventMessage {		
+		return EventMessage::from_obj(json_decode($json));
+	}
+	
+	static function from_obj(Object $obj): EventMessage {
 		return new EventMessage($obj->context, $obj->event_name, $obj->props);
 	}
 }
+
 
 ?>

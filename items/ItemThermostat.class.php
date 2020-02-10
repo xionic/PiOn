@@ -25,21 +25,26 @@ class ItemThermostat extends Item {
 	//returns value structure {state: on|off, setpoint: int, heater_state: bool, current_temp: float}
 	protected function get_value_local(): Promise{
 		return \Amp\call(function(){
-			$state =  (yield $this->state_switch->get_value())->data;
-			$heater = (yield $this->heater_switch->get_value())->data;
-			$temp = (yield $this->temp_item->get_value())->data;
-			$setpoint = (yield $this->setpoint->get_value())->data;
+			$state =  (yield $this->state_switch->get_value());
+			$heater = (yield $this->heater_switch->get_value());
+			$temp = (yield $this->temp_item->get_value());
+			$setpoint = (yield $this->setpoint->get_value());
 			
 		
 			$value = (Object) ["state"=> $state, "heater_state" => $heater, "current_temp" => $temp, "setpoint" => $setpoint];
+			var_dump($value);
 			return new Value($value);
 		
 		});		
 	}
 	
-	protected function set_value_local($value):Promise{
-		$this->value = $value;
-		return new Value($this->setpoint);
+	protected function set_value_local($values):Promise{ //validation
+		return \Amp\call(function() use($values){
+			var_dump($values);
+			yield $this->state_switch->set_value(Value::from_obj($values->data->state));
+			yield $this->setpoint->set_value(Value::from_obj($values->data->setpoint));
+			return yield $this->get_value_local();
+		});
 	}
 	
 }

@@ -1,9 +1,10 @@
-import { LitElement, html } from "../../node_modules/lit-element/lit-element.js";
+import { html } from "../../node_modules/lit-html/lit-html.js";
+import { pion_base } from '../pion_base.js';
 import { register_module } from '../../main.js';
-export class module_text extends LitElement {
+export class module_text extends pion_base {
   static get properties() {
     return {
-      text_val: {
+      val: {
         type: String
       }
     };
@@ -11,25 +12,25 @@ export class module_text extends LitElement {
 
   constructor() {
     super();
-    this.text_val = "PLACEHOLDER";
+    this.val = "PLACEHOLDER";
   }
 
   render() {
-    return html`<p>${this.text_val}<p>`;
+    return html`<span>${this.val}</span>`;
   }
 
-  update_value(value) {
-    this.text_val = value.data;
+  set_value(value) {
+    this.val = value.data;
+  }
+
+  get_value() {
+    return this.val;
   }
 
 }
 customElements.define('module-text', module_text);
 $().ready(function () {
   register_module({
-    name: "text",
-    update: function (container_elem, value) {
-      console.log(container_elem);
-      this.text_val = value.data;
-    }
+    name: "text"
   });
 });

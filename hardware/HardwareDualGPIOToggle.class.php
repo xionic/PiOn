@@ -9,6 +9,8 @@ use \PiOn\StandardClass;
 use Amp\Loop;
 
 /*
+Acts as an array of binary switches, but is backed by GPIO on and off pins. i.e. each switch has 2 pins one of which must be taken HIGH for a short duration to turn the actual device on or off
+
 args: active_low, duration, resend, switches{switch_num: {on:int, off:int}, ...}
 
 */
@@ -26,7 +28,7 @@ class HardwareDualGPIOToggle extends Hardware {
 		if($node_name == NODE_NAME){
 			foreach($args->switches as $key => $pin){
 				$this->states[$key] = 0;
-				$this->hardware_set(new StandardClass(array("switch_num" => $key)), new value(0));
+				//$this->hardware_set(new StandardClass(array("switch_num" => $key)), new value(0));
 			}
 		}
 		
@@ -65,8 +67,7 @@ class HardwareDualGPIOToggle extends Hardware {
 		});
 		
 		$this->states[$item_args->switch_num] = $value->data;
-		//var_dump($this->states);
-		return $value;
+		return $this->states[$item_args->switch_num];
 	}
 	
 	

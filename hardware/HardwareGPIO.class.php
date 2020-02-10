@@ -19,7 +19,7 @@ class HardwareGPIO extends Hardware {
 	
 	protected function hardware_set(Object $item_args, Value $value){
 		if (HardwareGPIO::set_pin($item_args->pin, $value->data )){
-			return value;
+			return $value->data;
 		} else {
 			//throw exception
 		}

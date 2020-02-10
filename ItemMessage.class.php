@@ -33,6 +33,18 @@ class ItemMessage {
 			$obj->value == null ? null : Value::from_obj($obj->value)
 		);
 	}
+	
+	public static function from_obj(Object $obj): ItemMessage {
+		$value = null;
+		if(property_exists($obj, "value") && $obj->value != null){			
+			$value = Value::from_obj($obj->value);
+		}
+		return new ItemMessage(
+			$obj->item_name,
+			$obj->action,
+			$value
+		);
+	}
 }
 
 ?>

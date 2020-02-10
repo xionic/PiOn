@@ -16,6 +16,7 @@ class FixedIntervalTimer implements Timer{
 	}
 	
 	function start(Callable $callback): void {
+		plog("New FixedIntervalTimer with interval " . $this->interval, DEBUG);
 		$this->interval_id = Loop::repeat($this->interval, function() use($callback){
 			call_user_func($callback);
 		});

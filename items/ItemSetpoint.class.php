@@ -12,8 +12,8 @@ class ItemSetpoint extends Item{
 	function get_value_local(): Promise {
 		return new Success(new Value($this->setpoint));
 	}
-	function set_value_local($value): Promise {
-		$this->setpoint = $value;
+	function set_value_local(Value $value): Promise {
+		$this->setpoint = $value->data;
 		return new Success(new Value($this->setpoint));
 	}
  

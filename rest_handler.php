@@ -36,13 +36,13 @@ function handle_rest_request(Request $request): \Amp\Promise{
 		if(!$rest_message = RestMessage::from_json($json)){
 			return respond("data parameter contains invalid JSON", 400);
 		}
-		plog("Received REST req from $ip:$port with data: $json", DEBUG);
+		plog("----NEW---- REST req from $ip:$port with data: $json", DEBUG);
 		
-		//var_dump($rest_message); 
 		$json_str = null;
 		switch($rest_message->context){
 			case RestMessage::REST_CONTEXT_ITEM:
-				$item_message = ItemMessage::from_json($rest_message->payload);
+			//var_dump($rest_message);
+				$item_message = ItemMessage::from_obj($rest_message->payload);
 
 				plog("Rest Message context : {$rest_message->context}", DEBUG);
 				
@@ -65,10 +65,9 @@ function handle_rest_request(Request $request): \Amp\Promise{
 					case ItemMessage::GET:
 						plog("get request received for item: '{$item_message->item_name}'", DEBUG);
 						$item_value = yield $item->get_value();
-							
 						break;
 					case ItemMessage::SET:
-						plog("set request received for item: '{$item_message->item_name}' with value {$item_message->value->data}", DEBUG);			
+						plog("set request received for item: '{$item_message->item_name}' with value " . json_encode($item_message->value->data), DEBUG);			
 						$item_value = yield $item->set_value($item_message->value);
 							
 					break;
@@ -76,7 +75,7 @@ function handle_rest_request(Request $request): \Amp\Promise{
 						return respond("Invalid Item Action: {$item_message->action}", 400);
 				}							
 				
-				$json_str = (new ItemMessage($item_message->item_name, $item_message->action, $item_value))->to_json();
+				$response_obj = new ItemMessage($item_message->item_name, $item_message->action, $item_value);
 				plog("Item '{$item->name}' {$item_message->action} req returning actual value: ". json_encode($item_value->data), DEBUG);
 				
 			break;
@@ -97,7 +96,7 @@ function handle_rest_request(Request $request): \Amp\Promise{
 				plog("Invalid context: {$rest_message->context}", VERBOSE);
 				return respond("Invalid context: {$rest_message->context}", 400);
 		}
-		$resp_rest_message = new RestMessage(RestMessage::RESP, $rest_message->context, NODE_NAME, null, null, $json_str);	
+		$resp_rest_message = new RestMessage(RestMessage::RESP, $rest_message->context, NODE_NAME, null, null, $response_obj);	
 		return respond($resp_rest_message->to_json(), 200, "text/json");
 
 	});

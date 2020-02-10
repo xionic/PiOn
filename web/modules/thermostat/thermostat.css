@@ -1,0 +1,4 @@
+module-thermostat .itemmodule {
+	display:inline;
+	border: red solid 2px !important;
+}

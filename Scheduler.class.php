@@ -9,10 +9,10 @@ class Scheduler {
 		self::$tasks = [];
 	}
 	
-	static function register_task(String $name, String $node_name, Timer $timer, Callable $callback): void {
+	static function register_task(String $name, String $node_name, Timer $timer, Callable $callback): void { // validation
 
-		plog("Scheduling task: $name", VERBOSE);
 		if($node_name == NODE_NAME){
+			plog("Scheduling task: $name", VERBOSE);
 			self::$tasks[$name] = new Task($name, $timer, $callback);
 			self::$tasks[$name]->start();
 		}
