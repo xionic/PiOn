@@ -15,6 +15,10 @@ li {
 	width:98%;
 }
 
+#rooms li {
+	
+}
+
 li.roomrow {
 	margin: 5px;
 	border: solid 10px #888888;

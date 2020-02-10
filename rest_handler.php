@@ -7,6 +7,7 @@ use \PiOn\Event\EventMessage;
 use \PiOn\Event\ItemEvent;
 use \PiOn\Event\EventManager;
 use \PiOn\InvalidArgException;
+use \PiOn\Session;
 
 use \Amp\Http\Status;
 use \Amp\Http\Server\Response;
@@ -14,10 +15,11 @@ use \Amp\Http\Server\Request;
 use \Amp\Http\Client\InvalidRequestException;
 
 function handle_rest_request(Request $request): \Amp\Promise{
-	return \Amp\Call(function() use ($request) {	
+	$session = new Session();
+	return \Amp\Call(function() use ($request, $session) {	
 		$path = $request->getURI()->getPath();
 		if($path != "/api/"){
-			plog("Invalid REST Path : $path. This should not happen", ERROR);
+			plog("Invalid REST Path : $path. This should not happen", ERROR, $session);
 			return respond("Incorrect request routing", 500);
 		}
 		//parse query string
@@ -29,25 +31,26 @@ function handle_rest_request(Request $request): \Amp\Promise{
 		$port = $request->getClient()->getRemoteAddress()->getPort();
 		
 		if(!isset($QS["data"])){
-			plog("Missing 'data' parameter", ERROR);
+			plog("Missing 'data' parameter", ERROR, $session);
 			return respond("Missing 'data' parameter", 400);		
 		}		
 		$json = $QS["data"];
 		if(!$rest_message = RestMessage::from_json($json)){
 			return respond("data parameter contains invalid JSON", 400);
 		}
-		plog("----NEW---- REST req from $ip:$port with data: $json", DEBUG);
+		plog("----NEW---- REST req from $ip:$port with data: $json", DEBUG, $session);
 		
 		$json_str = null;
+		$response_obj = null;
 		switch($rest_message->context){
 			case RestMessage::REST_CONTEXT_ITEM:
 			//var_dump($rest_message);
 				$item_message = ItemMessage::from_obj($rest_message->payload);
 
-				plog("Rest Message context : {$rest_message->context}", DEBUG);
+				plog("Rest Message context : {$rest_message->context}", DEBUG, $session);
 				
 				if(!in_array($item_message->action, [ItemMessage::GET, ItemMessage::SET])){
-					plog("Invalid Action: " . $item_message->action, VERBOSE);
+					plog("Invalid Action: " . $item_message->action, VERBOSE, $session);
 					return respond("Invalid action {$item_message->action}", 400);
 				}
 				$item = null;
@@ -55,7 +58,7 @@ function handle_rest_request(Request $request): \Amp\Promise{
 					$item = get_item($item_message->item_name);
 				}
 				catch(InvalidArgException $e){
-					plog("Requested item unknown: {$item_message->item_name}", VERBOSE);
+					plog("Requested item unknown: {$item_message->item_name}", VERBOSE, $session);
 					return respond("Unknown Item: {$item_message->item_name}", 400);
 				}
 			
@@ -63,12 +66,12 @@ function handle_rest_request(Request $request): \Amp\Promise{
 				$item_value = null;
 				switch($item_message->action){
 					case ItemMessage::GET:
-						plog("get request received for item: '{$item_message->item_name}'", DEBUG);
-						$item_value = yield $item->get_value();
+						plog("get request received for item: '{$item_message->item_name}'", DEBUG, $session);
+						$item_value = yield $item->get_value($session);
 						break;
 					case ItemMessage::SET:
-						plog("set request received for item: '{$item_message->item_name}' with value " . json_encode($item_message->value->data), DEBUG);			
-						$item_value = yield $item->set_value($item_message->value);
+						plog("set request received for item: '{$item_message->item_name}' with value " . json_encode($item_message->value->data), DEBUG, $session);			
+						$item_value = yield $item->set_value($session, $item_message->value);
 							
 					break;
 					default:
@@ -76,7 +79,7 @@ function handle_rest_request(Request $request): \Amp\Promise{
 				}							
 				
 				$response_obj = new ItemMessage($item_message->item_name, $item_message->action, $item_value);
-				plog("Item '{$item->name}' {$item_message->action} req returning actual value: ". json_encode($item_value->data), DEBUG);
+				plog("Item '{$item->name}' {$item_message->action} req returning actual value: ". json_encode($item_value->data), DEBUG, $session);
 				
 			break;
 			
@@ -84,8 +87,8 @@ function handle_rest_request(Request $request): \Amp\Promise{
 				$event_message = EventMessage::from_json($rest_message->payload);
 				switch($event_message->context){
 					case ITEM_EVENT: 
-						$item_event = new ItemEvent($event_message->event_name, $event_message->props->item_name, new Value($event_message->props->value));
-						EventManager::trigger_event($item_event);
+						$item_event = new ItemEvent($event_message->event_name, $event_message->props->item_name, Value::from_obj($event_message->props->value));
+						EventManager::trigger_event($session, $item_event);
 						break;
 						
 				}
@@ -93,7 +96,7 @@ function handle_rest_request(Request $request): \Amp\Promise{
 			break;
 			
 			default:
-				plog("Invalid context: {$rest_message->context}", VERBOSE);
+				plog("Invalid context: {$rest_message->context}", VERBOSE, $session);
 				return respond("Invalid context: {$rest_message->context}", 400);
 		}
 		$resp_rest_message = new RestMessage(RestMessage::RESP, $rest_message->context, NODE_NAME, null, null, $response_obj);	

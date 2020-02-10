@@ -14,6 +14,7 @@
 	"sources": [	
 		"*.js",
 		"*.css",
+		"modules/*",
 		"modules/*/*",		
 		"node_modules/**/*",
 		"config/*"

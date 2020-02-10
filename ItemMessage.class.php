@@ -2,6 +2,7 @@
 namespace PiOn\Item;
 
 use \PiOn\Item\Value;
+use \xionic\Argh\Argh;
 
 class ItemMessage {
 	public const GET = "GET";
@@ -27,14 +28,15 @@ class ItemMessage {
 	public static function from_json(String $json): ItemMessage {
 		//debug_print_backtrace();
 		$obj = json_decode($json);
-		return new ItemMessage(
-			$obj->item_name,
-			$obj->action,
-			$obj->value == null ? null : Value::from_obj($obj->value)
-		);
+		return ItemMessage::from_obj($obj);
 	}
 	
-	public static function from_obj(Object $obj): ItemMessage {
+	public static function from_obj(Object $obj): ItemMessage {		
+		Argh::validate($obj, [
+			"item_name" => ["notblank"],
+			"action" => ["notblank"],
+			"value" => []
+		]);
 		$value = null;
 		if(property_exists($obj, "value") && $obj->value != null){			
 			$value = Value::from_obj($obj->value);

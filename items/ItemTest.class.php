@@ -2,6 +2,7 @@
 namespace PiOn\Item;
 
 use \Pion\Hardware\Hardware as Hardware;
+use \PiOn\Session;
 
 use \Amp\Promise;
 use \Amp\Success;
@@ -9,14 +10,14 @@ use \Amp\Success;
 class ItemTest extends Item {
 	
 	public $value;
-	public const type = "test";	
+	public const type = "Test";	
 	
-	protected function get_value_local(): Promise{		
+	protected function get_value_local(Session $session): Promise{		
 		$this->value = trim("Item get_value called at ". `date`);
 		$im = new Success(new Value($this->value));
 		return $im;
 	}
-	protected function set_value_local($value):Promise{
+	protected function set_value_local(Session $session, Value $value):Promise{
 		$this->value = $value;
 		return new Success(new Value($this->value));
 	}

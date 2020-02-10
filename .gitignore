@@ -2,5 +2,9 @@
 /keys/*
 /composer.lock
 /config-repo
+/Argh/
+/php-conf/
+/linecount.sh
+/.vscode/
 
 !/keys/.gitkeep

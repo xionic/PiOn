@@ -30,8 +30,14 @@ class Model {
 		}
 		
 		//load items
-		foreach($model_conf->items as $item){ //SECURITY			
-			$this->items[$item->name] = Item::create_item($item->type, $item->name, $item->node, $item->itemargs, $this->get_hardware(@$item->hardware->name), @$item->hardware->args);			
+		foreach($model_conf->items as $item){ //SECURITY
+			$hw = null;
+			$hw_args = null;
+			if(property_exists($item->hardware, "name")){
+				$hw = $this->get_hardware($item->hardware->name);
+				$hw_args = $item->hardware->args;
+			}				
+			$this->items[$item->name] = Item::create_item($item->type, $item->name, $item->node, $item->itemargs, $hw, $hw_args);			
 		}
 		
 		//var_dump($this);
@@ -47,7 +53,7 @@ class Model {
 				$init_promises[] = $item->init();
 		}
 		//\Amp\Promise\wait(\Amp\Promise\all($init_promises));
-		plog("Model init finished", INFO);
+		plog("Model init finished", INFO, Session::$INTERNAL);
 	}
 	
 	function get_item($item_name): Item{
@@ -56,8 +62,10 @@ class Model {
 		//echo "NIUSDFSF $item_name\n";
 			return $this->items[$item_name];
 		}
-		else
+		else{
+			plog("Unknown item name: $item_name", ERROR, Session::$INTERNAL);
 			throw new InvalidArgException("Unknown item name: $item_name");
+		}
 	}
 	
 	function get_items(): array{

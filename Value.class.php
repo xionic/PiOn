@@ -51,8 +51,7 @@
 		$this->certainty = $certainty;
 	 }
 	 
-	 public static function from_obj(Object $obj): Value{
-		 //var_dump($obj);
+	 public static function from_obj(Object $obj): Value{		
 		if($obj == null)
 			throw new \Exception("object cannot be null");
 		

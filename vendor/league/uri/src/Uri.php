@@ -13,12 +13,11 @@ declare(strict_types=1);
 
 namespace League\Uri;
 
-use finfo;
 use League\Uri\Contracts\UriInterface;
+use League\Uri\Exceptions\FileinfoSupportMissing;
 use League\Uri\Exceptions\IdnSupportMissing;
 use League\Uri\Exceptions\SyntaxError;
 use Psr\Http\Message\UriInterface as Psr7UriInterface;
-use TypeError;
 use function array_filter;
 use function array_map;
 use function base64_decode;
@@ -34,7 +33,6 @@ use function implode;
 use function in_array;
 use function inet_pton;
 use function is_scalar;
-use function mb_detect_encoding;
 use function method_exists;
 use function preg_match;
 use function preg_replace;
@@ -44,6 +42,7 @@ use function sprintf;
 use function str_replace;
 use function strlen;
 use function strpos;
+use function strspn;
 use function strtolower;
 use function substr;
 use const FILEINFO_MIME;
@@ -76,7 +75,7 @@ final class Uri implements UriInterface
     /**
      * RFC3986 invalid characters.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-2.2
+     * @link https://tools.ietf.org/html/rfc3986#section-2.2
      *
      * @var string
      */
@@ -85,7 +84,7 @@ final class Uri implements UriInterface
     /**
      * RFC3986 Sub delimiter characters regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-2.2
+     * @link https://tools.ietf.org/html/rfc3986#section-2.2
      *
      * @var string
      */
@@ -94,7 +93,7 @@ final class Uri implements UriInterface
     /**
      * RFC3986 unreserved characters regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-2.3
+     * @link https://tools.ietf.org/html/rfc3986#section-2.3
      *
      * @var string
      */
@@ -103,14 +102,14 @@ final class Uri implements UriInterface
     /**
      * RFC3986 schema regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-3.1
+     * @link https://tools.ietf.org/html/rfc3986#section-3.1
      */
     private const REGEXP_SCHEME = ',^[a-z]([-a-z0-9+.]+)?$,i';
 
     /**
      * RFC3986 host identified by a registered name regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-3.2.2
+     * @link https://tools.ietf.org/html/rfc3986#section-3.2.2
      */
     private const REGEXP_HOST_REGNAME = '/^(
         (?<unreserved>[a-z0-9_~\-\.])|
@@ -121,14 +120,14 @@ final class Uri implements UriInterface
     /**
      * RFC3986 delimiters of the generic URI components regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-2.2
+     * @link https://tools.ietf.org/html/rfc3986#section-2.2
      */
     private const REGEXP_HOST_GEN_DELIMS = '/[:\/?#\[\]@ ]/'; // Also includes space.
 
     /**
      * RFC3986 IPvFuture regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-3.2.2
+     * @link https://tools.ietf.org/html/rfc3986#section-3.2.2
      */
     private const REGEXP_HOST_IPFUTURE = '/^
         v(?<version>[A-F0-9])+\.
@@ -151,14 +150,14 @@ final class Uri implements UriInterface
     /**
      * Mimetype regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc2397
+     * @link https://tools.ietf.org/html/rfc2397
      */
     private const REGEXP_MIMETYPE = ',^\w+/[-.\w]+(?:\+[-.\w]+)?$,';
 
     /**
      * Base64 content regular expression pattern.
      *
-     * @see https://tools.ietf.org/html/rfc2397
+     * @link https://tools.ietf.org/html/rfc2397
      */
     private const REGEXP_BINARY = ',(;|^)base64$,';
 
@@ -199,6 +198,13 @@ final class Uri implements UriInterface
         'ws' => 'isNonEmptyHostUriWithoutFragment',
         'wss' => 'isNonEmptyHostUriWithoutFragment',
     ];
+
+    /**
+     * All ASCII letters sorted by typical frequency of occurrence.
+     *
+     * @var string
+     */
+    private const ASCII = "\x20\x65\x69\x61\x73\x6E\x74\x72\x6F\x6C\x75\x64\x5D\x5B\x63\x6D\x70\x27\x0A\x67\x7C\x68\x76\x2E\x66\x62\x2C\x3A\x3D\x2D\x71\x31\x30\x43\x32\x2A\x79\x78\x29\x28\x4C\x39\x41\x53\x2F\x50\x22\x45\x6A\x4D\x49\x6B\x33\x3E\x35\x54\x3C\x44\x34\x7D\x42\x7B\x38\x46\x77\x52\x36\x37\x55\x47\x4E\x3B\x4A\x7A\x56\x23\x48\x4F\x57\x5F\x26\x21\x4B\x3F\x58\x51\x25\x59\x5C\x09\x5A\x2B\x7E\x5E\x24\x40\x60\x7F\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F";
 
     /**
      * URI scheme component.
@@ -431,6 +437,11 @@ final class Uri implements UriInterface
             INTL_IDNA_VARIANT_UTS46,
             $arr
         );
+
+        if ($arr === []) {
+            throw new SyntaxError(sprintf('Host `%s` is invalid', $host));
+        }
+
         if (0 !== $arr['errors']) {
             throw new SyntaxError(sprintf('The host `%s` is invalid : %s', $host, $this->getIDNAErrors($arr['errors'])));
         }
@@ -447,7 +458,7 @@ final class Uri implements UriInterface
     /**
      * Retrieves and format IDNA conversion error message.
      *
-     * @see http://icu-project.org/apiref/icu4j/com/ibm/icu/text/IDNA.Error.html
+     * @link http://icu-project.org/apiref/icu4j/com/ibm/icu/text/IDNA.Error.html
      */
     private function getIDNAErrors(int $error_byte): string
     {
@@ -668,10 +679,20 @@ final class Uri implements UriInterface
      *
      * @param resource|null $context
      *
-     * @throws SyntaxError If the file does not exist or is not readable
+     * @throws FileinfoSupportMissing If ext/fileinfo is not installed
+     * @throws SyntaxError            If the file does not exist or is not readable
      */
     public static function createFromDataPath(string $path, $context = null): self
     {
+        static $finfo_support = null;
+        $finfo_support = $finfo_support ?? class_exists(\finfo::class);
+
+        // @codeCoverageIgnoreStart
+        if (!$finfo_support) {
+            throw new FileinfoSupportMissing(sprintf('Please install ext/fileinfo to use the %s() method.', __METHOD__));
+        }
+        // @codeCoverageIgnoreEnd
+
         $file_args = [$path, false];
         $mime_args = [$path, FILEINFO_MIME];
         if (null !== $context) {
@@ -684,7 +705,7 @@ final class Uri implements UriInterface
             throw new SyntaxError(sprintf('The file `%s` does not exist or is not readable', $path));
         }
 
-        $mimetype = (string) (new finfo(FILEINFO_MIME))->file(...$mime_args);
+        $mimetype = (string) (new \finfo(FILEINFO_MIME))->file(...$mime_args);
 
         return Uri::createFromComponents([
             'scheme' => 'data',
@@ -761,7 +782,7 @@ final class Uri implements UriInterface
         }
 
         if (!$uri instanceof Psr7UriInterface) {
-            throw new TypeError(sprintf('The object must implement the `%s` or the `%s`', Psr7UriInterface::class, UriInterface::class));
+            throw new \TypeError(sprintf('The object must implement the `%s` or the `%s`', Psr7UriInterface::class, UriInterface::class));
         }
 
         $scheme = $uri->getScheme();
@@ -831,7 +852,7 @@ final class Uri implements UriInterface
         $server += ['HTTPS' => ''];
         $res = filter_var($server['HTTPS'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
-        return $res !== false ? 'https' : 'http';
+        return false !== $res ? 'https' : 'http';
     }
 
     /**
@@ -960,7 +981,7 @@ final class Uri implements UriInterface
     /**
      * Filter the Path component.
      *
-     * @see https://tools.ietf.org/html/rfc2397
+     * @link https://tools.ietf.org/html/rfc2397
      *
      * @throws SyntaxError If the path is not compliant with RFC2397
      */
@@ -974,7 +995,7 @@ final class Uri implements UriInterface
             return 'text/plain;charset=us-ascii,';
         }
 
-        if (false === mb_detect_encoding($path, 'US-ASCII', true) || false === strpos($path, ',')) {
+        if (strlen($path) !== strspn($path, self::ASCII) || false === strpos($path, ',')) {
             throw new SyntaxError(sprintf('The path `%s` is invalid according to RFC2937', $path));
         }
 
@@ -999,7 +1020,7 @@ final class Uri implements UriInterface
     /**
      * Assert the path is a compliant with RFC2397.
      *
-     * @see https://tools.ietf.org/html/rfc2397
+     * @link https://tools.ietf.org/html/rfc2397
      *
      * @throws SyntaxError If the mediatype or the data are not compliant with the RFC2397
      */
@@ -1036,7 +1057,7 @@ final class Uri implements UriInterface
     {
         $properties = explode('=', $parameter);
 
-        return 2 != count($properties) || strtolower($properties[0]) === 'base64';
+        return 2 != count($properties) || 'base64' === strtolower($properties[0]);
     }
 
     /**
@@ -1080,8 +1101,8 @@ final class Uri implements UriInterface
     /**
      * assert the URI internal state is valid.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-3
-     * @see https://tools.ietf.org/html/rfc3986#section-3.3
+     * @link https://tools.ietf.org/html/rfc3986#section-3
+     * @link https://tools.ietf.org/html/rfc3986#section-3.3
      *
      * @throws SyntaxError if the URI is in an invalid state according to RFC3986
      * @throws SyntaxError if the URI is in an invalid state according to scheme specific rules
@@ -1118,7 +1139,7 @@ final class Uri implements UriInterface
     /**
      * URI validation for URI schemes which allows only scheme and path components.
      */
-    private function isUriWithSchemeAndPathOnly()
+    private function isUriWithSchemeAndPathOnly(): bool
     {
         return null === $this->authority
             && null === $this->query
@@ -1128,7 +1149,7 @@ final class Uri implements UriInterface
     /**
      * URI validation for URI schemes which allows only scheme, host and path components.
      */
-    private function isUriWithSchemeHostAndPathOnly()
+    private function isUriWithSchemeHostAndPathOnly(): bool
     {
         return null === $this->user_info
             && null === $this->port
@@ -1140,7 +1161,7 @@ final class Uri implements UriInterface
     /**
      * URI validation for URI schemes which disallow the empty '' host.
      */
-    private function isNonEmptyHostUri()
+    private function isNonEmptyHostUri(): bool
     {
         return '' !== $this->host
             && !(null !== $this->scheme && null === $this->host);
@@ -1150,7 +1171,7 @@ final class Uri implements UriInterface
      * URI validation for URIs schemes which disallow the empty '' host
      * and forbids the fragment component.
      */
-    private function isNonEmptyHostUriWithoutFragment()
+    private function isNonEmptyHostUriWithoutFragment(): bool
     {
         return $this->isNonEmptyHostUri() && null === $this->fragment;
     }
@@ -1159,7 +1180,7 @@ final class Uri implements UriInterface
      * URI validation for URIs schemes which disallow the empty '' host
      * and forbids fragment and query components.
      */
-    private function isNonEmptyHostUriWithoutFragmentAndQuery()
+    private function isNonEmptyHostUriWithoutFragmentAndQuery(): bool
     {
         return $this->isNonEmptyHostUri() && null === $this->fragment && null === $this->query;
     }
@@ -1167,7 +1188,7 @@ final class Uri implements UriInterface
     /**
      * Generate the URI string representation from its components.
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-5.3
+     * @link https://tools.ietf.org/html/rfc3986#section-5.3
      *
      * @param ?string $scheme
      * @param ?string $authority
@@ -1339,7 +1360,7 @@ final class Uri implements UriInterface
         }
 
         if (!is_scalar($str) && !method_exists($str, '__toString')) {
-            throw new TypeError(sprintf('The component must be a string, a scalar or a stringable object %s given', gettype($str)));
+            throw new \TypeError(sprintf('The component must be a string, a scalar or a stringable object %s given', gettype($str)));
         }
 
         $str = (string) $str;
@@ -1420,7 +1441,7 @@ final class Uri implements UriInterface
     {
         $path = $this->filterString($path);
         if (null === $path) {
-            throw new TypeError('A path must be a string NULL given');
+            throw new \TypeError('A path must be a string NULL given');
         }
 
         $path = $this->formatPath($path);

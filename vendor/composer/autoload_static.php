@@ -28,6 +28,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
     );
 
     public static $prefixLengthsPsr4 = array (
+        'x' => 
+        array (
+            'xionic\\Argh\\' => 12,
+        ),
         'S' => 
         array (
             'Seld\\JsonLint\\' => 14,
@@ -76,6 +80,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
     );
 
     public static $prefixDirsPsr4 = array (
+        'xionic\\Argh\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/xionic/argh/src',
+        ),
         'Seld\\JsonLint\\' => 
         array (
             0 => __DIR__ . '/..' . '/seld/jsonlint/src/Seld/JsonLint',

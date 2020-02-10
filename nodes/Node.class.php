@@ -16,6 +16,10 @@ abstract class Node {
 	function get_base_url($scheme = "HTTP"){
 		return $scheme . "://" . $this->hostname . ":" . $this->port;
 	}
+
+	function get_base_url_ip($scheme = "HTTP"){
+		return $scheme . "://" . gethostbyname($this->hostname) . ":" . $this->port;
+	}
 	
 }
 

@@ -21,19 +21,19 @@ var sitemap = {
     "type": "thermostat"
   }],
   "Living Room": [{
-    "item_name": "GPIO Toggler test 1",
+    "item_name": "Nick Heater",
     "type": "switch"
   }, {
-    "item_name": "GPIO Toggler test 2",
+    "item_name": "TV Light",
     "type": "switch"
   }, {
-    "item_name": "GPIO Toggler test 3",
+    "item_name": "Table Lamp",
     "type": "switch"
   }, {
-    "item_name": "GPIO Toggler test 4",
+    "item_name": "Nick Bed Lights",
     "type": "switch"
   }, {
-    "item_name": "GPIO Toggler test 5",
+    "item_name": "Xico Power",
     "type": "switch"
   }, {
     "item_name": "liviginbed_lights"

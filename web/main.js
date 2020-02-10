@@ -19,18 +19,31 @@ export function getTimestamp(){
 }
 
 export function send_update(elem, item_name, value){
-		let item_message = new ItemMessage(item_name, ItemMessage.SET, value, null, null);
-		let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, null, null, null, item_message);
-		console.debug("Sending update to server for item ", item_name, " and rest_message:", rest_message);
-		$.ajax({
-			url: config.backend_url,
-			data: {
-				data: rest_message.to_json()
-			}
-		}).done(function(data){
-			console.debug("Value update for '", item_name, "' was successful with data: ", data);		
-		});
+	let item_message = new ItemMessage(item_name, ItemMessage.SET, value, null, null);
+	let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, null, null, null, item_message);
+	console.debug("Sending update to server for item ", item_name, " and rest_message:", rest_message);
+	$.ajax({
+		url: config.backend_url,
+		data: {
+			data: rest_message.to_json()
+		}
+	}).done(function(data){
+		console.debug("Value update for '", item_name, "' was successful with data: ", data);		
+	});
+}
+
+//recursively selectors through shadow roots using the selector "shadow" to indicate a shadow root
+export function shadow_selector(root, selector_str){
+	let selArray = selector_str.split("shadow");
+	let selected = root;
+	while(selArray.length > 0){
+		let selector = selArray.shift();
+		if(selector == "")
+			continue;
+		selected = selected.shadowRoot.querySelector(selector);
 	}
+	return selected;
+}
 	
 var module_id_counter = 0; //hack, to give each module element it's own id because I can't work out how to reference the object from the element.
 function get_module_html(name, item_name){

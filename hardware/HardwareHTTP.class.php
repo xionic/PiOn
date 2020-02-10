@@ -2,6 +2,7 @@
 namespace Pion\Hardware;
 
 use \PiOn\Item\Value;
+use \PiOn\Session; 
 
 class HardwareHTTP extends Hardware{
 
@@ -13,13 +14,13 @@ class HardwareHTTP extends Hardware{
 		$this->value_certainty = true;
 	}
 
-	function hardware_get(Object $item_args){	
+	function hardware_get(Session $session, Object $item_args){	
 		$data = file_get_contents($item_args->url);
-		plog("HardwareHTTP request returned: $data", DEBUG);
+		plog("HardwareHTTP request returned: $data", DEBUG, $session);
 		return $data;
 	}
 
-	function hardware_set(Object $item_args, $value){
+	function hardware_set(Session $session, Object $item_args, $value){
 		// return new Value($this->do_exec($item_args->get_command), Value::CERTAIN);
 	}
 

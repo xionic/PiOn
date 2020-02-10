@@ -15,7 +15,6 @@ namespace League\Uri;
 
 use League\Uri\Contracts\UriInterface;
 use Psr\Http\Message\UriInterface as Psr7UriInterface;
-use TypeError;
 use function array_pop;
 use function array_reduce;
 use function count;
@@ -32,7 +31,7 @@ use function substr;
 final class UriResolver
 {
     /**
-     * @var array
+     * @var array<string,int>
      */
     const DOT_SEGMENTS = ['.' => 1, '..' => 1];
 
@@ -95,12 +94,12 @@ final class UriResolver
      *
      * @param mixed $uri an URI object
      *
-     * @throws TypeError if the URI object does not implements the supported interfaces.
+     * @throws \TypeError if the URI object does not implements the supported interfaces.
      */
     private static function filterUri($uri): void
     {
         if (!$uri instanceof UriInterface && !$uri instanceof Psr7UriInterface) {
-            throw new TypeError(sprintf('The uri must be a valid URI object received `%s`', gettype($uri)));
+            throw new \TypeError(sprintf('The uri must be a valid URI object received `%s`', gettype($uri)));
         }
     }
 
@@ -121,7 +120,7 @@ final class UriResolver
 
         // @codeCoverageIgnoreStart
         // added because some PSR-7 implementations do not respect RFC3986
-        if (strpos($path, '/') === 0 && strpos($new_path, '/') !== 0) {
+        if (0 === strpos($path, '/') && 0 !== strpos($new_path, '/')) {
             return '/'.$new_path;
         }
         // @codeCoverageIgnoreEnd
@@ -273,7 +272,7 @@ final class UriResolver
      *
      * @param null|mixed $uri
      *
-     * @throws TypeError if the URI object does not implements the supported interfaces.
+     * @throws \TypeError if the URI object does not implements the supported interfaces.
      *
      * @return Psr7UriInterface|UriInterface
      */

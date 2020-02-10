@@ -18,7 +18,7 @@ class HTTPErrorHandler implements \Amp\Http\Server\ErrorHandler
      */
     public function handleError(int $statusCode, string $reason = null, Request $request = null): Promise{
 		$req_path = $request->getUri()->getScheme() . "://" . $request->getUri()->getHost() . ":" . $request->getUri()->getPort(). $request->getUri()->getPath();
-		plog("RETURNING HTTP SERVER ERROR CODE: $statusCode, reason: $reason Requested URI: $req_path" , INFO);
+		plog("RETURNING HTTP SERVER ERROR CODE: $statusCode, reason: $reason Requested URI: $req_path" , INFO, Session::$INTERNAL);
 		 $response = new Response($statusCode, [
             "content-type" => "text/html; charset=utf-8"
         ], "HTTP $statusCode");

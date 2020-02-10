@@ -1,6 +1,8 @@
 <?php
 namespace PiOn;
 
+use \xionic\Argh\Argh;
+
 class RestMessage {
 	public const REQ = "REQ";
 	public const RESP = "RESP";
@@ -13,7 +15,7 @@ class RestMessage {
 	public $target_port; // same
 	public $payload; // object passed as args to the get/set handler function as type appropriate
 	
-	function __construct($type, $context, $sending_node, $target_node, $target_port, $payload){
+	function __construct(String $type, String $context, ?String $sending_node, ?String $target_node, ?String $target_port, $payload){
 		$this->type = $type;
 		$this->context = $context;
 		$this->sending_node = $sending_node;
@@ -27,6 +29,19 @@ class RestMessage {
 			if(!$obj = json_decode($json)){
 				return false;
 			}
+			/*try{*/
+			//var_dump($obj);
+			Argh::validate($obj, [
+				"type" => ["notblank"],
+				"context" => ["notblank"],
+				"sending_node" => ["optional", "?notblank"],
+				"target_node" => ["optional", "?notblank"],
+				"target_port" => ["optional", "?notblank"],
+				"payload" => [],
+			]);
+			/*} catch(ValidationException){
+				
+			}*/
 			return new RestMessage($obj->type, $obj->context, $obj->sending_node, $obj->target_node, $obj->target_port, $obj->payload);			
 		}
 	}

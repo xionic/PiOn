@@ -9,10 +9,12 @@
  * file that was distributed with this source code.
  */
 
-require __DIR__.'/../vendor/autoload.php';
+declare(strict_types=1);
 
-$components = ['scheme' => 'https', 'host' => 'uri.thephpleague.com', 'path' => '/5.0'];
+namespace League\Uri\Exceptions;
 
-for ($i = 0; $i < 100000; $i++) {
-    League\Uri\Http::createFromComponents($components);
+use League\Uri\Contracts\UriException;
+
+class FileinfoSupportMissing extends \RuntimeException implements UriException
+{
 }

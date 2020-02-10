@@ -2,17 +2,18 @@
 namespace PiOn\Item;
 
 use \Pion\Hardware\Hardware as Hardware;
+use \PiOn\Session;
 
 use \Amp\Promise;
 use \Amp\Success;
 
 class ItemSwitch extends Item {
-	public const type = "switch";
+	public const type = "Switch";
 	private $state = 0; // default to off
 	
-	protected function get_value_local(): Promise {//Value
+	protected function get_value_local(Session $session): Promise {//Value
 		if($this->hardware != null){
-			$this->state = intval($this->hardware->get($this->hardware_args));
+			$this->state = intval($this->hardware->get($session, $this->hardware_args));
 			var_dump($this->state);
 			return new Success(new Value([
 				"data" => $this->state,
@@ -22,11 +23,11 @@ class ItemSwitch extends Item {
 			return new Success(new Value($this->state));
 		}
 	}
-	function set_value_local(Value $set_val): Promise {//Value
+	function set_value_local(Session $session, Value $set_val): Promise {//Value
 		$this->state = intval($set_val->data);
 		if($this->hardware != null){
 			return new Success(new Value([
-				"data" => intval($this->hardware->set($this->hardware_args, $set_val)) ,
+				"data" => intval($this->hardware->set($session, $this->hardware_args, $set_val)) ,
 				"certainty" => Value::UNCERTAIN,
 			]));
 		} else {			

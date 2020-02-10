@@ -3,6 +3,7 @@ namespace Pion\Hardware;
 
 use \PiOn\Hardware\OperationNotSupportedException;
 use \PiOn\Item\Value;
+use \PiOn\Session; 
 
 abstract class Hardware {
 	public const HW_GET = "get";
@@ -22,27 +23,27 @@ abstract class Hardware {
 		$this->args = $args;
 	}
 	
-	function get(Object $item_args){
-		plog("Hardware GET request for type: {$this->type} with item_args: ".json_encode($item_args), DEBUG);
+	function get(Session $session, Object $item_args){
+		plog("Hardware GET request for type: {$this->type} with item_args: ".json_encode($item_args), DEBUG, $session);
 		if(in_array(Hardware::HW_GET, $this->capabilities)){
-			return $this->hardware_get($item_args);
+			return $this->hardware_get($session, $item_args);
 		} else {
 			throw new OperationNotSupportedException("GET not supported by Hardware '{$this->name}'");
 		}
 	}
 	
-	function set(Object $item_args, $value){
+	function set(Session $session, Object $item_args, $value){
 		
-		plog("Hardware SET request for type: {$this->type} with value: ".json_encode($value->data) . " and item_args: ".json_encode($item_args), DEBUG);
+		plog("Hardware SET request for type: {$this->type} with value: ".json_encode($value->data) . " and item_args: ".json_encode($item_args), DEBUG, $session);
 		if(in_array(Hardware::HW_SET, $this->capabilities)){
-			return $this->hardware_set($item_args, $value);
+			return $this->hardware_set($session, $item_args, $value);
 		} else {
 			throw new OperationNotSupportedException("SET not supported by hardware '{$this->name}'");
 		}
 	}
 	
-	protected abstract function hardware_get(Object $item_args);
-	protected abstract function hardware_set(Object $item_args, Value $value);
+	protected abstract function hardware_get(Session $session, Object $item_args);
+	protected abstract function hardware_set(Session $session, Object $item_args, Value $value);
 }
 
 ?>

@@ -11,6 +11,12 @@
         "amphp/http-client": "^4.0",
         "seld/jsonlint": "^1.7",
         "amphp/http-server-static-content": "^1.0",
-        "amphp/http-server-router": "^1.0"
-    }
+        "amphp/http-server-router": "^1.0",
+        "xionic/Argh": "master",
+		"php": ">=7"
+    },
+    "repositories": [{
+	 "type": "vcs",
+	 "url": "https://github.com/xionic/Argh"
+    }]
 }

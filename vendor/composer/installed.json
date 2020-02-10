@@ -80,17 +80,17 @@
     },
     {
         "name": "amphp/byte-stream",
-        "version": "v1.7.1",
-        "version_normalized": "1.7.1.0",
+        "version": "v1.7.2",
+        "version_normalized": "1.7.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/byte-stream.git",
-            "reference": "9d8205686a004948475dc43f8a88d2fa5e75a113"
+            "reference": "1e52f1752b2e20e2a7e464476ef887a2388e3832"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/byte-stream/zipball/9d8205686a004948475dc43f8a88d2fa5e75a113",
-            "reference": "9d8205686a004948475dc43f8a88d2fa5e75a113",
+            "url": "https://api.github.com/repos/amphp/byte-stream/zipball/1e52f1752b2e20e2a7e464476ef887a2388e3832",
+            "reference": "1e52f1752b2e20e2a7e464476ef887a2388e3832",
             "shasum": ""
         },
         "require": {
@@ -103,7 +103,7 @@
             "infection/infection": "^0.9.3",
             "phpunit/phpunit": "^6"
         },
-        "time": "2019-10-27T14:33:41+00:00",
+        "time": "2020-01-29T18:22:23+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -1303,24 +1303,22 @@
     },
     {
         "name": "league/uri",
-        "version": "6.0.1",
-        "version_normalized": "6.0.1.0",
+        "version": "6.2.0",
+        "version_normalized": "6.2.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/thephpleague/uri.git",
-            "reference": "cf488ec34faa3b5c600659c8fc18d67c4752a5cb"
+            "reference": "7b29ca33b287b4277d5ce7c26bc1be5d4118b484"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/uri/zipball/cf488ec34faa3b5c600659c8fc18d67c4752a5cb",
-            "reference": "cf488ec34faa3b5c600659c8fc18d67c4752a5cb",
+            "url": "https://api.github.com/repos/thephpleague/uri/zipball/7b29ca33b287b4277d5ce7c26bc1be5d4118b484",
+            "reference": "7b29ca33b287b4277d5ce7c26bc1be5d4118b484",
             "shasum": ""
         },
         "require": {
-            "ext-fileinfo": "*",
             "ext-json": "*",
-            "ext-mbstring": "*",
-            "league/uri-interfaces": "^2.0",
+            "league/uri-interfaces": "^2.1",
             "php": "^7.2",
             "psr/http-message": "^1.0"
         },
@@ -1328,21 +1326,22 @@
             "league/uri-schemes": "^1.0"
         },
         "require-dev": {
-            "friendsofphp/php-cs-fixer": "^2.0",
-            "phpstan/phpstan": "^0.11",
-            "phpstan/phpstan-phpunit": "^0.11",
-            "phpstan/phpstan-strict-rules": "^0.11",
+            "friendsofphp/php-cs-fixer": "^2.16",
+            "phpstan/phpstan": "^0.12",
+            "phpstan/phpstan-phpunit": "^0.12",
+            "phpstan/phpstan-strict-rules": "^0.12",
             "phpunit/phpunit": "^7.0 | ^8.0"
         },
         "suggest": {
+            "ext-fileinfo": "Needed to create Data URI from a filepath",
             "ext-intl": "Needed to improve host validation",
             "league/uri-components": "Needed to easily manipulate URI objects"
         },
-        "time": "2019-11-23T20:59:00+00:00",
+        "time": "2020-02-08T16:31:57+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "2.x-dev"
+                "dev-master": "6.x-dev"
             }
         },
         "installation-source": "dist",
@@ -1379,24 +1378,26 @@
             "querystring",
             "rfc3986",
             "rfc3987",
+            "rfc6570",
             "uri",
+            "uri-template",
             "url",
             "ws"
         ]
     },
     {
         "name": "league/uri-interfaces",
-        "version": "2.0.1",
-        "version_normalized": "2.0.1.0",
+        "version": "2.1.0",
+        "version_normalized": "2.1.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/thephpleague/uri-interfaces.git",
-            "reference": "ae2601a183ad14b73628a305c0f906c030757b39"
+            "reference": "0068a469958895ceaf3afcb489c0258adfa1e406"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/uri-interfaces/zipball/ae2601a183ad14b73628a305c0f906c030757b39",
-            "reference": "ae2601a183ad14b73628a305c0f906c030757b39",
+            "url": "https://api.github.com/repos/thephpleague/uri-interfaces/zipball/0068a469958895ceaf3afcb489c0258adfa1e406",
+            "reference": "0068a469958895ceaf3afcb489c0258adfa1e406",
             "shasum": ""
         },
         "require": {
@@ -1405,12 +1406,12 @@
         },
         "require-dev": {
             "friendsofphp/php-cs-fixer": "^2.0",
-            "phpstan/phpstan": "^0.11",
-            "phpstan/phpstan-phpunit": "^0.11",
-            "phpstan/phpstan-strict-rules": "^0.11",
+            "phpstan/phpstan": "^0.12",
+            "phpstan/phpstan-phpunit": "^0.12",
+            "phpstan/phpstan-strict-rules": "^0.12",
             "phpunit/phpunit": "^7.0|^8.0"
         },
-        "time": "2019-12-17T13:59:29+00:00",
+        "time": "2020-02-08T12:10:37+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1792,5 +1793,34 @@
             "parser",
             "validator"
         ]
+    },
+    {
+        "name": "xionic/argh",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/xionic/Argh.git",
+            "reference": "f224a6fa27dcb8ce5a2476595102998e778458fd"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/xionic/Argh/zipball/f224a6fa27dcb8ce5a2476595102998e778458fd",
+            "reference": "f224a6fa27dcb8ce5a2476595102998e778458fd",
+            "shasum": ""
+        },
+        "time": "2020-02-05T20:27:59+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "xionic\\Argh\\": "src/"
+            }
+        },
+        "description": "Object and Array validation tool",
+        "support": {
+            "source": "https://github.com/xionic/Argh/tree/master",
+            "issues": "https://github.com/xionic/Argh/issues"
+        }
     }
 ]

@@ -5,6 +5,7 @@ use \PiOn\Item\Value;
 use \PiOn\Event\Scheduler;
 use \PiOn\Event\FixedIntervalTimer;
 use \PiOn\StandardClass;
+use \PiOn\Session; 
 
 use Amp\Loop;
 
@@ -49,11 +50,11 @@ class HardwareDualGPIOToggle extends Hardware {
 		
 	}
 	
-	function hardware_get(Object $item_args){
+	function hardware_get(Session $session, Object $item_args){
 		return $this->states[$item_args->switch_num];
 	}
 	
-	function hardware_set(Object $item_args, Value $value){
+	function hardware_set(Session $session, Object $item_args, Value $value){
 		$switch_num = $item_args->switch_num;
 		$on_pin = $this->args->switches->$switch_num->on;
 		$off_pin = $this->args->switches->$switch_num->off;
@@ -61,9 +62,9 @@ class HardwareDualGPIOToggle extends Hardware {
 		//blip the relevant pin high for duration milliseconds
 		$relevant_pin = $value->data ? $on_pin : $off_pin;
 		$high_state = $this->args->active_low ? 0 : 1;
-		HardwareGPIO::set_pin($relevant_pin, $high_state);
-		Loop::delay($this->args->duration, function() use($relevant_pin, $high_state){
-			HardwareGPIO::set_pin($relevant_pin, !$high_state);
+		HardwareGPIO::set_pin($session, $relevant_pin, $high_state);
+		Loop::delay($this->args->duration, function() use($session, $relevant_pin, $high_state){
+			HardwareGPIO::set_pin($session, $relevant_pin, !$high_state);
 		});
 		
 		$this->states[$item_args->switch_num] = $value->data;

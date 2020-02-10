@@ -2,6 +2,7 @@
 namespace PiOn\Event;
 
 use \Amp\Loop;
+use \PiOn\Session;
 
 class FixedIntervalTimer implements Timer{
 	
@@ -16,7 +17,7 @@ class FixedIntervalTimer implements Timer{
 	}
 	
 	function start(Callable $callback): void {
-		plog("New FixedIntervalTimer with interval " . $this->interval, DEBUG);
+		plog("New FixedIntervalTimer with interval " . $this->interval, DEBUG, Session::$INTERNAL);
 		$this->interval_id = Loop::repeat($this->interval, function() use($callback){
 			call_user_func($callback);
 		});

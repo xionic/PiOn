@@ -1,4 +1,6 @@
 export class RestMessage {
+/*
+	Class fields not supported by FF android(plus others) yet.
 
 	type; //req or resp (set requests are answered by resp's)
 	context; //currently "ITEM" or "EVENT"
@@ -6,7 +8,7 @@ export class RestMessage {
 	target_node; //probably only populated for req's
 	target_port; // same
 	payload; // object passed as args to the get/set handler function as type appropriate
-	
+*/
 	constructor(type, context, sending_node, target_node, target_port, payload){
 		this.type = type;
 		this.context = context;

@@ -1,6 +1,6 @@
 import {LitElement, html, css}  from 'lit-element';
 import {pion_base} from '../pion_base.js';
-import {register_module, getTimestamp, send_update} from '../../main.js';
+import {register_module, getTimestamp, send_update, shadow_selector} from '../../main.js';
 import {Value} from '../../Value.js';
 
 
@@ -18,6 +18,9 @@ export class module_thermostat extends pion_base {
 	constructor() {
 		super();
 		this.has_received_first_update = false; // has the element received at least one value 
+		this.has_rendered = false;
+		
+		
 	}
 	
 	switch_changed(){
@@ -33,7 +36,7 @@ export class module_thermostat extends pion_base {
 			}
 	`}
 	
-	onpion_change(ev){
+	onpion_change(ev){		
 		switch(ev.originalTarget.getAttribute("therm_module")){			
 			case "setpoint":
 				this.setpoint = ev.originalTarget.get_value();
@@ -54,25 +57,42 @@ export class module_thermostat extends pion_base {
 		if(!this.has_received_first_update){
 			return html`<p></p>`;
 		} else {
-			console.log(this.state);
+			this.has_rendered = true;
 			return html`				
-				<module-text noupdate class="itemmodule" therm_module="temp" val="${this.current_temp}"></module-text>
+				<module-text noupdate class="itemmodule" therm_module="temp"></module-text>
 				
-				<module-number noupdate class="itemmodule" therm_module="setpoint"  @pion_change="${this.onpion_change}"  val="${this.setpoint}"></module-number>
+				<module-number noupdate class="itemmodule" therm_module="setpoint"  @pion_change="${this.onpion_change}"></module-number>
 				
-				<module-switch noupdate class="itemmodule" therm_module="state"  @pion_change="${this.onpion_change}" val="${this.state}"></module-switch>
+				<module-switch noupdate class="itemmodule" therm_module="state"  @pion_change="${this.onpion_change}"></module-switch>
 				
-				<module-switch noupdate class="itemmodule" therm_module="heater_state"   val="${this.heater_state}"></module-switch>
+				<module-switch disabled noupdate class="itemmodule" therm_module="heater_state"   ></module-switch>
 			`;
 		}
 	}
 	
-	set_value(value){
+	set_value(value){	
 		this.current_temp = value.data.current_temp.data;
 		this.setpoint = value.data.setpoint.data;
 		this.state = value.data.state.data ? true : false;
 		this.heater_state = value.data.heater_state.data;
 		this.has_received_first_update = true;
+		
+		$(this.shadowRoot).arrive("[therm_module='temp']", function() {
+			// 'this' refers to the newly created element
+			this.set_value(value.data.current_temp)
+		});
+		$(this.shadowRoot).arrive("[therm_module='setpoint']", function() {
+			// 'this' refers to the newly created element
+			this.set_value(value.data.setpoint)
+		});
+		$(this.shadowRoot).arrive("[therm_module='state']", function() {
+			// 'this' refers to the newly created element
+			this.set_value(value.data.state)
+		});
+		$(this.shadowRoot).arrive("[therm_module='heater_state']", function() {
+			// 'this' refers to the newly created element
+			this.set_value(value.data.heater_state)
+		});
 	}
 	
 	/*get_value(){

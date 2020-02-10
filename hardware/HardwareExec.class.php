@@ -2,6 +2,7 @@
 namespace PiOn\Hardware;
 
 use \PiOn\Item\Value;
+use \PiOn\Session; 
 
 class HardwareExec extends Hardware{
 
@@ -13,16 +14,16 @@ class HardwareExec extends Hardware{
 		$this->value_certainty = true;
 	 }
 	 
-	 function hardware_get(Object $item_args){		
-		 return $this->do_exec($item_args->get_command);
+	 function hardware_get(Session $session, Object $item_args){		
+		 return $this->do_exec($session, $item_args->get_command);
 	 }
 	 
-	 function hardware_set(Object $item_args, Value $value): value {
-		 return $this->do_exec($item_args->set_command);
+	 function hardware_set(Session $session, Object $item_args, Value $value): value {
+		 return $this->do_exec($session, $item_args->set_command);
 	 }
 	 
-	 private function do_exec(String $cmd): String{
-		 plog("Hardware {$this->name} running shell command: {$cmd}", DEBUG);
+	 private function do_exec(Session $session, String $cmd): String{
+		 plog("Hardware {$this->name} running shell command: {$cmd}", DEBUG, $session);
 		 return exec($cmd);
 	 }
 	 

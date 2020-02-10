@@ -4,12 +4,14 @@
 	
 	require_once("constants.php"); // load first
 	require_once("Timer.class.php"); //fix(hack) load order
+	require_once("vendor/xionic/Argh/src/Argh.class.php"); // cannot get to work with composer
 	foreach (glob("{.,hardware,items,nodes}/*.php", GLOB_BRACE) as $filename)
 	{
 		require_once $filename; //SECURITY
 	}
 	
 	use \PiOn\Model;
+	use \PiOn\Session;
 	use \PiOn\Event\EventManager;
 	use \PiOn\Node\Node;
 	use \PiOn\Item\Item;
@@ -47,18 +49,20 @@
 		$details = $e->getDetails();
 		plog("Failed to parse config.json. Error at line: {$details['line']}", FATAL);
 	}
-
+	
+	//Session init
+	Session::init();
 	
 	//Model creation
 	$model = new Model($config->model);
 	$this_node = $model->get_node(NODE_NAME);
-	$model->init();
 	
 	//Events and timer init
 	EventManager::init();
-	Scheduler::init();
+	Scheduler::init();	
 	
-	
+	//model initialisation
+	$model->init();
 	
 
 	Loop::run(function() use ($this_node){
@@ -72,7 +76,7 @@
 	//static content handler
 	$documentRoot = new DocumentRoot(__DIR__ . '/web/build/default');
 	$router = new Amp\Http\Server\Router;
-	$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {
+	$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {		
 		return yield handle_rest_request($request);
 	}));
 	$router->setFallback($documentRoot);
@@ -92,8 +96,9 @@
 	});
 	echo "MAIN LOOP ENDED!!!\n";
 	
-	function plog($text, $level){
-		$logger = get_logger("main");
+	function plog(string $text, int $level, \PiOn\Session $session): void {
+		$logger = get_logger("main");	
+		$text = $session->get_req_num() . ": $text";
 		if($level == FATAL){
 			$logger->emergency($text);
 			die();
@@ -111,7 +116,7 @@
 		global $model;
 		return $model;
 	}
-	function get_item($name): Item{
+	function get_item($name): Item{		
 		return get_model()->get_item($name);
 	}
 	function get_node($name): Node{
@@ -122,7 +127,7 @@
 		return $loop;
 	}
 	
-	function create_logger($name){
+	function create_logger(String $name): Logger{
 		global $loggers;
 		$loggers[$name] = new Logger($name);
 		$logHandler = new StreamHandler(new ResourceOutputStream(STDOUT));
@@ -130,7 +135,7 @@
 		$loggers[$name]->pushHandler($logHandler);
 		return $loggers[$name];
 	}
-	function get_logger($name){
+	function get_logger(String $name): Logger{
 		global $loggers;
 		return $loggers[$name];
 	}
@@ -142,24 +147,24 @@
 		], $content);
 	}
 	
-	function send(RestMessage $rest_message): Promise{ //returns RestMessage
+	function send(\PiOn\Session $session, RestMessage $rest_message): Promise{ //returns RestMessage
 		//plog("Sending to {$rest_message->target_node} message: " .$rest_message->to_json(), DEBUG);
 		$value = null;
 		$reponse_received = false;
 		
 		$client = Amp\Http\Client\HttpClientBuilder::buildDefault();
 		$target_node = get_node($rest_message->target_node);
-		$url = $target_node->get_base_url() . "/api/?data=". urlencode($rest_message->to_json());
+		$url = $target_node->get_base_url_ip() . "/api/?data=". urlencode($rest_message->to_json());
 
-		$call = Amp\Call(static function() use($client, $target_node, $url){
-			plog("Making REST request to ". $target_node->hostname. ", url: ".urldecode($url), DEBUG);
+		$call = Amp\Call(static function() use($client, $target_node, $url, $session) {
+			plog("Making REST request to ". $target_node->hostname. ", url: ".urldecode($url), DEBUG, $session);
 			$resp = yield $client->request(new \Amp\Http\Client\Request($url));
 			$json = yield $resp->getBody()->buffer();
 			if($resp->getStatus() != 200){					
 				throw new Exception("Error status received from " . $target_node->hostname . ": " . $resp->getStatus() . " Body is: " . $json);
 			}
 			$rest_message = RestMessage::from_json($json);
-			plog("Responding with: " . json_encode($rest_message), DEBUG);
+			plog("Got response: " . json_encode($rest_message), DEBUG, $session);
 
 			//plog("Successfully retrieved remote value from node: " . $THIS->node_name. ", Value: ". ($item_message->value == null ? "NULL":$item_message->value), DEBUG);
 			
