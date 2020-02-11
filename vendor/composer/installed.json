@@ -1793,5 +1793,34 @@
             "parser",
             "validator"
         ]
+    },
+    {
+        "name": "xionic/argh",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/xionic/Argh.git",
+            "reference": "f224a6fa27dcb8ce5a2476595102998e778458fd"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/xionic/Argh/zipball/f224a6fa27dcb8ce5a2476595102998e778458fd",
+            "reference": "f224a6fa27dcb8ce5a2476595102998e778458fd",
+            "shasum": ""
+        },
+        "time": "2020-02-05T20:27:59+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "xionic\\Argh\\": "src/"
+            }
+        },
+        "description": "Object and Array validation tool",
+        "support": {
+            "source": "https://github.com/xionic/Argh/tree/master",
+            "issues": "https://github.com/xionic/Argh/issues"
+        }
     }
 ]

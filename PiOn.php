@@ -4,7 +4,7 @@
 	
 	require_once("constants.php"); // load first
 	require_once("Timer.class.php"); //fix(hack) load order
-	require_once("vendor/xionic/Argh/src/Argh.class.php"); // cannot get to work with composer
+	require_once("vendor/xionic/argh/src/Argh.class.php"); // cannot get to work with composer
 	foreach (glob("{.,hardware,items,nodes}/*.php", GLOB_BRACE) as $filename)
 	{
 		require_once $filename; //SECURITY

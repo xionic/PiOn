@@ -88,7 +88,7 @@ abstract class Item {
 			
 			plog("Trying to set value of item: '{$this->name}' to '".json_encode($value->data)."'", DEBUG, $session);
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node	
-				
+
 				plog("Item SET '" . $this->name . "' is local", VERBOSE, $session);
 
 				//fire item change event if needed	
@@ -129,11 +129,11 @@ abstract class Item {
 		$item->hardware_args = $hw_args;
 		$item->last_value = new Value(null);
 		
-		Argh::validate($item,[
+		/*Argh::validate($item,[
 			"name" => ["notblank"],
 			"node_name" => ["notblank"],
 			"item_args" => ["obj"],			
-		]);
+		]);*/
 		return $item;
 	}
 	

@@ -1,9 +1,4 @@
-{
-    "name": "xionic/pion",
-    "type": "project",
-    "minimum-stability": "dev",
-    "prefer-stable" : true,
-    "require": {
+{ "name": "xionic/pion", "type": "project", "minimum-stability": "dev", "prefer-stable" : true, "require": {
         "amphp/amp": "^2.4",
         "amphp/http-server": ">=2.0.0",
         "amphp/log": "^1.1",
@@ -12,6 +7,7 @@
         "seld/jsonlint": "^1.7",
         "amphp/http-server-static-content": "^1.0",
         "amphp/http-server-router": "^1.0",
+        "xionic/Argh": "master",
 		"php": ">=7"
     },
     "repositories": [{
