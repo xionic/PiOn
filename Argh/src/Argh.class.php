@@ -48,7 +48,7 @@ class Argh{
 		{	
 			if(!is_array($constraintArr)) // ensure constraints are provided as an array
 			{
-				throw new Exception("Constraints must be an array");
+				throw new \Exception("Constraints must be an array");
 				return false;
 			}
 			//preprocess constraints to trim and apply optional constraint
@@ -148,7 +148,7 @@ class Argh{
 							break;
 							
 						default:
-							throw new Exception("Constraint ". htmlentities($c["constraint"]) . " is unsupported");
+							throw new \Exception("Constraint ". htmlentities($c["constraint"]) . " is unsupported");
 							break;
 						
 					}
