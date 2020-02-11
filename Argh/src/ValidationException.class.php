@@ -9,7 +9,10 @@ class ValidationException extends \Exception {
 		if(is_object($offendingValue)){
 			$offendingValue = " object of class " . get_class($offendingValue);
 		}
-		$reason .= ". Argument: '$offendingArg' Value: '$offendingValue'"; 
+		else{
+			$offendingValue = "'$offendingValue'";
+		}
+		$reason .= ". Argument: '$offendingArg' Value: $offendingValue"; 
 		parent::__construct($reason);
 	}
 }

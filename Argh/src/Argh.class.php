@@ -9,7 +9,7 @@ class Argh{
 	
 	private $argArray, $argDesc, $errCallback;
 	
-	private $version = "Argh Version 0.1";
+	private $version = "Argh Version 0.2";
 	
 	private function __construct(){
 	}
@@ -27,15 +27,22 @@ class Argh{
 	 * lbound arg	-	must not be below arg (e.g. "lbound 2")
 	 * ubound arg	- 	must not be above arg (e.g. "ubound 600")
 	 * regex arg		- 	must match regex given be arg
+	 * obj		- 	Must be an object (accordign to is_object())
 	 * class name		- 	must be instanceof given class
 	 * ?class name		- 	must be instanceof given class or null
 	*/
 
-	public static function validate($argArray, array $argDesc, Callable $callback = null): void{		
-		(new Argh())->_validate($argArray, $argDesc, $callback);
+	public static function validate($argArray, array $argDesc, Callable $callback = null): bool {		
+		return (new Argh())->_validate($argArray, $argDesc, $callback);
 	}
 		
-	private function _validate($argArray, $argDesc, $callback){
+	private function _validate($argArray, $argDesc, $callback): bool{
+		
+		if($argArray == null)
+			throw new \Exception ("object|array to be checked cannot be null");
+		if($argArray == null)
+			throw new \Exception ("c to be checked cannot be null");
+		
 		$this->argArray = $argArray;
 		$this->argDesc = $argDesc;
 		$this->callback = $callback;
@@ -88,15 +95,19 @@ class Argh{
 			$curValue = $this->getArg($arg);
 			
 			foreach($constraints as $c)
-			{	
+			{	//echo substr($c["constraint"], 0,1) . " " . $c["constraint"] ."\n";
 				//apply contraints which cannot be done using a switch
 				if($c instanceof Closure)
 				{
-					$this->checkUserFunc($c,$curValue,$arg);				
-				}
-				else
-				{
-				
+					$this->checkUserFunc($c,$curValue,$arg);
+				} else {
+					if (substr($c["constraint"], 0, 1) == "?") {
+						if($curValue == null)
+							return true;
+						else
+							$c["constraint"] = substr($c["constraint"], 1);
+					}					
+					
 					//apply the constraints
 					switch($c["constraint"])
 					{	
@@ -136,13 +147,13 @@ class Argh{
 							$this->checkRegex($c["constraintArg"],$curValue,$arg);
 							break;
 							
+						case "obj":
+							$this->checkObject($curValue,$arg);
+							break;	
+							
 						case "class":
 							$this->checkClass($c["constraintArg"],$curValue,$arg);
-							break;
-							
-						case "?class":
-							$this->checkClassOrNull($c["constraintArg"],$curValue,$arg, true);
-							break;
+							break;						
 							
 						case "optional"; // handled above - needed here to prevent exception
 							break;
@@ -272,20 +283,19 @@ class Argh{
 		return true;
 	}
 	
-	private function checkClass(String $classSpec, $value, String $arg)
+	private function checkObject($value, String $arg)
 	{
-		if (!$value instanceof $classSpec){
-			$this->handleValidationFail("Argument is not of class type: '$classSpec'", $arg, $value);
+		if (!is_object($value)){
+			$this->handleValidationFail("Argument is not an object", $arg, $value);
 			return false;
 		}
 		return true;		
 	}
 	
-	private function checkClassOrNull(String $classSpec, $value, String $arg)
+	private function checkClass(String $classSpec, $value, String $arg)
 	{
-		if ($value == null) return true;
 		if (!$value instanceof $classSpec){
-			$this->handleValidationFail("Argument is not of class type: '$classSpec' or NULL", $arg, $value);
+			$this->handleValidationFail("Argument is not of class type: '$classSpec'", $arg, $value);
 			return false;
 		}
 		return true;		

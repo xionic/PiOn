@@ -44,13 +44,13 @@ When validating, you can either pass an optional callback to handle validation t
 Exposed Methods
 ===============
 
-validateArgs( array $arguments, array $constraints, \Callable $callback = null )
+validateArgs( array $arguments, array $constraints, \Callable $callback = null , bool $dumpOnViolation = false)
 ----------------------------------------------------
 
 Parameters:
 * $arguments	-	An array to validate, e.g. $_POST
 * $constraints	-	An array of key -> properties, see example
-* $constraints	-	A callback to call on validations errors instead of throwing exceptions.
+* $callback	-	A callback to call on validations errors instead of throwing exceptions.
 
 Supported Constraints:
 
@@ -65,7 +65,8 @@ Supported Constraints:
 * ubound arg	- 	must not be above arg (e.g. "ubound 600")
 * regex arg	- 	must match regex given be arg
 * class name -	must be instanceof th given class
-* ?class name -	must be instanceof th given class or null
+
+Any constraint can be prepended with "?" to allow null as well.
 
 See example usage below
 
