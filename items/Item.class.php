@@ -52,7 +52,16 @@ abstract class Item {
 					$item_value->data = TransformManager::transform($this->item_args->transform, $item_value->data);
 				}
 				
-				
+				//fire item change event if needed	
+				$newval = $item_value->data;
+				$oldval = $this->last_value->data;	
+				$this->last_value = $item_value;		
+				if(
+					(is_object($newval) && is_object($oldval) && $newval != $oldval)
+					|| ($oldval != $newval)
+				){	
+					EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_VALUE_CHANGED, $this->name, $item_value));
+				}
 				//var_dump($this->resp_item_message->value);die;
 				
 				

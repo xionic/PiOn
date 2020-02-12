@@ -12,7 +12,7 @@ export class module_text extends pion_base {
 
   constructor() {
     super();
-    this.val = "PLACEHOLDER";
+    this.val = "LOADING";
   }
 
   render() {

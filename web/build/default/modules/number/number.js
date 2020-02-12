@@ -1,4 +1,4 @@
-import { html } from "../../node_modules/lit-html/lit-html.js";
+import { html, css } from "../../node_modules/lit-element/lit-element.js";
 import { pion_base } from '../pion_base.js';
 import { register_module } from '../../main.js';
 export class module_number extends pion_base {
@@ -17,6 +17,14 @@ export class module_number extends pion_base {
 
   render() {
     return html`<input @change="${this.on_change}" .value="${this.val}" type="number">`;
+  }
+
+  static get styles() {
+    return css`
+			input {
+				width:100%;
+			}			
+		`;
   }
 
   set_value(value) {

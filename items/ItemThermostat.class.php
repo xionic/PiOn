@@ -3,6 +3,8 @@ namespace PiOn\Item;
 
 use \Pion\Hardware\Hardware as Hardware;
 use \PiOn\Event\EventManager;
+use \PiOn\Event\Scheduler;
+use \PiOn\Event\FixedIntervalTimer;
 use \PiOn\Session;
 
 use \xionic\Argh\Argh;
@@ -10,6 +12,15 @@ use \xionic\Argh\Argh;
 use \Amp\Promise;
 use \Amp\Success;
 
+/**
+ * available item_args:
+ *  - heater_item: Name of switch item which controls the heater
+ *  - setpoint_item: Name of setpoint item
+ *  - switch_item: Name of thermostat master switch
+ *  - temp_item: Name of temperature sensor item
+ *  - hyst: hysterysis value
+ *  - update_interval: interval in seconds in which to poll the temperature item for updates. Default 30
+ */
 class ItemThermostat extends Item {
 	
 	public const type = "Thermostat";
@@ -25,17 +36,28 @@ class ItemThermostat extends Item {
 		$this->heater_switch = get_item($this->item_args->heater_item);
 		$this->temp_item = get_item($this->item_args->temp_item);
 		$this->setpoint = get_item($this->item_args->setpoint_item);
+
+		$temp_update_interval = property_exists($this->item_args, "update_interval") ? $this->item_args -> update_interval : 30;
 		
 		//register event to listen for setpoint and temp changes and update heater state accordingly
 		$THIS = $this;
 		EventManager::register_item_event_handler($this->temp_item->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS){
 			$THIS->event_handler($event_name, $item_name, $value);
 		});
+
 		EventManager::register_item_event_handler($this->setpoint->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
 			$THIS->event_handler($event_name, $item_name, $value);
 		});
+
 		EventManager::register_item_event_handler($this->state_switch->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
 			$THIS->event_handler($event_name, $item_name, $value);
+		});
+
+		//force a change event trigger if temp has changed		
+		Scheduler::register_task("Update Nick Temp", "xealot_server", new FixedIntervalTimer($temp_update_interval), function(){
+			\Amp\call(function(){				
+				yield get_item('Nick Room Temp')->get_value(Session::$INTERNAL);				
+			});
 		});
 		
 	}
@@ -94,7 +116,7 @@ class ItemThermostat extends Item {
 		});		
 	}
 	
-	protected function set_value_local(Session $session, Value $values):Promise{ //validation
+	protected function set_value_local(Session $session, Value $values): Promise{ //validation
 		Argh::validate($values, [
 			"/data/state" => ["obj"],
 			"/data/setpoint" => ["obj"],

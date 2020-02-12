@@ -30,9 +30,22 @@ export class module_thermostat extends pion_base {
 	static get styles(){
 		return css`
 			.itemmodule {
-				float: left;
-				display: inline;
-				border: red solid 2px;				
+				/*float: left;*/
+				display: inline-block;				
+			}
+			module-number {
+				width:45px;
+			}
+			* {
+				padding: 0 5px;
+			}
+			module-switch[therm_module="state"] {
+				padding-right:2px;
+				position: relative;
+				left:10px;
+			}
+			module-text[therm_module="temp"] {
+				padding-right:0px;
 			}
 	`}
 	
@@ -58,12 +71,13 @@ export class module_thermostat extends pion_base {
 			return html`<p></p>`;
 		} else {
 			this.has_rendered = true;
-			return html`				
-				<module-text noupdate class="itemmodule" therm_module="temp"></module-text>
-				
-				<module-number noupdate class="itemmodule" therm_module="setpoint"  @pion_change="${this.onpion_change}"></module-number>
-				
+			return html`
+
 				<module-switch noupdate class="itemmodule" therm_module="state"  @pion_change="${this.onpion_change}"></module-switch>
+
+				<module-text noupdate class="itemmodule" therm_module="temp"></module-text>
+				&deg;C
+				<module-number noupdate class="itemmodule" therm_module="setpoint"  @pion_change="${this.onpion_change}"></module-number>			
 				
 				<module-switch disabled noupdate class="itemmodule" therm_module="heater_state"   ></module-switch>
 			`;

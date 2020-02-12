@@ -7,27 +7,31 @@ if [[ ! -r ./config-repo ]]; then
 	exit 1
 fi
 
-REPO=$(cat ./config-repo | head -n1 | tr -d '\n');
-KEY=$(cat ./config-repo | tail -n1);
-KEY="keys/$KEY"
+REPO=$(sed -n 1p ./config-repo | tr -d '\n');
+BRANCH=$(sed -n 2p ./config-repo | tr -d '\n');
+KEY=$(sed -n 3p ./config-repo | tr -d '\n');
 
-echo $REPO
-echo "$KEY"
-echo "Updating config from repo: $REPO using key: $KEY"
+if [[ -z $REPO || -z $BRANCH || -z $KEY ]]; then
+	echo -e "config-repo file must be of the form:\n\ngit-repo-url\ngit-branch\ngit-ssh-keyfile-path" > 2
+fi
+
+#echo "#$REPO"
+#echo "$KEY"
+echo "Updating config from repo: $REPO; branch: $BRANCH using key: $KEY"
 
 chmod 700 ./keys #7 or we can't do updates
 chmod 400 $KEY
 
 if [[ ! -r config/config.json ]]; then
 	echo "Config not yet cloned..."
-	ssh-agent bash -c "ssh-add $KEY; git clone $REPO config"
+	ssh-agent bash -c "ssh-add "$KEY"; git clone --branch "$BRANCH" "$REPO" config"
 else
 	if [[ -z config ]]; then
 		mkdir config
 	fi
 	echo "Updating repo"
 	cd config
-	ssh-agent bash -c "ssh-add ../$KEY; git pull"
+	ssh-agent bash -c "ssh-add ../"$KEY"; git pull"
 	cd ..
 fi
 

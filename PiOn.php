@@ -37,9 +37,14 @@
 	use \Amp\Http\Server\Router;
 	use \Amp\Http\Server\StaticContent\DocumentRoot;
 	
+	//Session init
+	Session::init();
+
 	$logger = create_logger("main");
+	plog("Starting PiOn...", INFO, Session::$INTERNAL);
 	
 	//Load Config
+	plog("Reading config.json", INFO, Session::$INTERNAL);
 	$config_json = file_get_contents("config/config.json");
 	$config = null;
 	$parser = new JsonParser;
@@ -47,11 +52,8 @@
 		$config = $parser->parse($config_json);
 	} catch(Exception $e){
 		$details = $e->getDetails();
-		plog("Failed to parse config.json. Error at line: {$details['line']}", FATAL);
+		plog("Failed to parse config.json. Error at line: {$details['line']}", FATAL, Session::$INTERNAL);
 	}
-	
-	//Session init
-	Session::init();
 	
 	//Model creation
 	$model = new Model($config->model);
@@ -132,6 +134,9 @@
 		$loggers[$name] = new Logger($name);
 		$logHandler = new StreamHandler(new ResourceOutputStream(STDOUT));
 		$logHandler->setFormatter(new ConsoleFormatter);
+		$log_file = fopen("log/PiOn.log", "a");
+		$logFileHandler = new \Monolog\Handler\StreamHandler($log_file);
+		$loggers[$name]->pushHandler($logFileHandler);
 		$loggers[$name]->pushHandler($logHandler);
 		return $loggers[$name];
 	}

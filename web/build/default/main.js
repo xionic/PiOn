@@ -86,6 +86,7 @@ export class Main extends LitElement {
 
       $(sitemap[room]).each(function (key, item) {
         var itemli = $("<li>");
+        $(itemli).addClass("item");
         itemli.append($("<span>", {
           class: "itemname",
           text: item.item_name
