@@ -8,7 +8,7 @@ use \Amp\Promise;
 use \Amp\Success;
 
 class ItemSetpoint extends Item{
-	private $setpoint = 20; //default
+	private $setpoint = 22; //default
 	public const type = "Setpoint";
 	
 	function init(){

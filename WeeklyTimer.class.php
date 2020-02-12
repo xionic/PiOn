@@ -55,7 +55,7 @@ class WeeklyTimer implements Timer{
 							//throw exception
 							throw new \Exception("Failed to parse date string: $ds");
 						}
-						plog("Adding weekly timer for now + $day days $hour hours $min minutes $sec secs = " . date("D H:i:s", $ts), DEBUG, Session::$INTERVAL) ;
+						plog("Adding weekly timer for now + $day days $hour hours $min minutes $sec secs = " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
 						$this->week_fire_times[] = $ts - $relative_time;
 						//add next week's schedule too to make finding the next fire time easier
 						$ts = strtotime("+$day days $hour hours $min minutes $sec secs midnight next sunday");

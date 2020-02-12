@@ -1801,15 +1801,15 @@
         "source": {
             "type": "git",
             "url": "https://github.com/xionic/Argh.git",
-            "reference": "f224a6fa27dcb8ce5a2476595102998e778458fd"
+            "reference": "bd65a758b186e4a5610810a6234964e0ad29b149"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/xionic/Argh/zipball/f224a6fa27dcb8ce5a2476595102998e778458fd",
-            "reference": "f224a6fa27dcb8ce5a2476595102998e778458fd",
+            "url": "https://api.github.com/repos/xionic/Argh/zipball/bd65a758b186e4a5610810a6234964e0ad29b149",
+            "reference": "bd65a758b186e4a5610810a6234964e0ad29b149",
             "shasum": ""
         },
-        "time": "2020-02-05T20:27:59+00:00",
+        "time": "2020-02-12T12:46:40+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {
