@@ -1,0 +1,11 @@
+{
+    "name": "xionic/argh",
+    "description": "Object and Array validation tool",
+    "type": "library",
+    "minimum-stability": "dev",
+    "require": {},
+	"autoload": {
+        "psr-4": { "xionic\\Argh\\": "src/" }
+    }
+	
+}
