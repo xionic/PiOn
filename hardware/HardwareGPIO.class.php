@@ -4,6 +4,8 @@ namespace PiOn\Hardware;
 use \PiOn\Item\Value;
 use \PiOn\Session; 
 
+use \Amp\Promise;
+
 class HardwareGPIO extends Hardware {
 	 
 	public const value_certainty = Value::CERTAIN;
@@ -14,16 +16,20 @@ class HardwareGPIO extends Hardware {
 		$this->value_certainty = true;
 	}
 	
-	protected function hardware_get(Session $session, Object $item_args){
-		return HardwareGPIO::get_pin($session, $item_args->pin);
+	protected function hardware_get(Session $session, Object $item_args): Promise{
+		return \Amp\call(function() use($session, $item_args){
+			return HardwareGPIO::get_pin($session, $item_args->pin);
+		});
 	}
 	
-	protected function hardware_set(Session $session, Object $item_args, Value $value){
-		if (HardwareGPIO::set_pin($session, $item_args->pin, $value->data )){
-			return $value->data;
-		} else {
-			//throw exception
-		}
+	protected function hardware_set(Session $session, Object $item_args, Value $value): Promise{
+		return \Amp\call(function() use($session, $item_args, $value){
+			if (HardwareGPIO::set_pin($session, $item_args->pin, $value->data )){
+				return $value->data;
+			} else {
+				//throw exception
+			}
+		});
 	}
 	
 	public static function get_pin(Session $session, $board_pin){

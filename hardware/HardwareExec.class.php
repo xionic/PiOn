@@ -4,6 +4,8 @@ namespace PiOn\Hardware;
 use \PiOn\Item\Value;
 use \PiOn\Session; 
 
+use \Amp\Promise;
+
 class HardwareExec extends Hardware{
 
 	public const value_certainty = Value::CERTAIN;
@@ -14,12 +16,16 @@ class HardwareExec extends Hardware{
 		$this->value_certainty = true;
 	 }
 	 
-	 function hardware_get(Session $session, Object $item_args){		
-		 return $this->do_exec($session, $item_args->get_command);
+	 function hardware_get(Session $session, Object $item_args): Promise{
+		 return \Amp\call(function() use($session, $item_args){	
+			 return $this->do_exec($session, $item_args->get_command);
+		 });
 	 }
 	 
-	 function hardware_set(Session $session, Object $item_args, Value $value): value {
-		 return $this->do_exec($session, $item_args->set_command);
+	 function hardware_set(Session $session, Object $item_args, Value $value): Promise {
+		 return \Amp\call(function() use($session, $item_args, $value){
+			 return $this->do_exec($session, $item_args->set_command);
+		 });
 	 }
 	 
 	 private function do_exec(Session $session, String $cmd): String{

@@ -8,8 +8,7 @@ class Task {
 	
 	private $callback;
 	private $timer;
-	public $name;
-	
+	public $name;	
 	
 	function __construct(String $name, Timer $timer, Callable $callback){
 		$this->name = $name;

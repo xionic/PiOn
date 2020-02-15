@@ -4,7 +4,7 @@
 	
 	require_once("constants.php"); // load first
 	require_once("Timer.class.php"); //fix(hack) load order
-	require_once("Argh/src/Argh.class.php"); // cannot get to work with composer
+	require_once("vendor/xionic/argh/src/Argh.class.php"); // cannot get to work with composer
 	foreach (glob("{.,hardware,items,nodes}/*.php", GLOB_BRACE) as $filename)
 	{
 		require_once $filename; //SECURITY
@@ -69,31 +69,32 @@
 
 	Loop::run(function() use ($this_node){
 		
-	foreach (glob("{events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn being loaded
-	{
-		require_once $filename; //SECURITY
-	}
-		
-	$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
-	//static content handler
-	$documentRoot = new DocumentRoot(__DIR__ . '/web/build/default');
-	$router = new Amp\Http\Server\Router;
-	$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {		
-		return yield handle_rest_request($request);
-	}));
-	$router->setFallback($documentRoot);
-	$server = new HttpServer($sockets, $router, create_logger("server")); 
-	
-	
-	$server->setErrorHandler(new \PiOn\HTTPErrorHandler());
-	yield $server->start();		
+		foreach (glob("{events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn being loaded
+		{
+			require_once $filename; //SECURITY
+		}
+			
+		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
 
-	// Stop the server gracefully when SIGINT is received.
-	// This is technically optional, but it is best to call Server::stop().
-	Amp\Loop::onSignal(SIGINT, function (string $watcherId) use ($server) {
-		Amp\Loop::cancel($watcherId);
-		yield $server->stop();
-	});
+		//static content handler
+		$documentRoot = new DocumentRoot(__DIR__ . '/web/build/default');
+		$router = new Amp\Http\Server\Router;
+		$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {	
+			return yield handle_rest_request($request);
+		}));
+		$router->setFallback($documentRoot);
+		$server = new HttpServer($sockets, $router, create_logger("server")); 
+		
+		
+		$server->setErrorHandler(new \PiOn\HTTPErrorHandler());
+		yield $server->start();		
+
+		// Stop the server gracefully when SIGINT is received.
+		// This is technically optional, but it is best to call Server::stop().
+		Amp\Loop::onSignal(SIGINT, function (string $watcherId) use ($server) {
+			Amp\Loop::cancel($watcherId);
+			yield $server->stop();
+		});
 	
 	});
 	echo "MAIN LOOP ENDED!!!\n";

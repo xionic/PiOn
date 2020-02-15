@@ -6,6 +6,10 @@ use \Pion\Item\Item;
 use \Pion\Item\Value as Value;
 use \PiOn\Node\Node;
 use \Pion\InvalidArgException;
+use \PiOn\Session;
+
+use \xionic\Argh\Argh;
+use \xionic\Argh\ValidationException;
 
 class Model {
 	
@@ -14,7 +18,60 @@ class Model {
 	protected $hardware = array();
 	
 	function __construct($model_conf){
-		
+
+		//Validation !!!
+		try{
+
+			Argh::validate($model_conf, [
+				"nodes" => ["array"],
+				"/nodes/*/" => ['obj'],
+				"/nodes/*/name" => ['notblank', function($value){
+					//TODO ensure unique
+					return true;
+				}],
+				"/nodes/*/hostname" => ["notblank"],
+				"/nodes/*/port" => ["int", "notzero"],
+
+				"hardware" => ["array"],
+				"/hardware/*/" => ['obj'],
+				"/hardware/*/name" => ['notblank', function($value){
+					//TODO ensure unique
+					return true;
+				}],
+				"/hardware/*/type" => ["notblank"],
+				"/hardware/*/typeargs" => ["?obj"],
+				"/hardware/*/node" => ["notblank", function($value){
+					//TODO ensure exists
+					return true;
+				}],
+				"/hardware/*/capabilities" => ["array"],
+				"/hardware/*/capabilities/*/" => ["regex /(get|set)/"],
+
+				"items" => ["array"],
+				"/items/*/" => ['obj'],
+				"/items/*/name" => ['notblank', function($value){
+					//TODO ensure unique
+					return true;
+				}],
+				"/items/*/node" => ["notblank", function($value){
+					//TODO ensure exists
+					return true;
+				}],
+				"/items/*/itemargs" => ["?obj"],
+				"/items/*/hardware" => ["optional", "obj"],
+				"/items/*/hardware/name" => ["optional", "notblank", function($value){
+					//TODO ensure exists
+					return true;
+				}],
+				"/items/*/hardware/args" => ["optional", "obj"]	,
+			]);
+
+		} catch(ValidationException $ve){
+			plog("Failed to read config.json", ERROR, Session::$INTERNAL);
+			plog($ve->getMessage(), FATAL, Session::$INTERNAL);
+		}
+		plog("config.json validation succeeded", VERBOSE, Session::$INTERNAL);
+
 		//load nodes
 		foreach($model_conf->nodes as $node){
 			$this->nodes[$node->name] = new \PiOn\Node\NodeStandard($node->name, $node->hostname, $node->port);

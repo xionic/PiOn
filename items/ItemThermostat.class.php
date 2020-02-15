@@ -40,7 +40,7 @@ class ItemThermostat extends Item {
 		$temp_update_interval = property_exists($this->item_args, "update_interval") ? $this->item_args -> update_interval : 30;
 		
 		//register event to listen for setpoint and temp changes and update heater state accordingly
-		$THIS = $this;
+		$THIS = $this;/*
 		EventManager::register_item_event_handler($this->temp_item->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS){
 			$THIS->event_handler($event_name, $item_name, $value);
 		});
@@ -58,7 +58,7 @@ class ItemThermostat extends Item {
 			\Amp\call(function(){				
 				yield get_item('Nick Room Temp')->get_value(Session::$INTERNAL);				
 			});
-		});
+		});*/
 		
 	}
 

@@ -45,6 +45,8 @@ abstract class Driver
     /** @var array */
     private $registry = [];
 
+    private $counter;
+
     /**
      * Run the event loop.
      *
@@ -63,6 +65,7 @@ abstract class Driver
     public function run()
     {
         $this->running = true;
+        $this->counter = 0;
 
         try {
             while ($this->running) {
@@ -93,8 +96,9 @@ abstract class Driver
     /**
      * Executes a single tick of the event loop.
      */
+    
     private function tick()
-    {
+    { //echo "Tick #" . $this->counter++."\n";
         if (empty($this->deferQueue)) {
             $this->deferQueue = $this->nextTickQueue;
         } else {

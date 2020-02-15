@@ -1,4 +1,4 @@
-/log/
+/log/*
 /config/
 /keys/*
 /composer.lock
@@ -8,3 +8,4 @@
 /.vscode/
 
 !/keys/.gitkeep
+!/log/.gitkeep

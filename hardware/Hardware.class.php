@@ -5,6 +5,8 @@ use \PiOn\Hardware\OperationNotSupportedException;
 use \PiOn\Item\Value;
 use \PiOn\Session; 
 
+use \Amp\Promise;
+
 abstract class Hardware {
 	public const HW_GET = "get";
 	public const HW_SET = "set";
@@ -23,7 +25,7 @@ abstract class Hardware {
 		$this->args = $args;
 	}
 	
-	function get(Session $session, Object $item_args){
+	function get(Session $session, Object $item_args): Promise{
 		plog("Hardware GET request for type: {$this->type} with item_args: ".json_encode($item_args), DEBUG, $session);
 		if(in_array(Hardware::HW_GET, $this->capabilities)){
 			return $this->hardware_get($session, $item_args);
@@ -32,7 +34,7 @@ abstract class Hardware {
 		}
 	}
 	
-	function set(Session $session, Object $item_args, $value){
+	function set(Session $session, Object $item_args, $value): Promise{
 		
 		plog("Hardware SET request for type: {$this->type} with value: ".json_encode($value->data) . " and item_args: ".json_encode($item_args), DEBUG, $session);
 		if(in_array(Hardware::HW_SET, $this->capabilities)){
@@ -42,8 +44,8 @@ abstract class Hardware {
 		}
 	}
 	
-	protected abstract function hardware_get(Session $session, Object $item_args);
-	protected abstract function hardware_set(Session $session, Object $item_args, Value $value);
+	protected abstract function hardware_get(Session $session, Object $item_args): Promise;
+	protected abstract function hardware_set(Session $session, Object $item_args, Value $value): Promise;
 }
 
 ?>
