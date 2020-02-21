@@ -9,14 +9,17 @@ use \PiOn\Event\EventManager;
 use \PiOn\InvalidArgException;
 use \PiOn\Session;
 
+use \Amp\Promise;
+use \Amp\Success;
 use \Amp\Http\Status;
 use \Amp\Http\Server\Response;
 use \Amp\Http\Server\Request;
 use \Amp\Http\Client\InvalidRequestException;
 
-function handle_rest_request(Request $request): \Amp\Promise{
-	$session = new Session();
-	return \Amp\Call(function() use ($request, $session) {	
+function handle_rest_request(Request $request): Promise{
+	return\Amp\call(function() use ($request) {
+		$session = new Session();
+			
 		$path = $request->getURI()->getPath();
 		if($path != "/api/"){
 			plog("Invalid REST Path : $path. This should not happen", ERROR, $session);
@@ -39,6 +42,15 @@ function handle_rest_request(Request $request): \Amp\Promise{
 			return respond("data parameter contains invalid JSON", 400);
 		}
 		plog("----NEW---- REST req from $ip:$port with data: $json", DEBUG, $session);
+		$resp_rest_message = yield handle_RestMessage($session, $rest_message);
+		return respond($resp_rest_message->to_json(), 200, "text/json");
+	});
+}
+/**
+ * Resolves to RestMessage
+ */
+function handle_RestMessage(Session $session, RestMessage $rest_message): Promise {
+	return \Amp\Call(function() use ($rest_message, $session) {		
 		
 		$json_str = null;
 		$response_obj = null;
@@ -85,10 +97,11 @@ function handle_rest_request(Request $request): \Amp\Promise{
 			
 			case RestMessage::REST_CONTEXT_EVENT:
 				$event_message = EventMessage::from_json($rest_message->payload);
+				plog("EventMessage from {$rest_message->sending_node} for event :'{$event_message->event_name}' with props: " . json_encode($event_message->props), DEBUG, $session);
 				switch($event_message->context){
 					case ITEM_EVENT: 
 						$item_event = new ItemEvent($event_message->event_name, $event_message->props->item_name, Value::from_obj($event_message->props->value));
-						EventManager::trigger_event($session, $item_event);
+						EventManager::handle_event($session, $item_event);
 						break;
 						
 				}
@@ -99,9 +112,8 @@ function handle_rest_request(Request $request): \Amp\Promise{
 				plog("Invalid context: {$rest_message->context}", VERBOSE, $session);
 				return respond("Invalid context: {$rest_message->context}", 400);
 		}
-		$resp_rest_message = new RestMessage(RestMessage::RESP, $rest_message->context, NODE_NAME, null, null, $response_obj);	
-		return respond($resp_rest_message->to_json(), 200, "text/json");
-
+		$resp_rest_message = $rest_message->build_resp($response_obj);
+		return new Success($resp_rest_message);
 	});
 }
 ?>

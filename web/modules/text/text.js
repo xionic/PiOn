@@ -5,21 +5,21 @@ import {register_module} from '../../main.js';
 export class module_text extends pion_base {
 	static get properties() {
 		return { 
-			val: { type: String }
+			val: { type: Object }
 		};
 	}
 
 	constructor() {
 		super();
-		this.val = "LOADING";
+		this.val = {data: "LOADING"};
 	}
 
 	render() {
-		return html`<span>${this.val}</span>`;
+		return html`<span>${this.val.data}</span>`;
 	}
 	
 	set_value(value){
-		this.val = value.data;	  
+		this.val = value;
 	}
 	
 	get_value(){

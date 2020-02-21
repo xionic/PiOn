@@ -39,35 +39,41 @@ class ItemThermostat extends Item {
 
 		$temp_update_interval = property_exists($this->item_args, "update_interval") ? $this->item_args -> update_interval : 30;
 		
+		if($this->node_name == NODE_NAME){
 		//register event to listen for setpoint and temp changes and update heater state accordingly
-		$THIS = $this;/*
-		EventManager::register_item_event_handler($this->temp_item->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS){
-			$THIS->event_handler($event_name, $item_name, $value);
-		});
+			$THIS = $this;
+			EventManager::register_item_event_handler($this->temp_item->name, ITEM_EVENT, ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS){
+				$THIS->event_handler($event_name, $item_name, $value);
+			});
 
-		EventManager::register_item_event_handler($this->setpoint->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
-			$THIS->event_handler($event_name, $item_name, $value);
-		});
+			EventManager::register_item_event_handler($this->setpoint->name, ITEM_EVENT,ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
+				$THIS->event_handler($event_name, $item_name, $value);
+			});
 
-		EventManager::register_item_event_handler($this->state_switch->name, ITEM_EVENT, "xealot_server", ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
-			$THIS->event_handler($event_name, $item_name, $value);
-		});
+			EventManager::register_item_event_handler($this->state_switch->name, ITEM_EVENT, ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
+				$THIS->event_handler($event_name, $item_name, $value);
+			});
+
+			EventManager::register_item_event_handler($this->heater_switch->name, ITEM_EVENT, ITEM_VALUE_CHANGED, function($event_name, $item_name, Value $value) use ($THIS) {
+				$THIS->event_handler($event_name, $item_name, $value);
+			});
+		}
 
 		//force a change event trigger if temp has changed		
 		Scheduler::register_task("Update Nick Temp", "xealot_server", new FixedIntervalTimer($temp_update_interval), function(){
 			\Amp\call(function(){				
 				yield get_item('Nick Room Temp')->get_value(Session::$INTERNAL);				
 			});
-		});*/
+		});
 		
 	}
 
 	/**
 	 * Handles the logic of the thermostat using events from the temp sensor and setpoint
 	 */
-	function event_handler(string $event_name, string $item_name, Value $value): void {	 echo "HELLOzn\n";		
+	function event_handler(string $event_name, string $item_name, Value $value): void {		
 		\Amp\call(function() use($event_name, $item_name, $value){
-
+			plog("ItemThermostat event handler fired from item: $item_name", DEBUG, Session::$INTERNAL);
 			if((yield $this->state_switch->get_value(Session::$INTERNAL))->data){
 
 				$hyst = $this->item_args->hyst;
@@ -97,6 +103,13 @@ class ItemThermostat extends Item {
 			} else {
 				$this->heater_switch->set_value(Session::$INTERNAL,new Value(0));
 			}
+
+			//One of our sub-items has changed - so trigger a change on this, mostly for websocket updates
+			//EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_EVENT, $this->name, $this->get_value));
+
+			//trigger an update event
+			yield $this->get_value(Session::$INTERNAL);
+
 		});
 	}
 	

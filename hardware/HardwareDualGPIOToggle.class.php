@@ -68,7 +68,6 @@ class HardwareDualGPIOToggle extends Hardware {
 
 			yield $this->wait_in_line($session);		
 			$this->locked = true;
-			echo "HW set," . $item_args->switch_num . " " . $session->get_req_num() .  " " . \Amp\Loop::now()/1000 . "\n";
 			$switch_num = $item_args->switch_num;
 			$on_pin = $this->args->switches->$switch_num->on;
 			$off_pin = $this->args->switches->$switch_num->off;
@@ -79,7 +78,6 @@ class HardwareDualGPIOToggle extends Hardware {
 			HardwareGPIO::set_pin($session, $relevant_pin, $high_state);
 			Loop::delay($this->args->duration, function() use($session, $relevant_pin, $high_state){
 				HardwareGPIO::set_pin($session, $relevant_pin, !$high_state);
-				echo "DELAY RETURN - NEXT IN LINE\n";
 				$this->locked = false;
 				$this->next_in_line($session);
 			});
@@ -115,7 +113,6 @@ class HardwareDualGPIOToggle extends Hardware {
 				 */
 				$next = array_shift($this->queue);
 				Loop::defer(function() use ($next){
-					echo "RESOLVING\n";
 					$next->resolve();
 				});
 			}

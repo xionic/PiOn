@@ -1,6 +1,8 @@
 import {html, LitElement} from 'lit-element';
 import {RestMessage} from './RestMessage.js';
 import {ItemMessage} from './ItemMessage.js';
+import {SubscribeMessage} from './SubscribeMessage.js';
+import {ItemEvent} from './ItemEvent.js';
 import {Value} from './Value.js';
 import {InvalidModuleExeption} from './exceptions.js';
 
@@ -23,7 +25,7 @@ export function send_update(elem, item_name, value){
 	let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, null, null, null, item_message);
 	console.debug("Sending update to server for item ", item_name, " and rest_message:", rest_message);
 	$.ajax({
-		url: config.backend_url,
+		url: config.api_url,
 		data: {
 			data: rest_message.to_json()
 		}
@@ -61,11 +63,63 @@ function get_module_html(name, item_name){
 var item_elem_list = []; //List of all htmlelements for each module instantiated. [{item_name:..., "id": ...} ...]
 
 //make sure everything is loaded before we start pissing with litelement
- 
+var websocket;
 $().ready(function(){
 	setTimeout(function(){// MEGA HACK. modules must register before we can do this, but we have no way of knowing when this is complete.
 		$("#rooms").html("<pion-main></pion-main>");
 	},500);
+	
+	//setup wetsocket
+	websocket = new WebSocket("ws://" + config.websocket_url);
+
+	websocket.addEventListener('error', function(event) {
+		console.error("WebSocket error observed:", event);
+		alert("WebSocket Error - see console");
+	});
+
+	
+	// Connection opened
+	websocket.addEventListener('open', function (event) {
+		//subscribe to all required items	
+		let items = {};
+		for(const room in sitemap){
+			sitemap[room].forEach(elem => {
+				items[elem.item_name] = ["ITEM_VALUE_CHANGED"];
+			})
+			/*for(const item_num in room ){
+				items[item_num][sitemap.room.item_num.name] = ["ITEM_VALUE_CHANGED"];
+			}*/
+		}
+		let sub_msg = new SubscribeMessage(items, SubscribeMessage.SUBSCRIBE, true);
+		let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);		
+		websocket.send(rest_message.to_json());
+	});
+
+	// Listen for messages
+	websocket.addEventListener('message', function (event) {		
+		let rest_message = RestMessage.from_json(event.data);
+		console.log('Message from WebSocket ', rest_message);
+
+		switch(rest_message.context){
+			case RestMessage.REST_CONTEXT_ITEM:
+			rest_message.payload = [rest_message.payload];
+			case RestMessage.REST_CONTEXT_ITEMS:
+				rest_message.payload.forEach(function(item){
+					let item_message = ItemMessage.from_obj(item);
+					console.debug("WS: Received value for item: ", item_message.item_name, " with data: ", item_message.value.data);
+					let elems = document.querySelectorAll("span[data-item_name='" + item_message.item_name + "'] .itemmodule");
+					if(elems != null){
+						elems.forEach(function(elem){
+							elem.set_value(item_message.value);
+						});
+					}
+				});
+				break;
+			case RestMessage.REST_CONTEXT_ERROR:
+			console.log("WS: Received ERROR message: " + RestMessage.payload);
+				alert("ERROR: " + RestMessage.payload);
+		}
+	});
 });
 
 export class Main extends LitElement {
@@ -97,18 +151,22 @@ export class Main extends LitElement {
 					//request current value
 					let item_message = new ItemMessage(item.item_name, ItemMessage.GET, null)
 					let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, "client", null, null, item_message)
-					
+
+					//websocket.send(rest_message.to_json());
+					/*
 					$.ajax({
-						url: config.backend_url,
+						url: config.api_url,
 						data: { data: rest_message.to_json()}
 					}).done(function(data, text_status, jqxhr){
 						//console.log(data);
 						var payload = data.payload;
-						console.debug("Successfully retrieved value for item: ", item, " with data: ", data, " from: ", config.backend_url);
+						console.debug("Successfully retrieved value for item: ", item, " with data: ", data, " from: ", config.api_url);
 						//console.log(item_value_span[0]);
 						item_value_span[0].querySelector(".itemmodule").set_value(payload.value);
 						
-					});				
+					}).fail(function(jqXHR, textStatus, errorThrown){
+						console.error("AJAX FAILED. status: '" + textStatus + "' error:'" + errorThrown + "'", jqXHR);
+					});*/
 					//itemli.append();
 					roomul.append(itemli);
 				

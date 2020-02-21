@@ -8,7 +8,8 @@
         "amphp/http-server-static-content": "^1.0",
         "amphp/http-server-router": "^1.0",
         "xionic/Argh": "master",
-		"php": ">=7"
+		"php": ">=7",
+                "amphp/websocket-server": "v2.0.0-rc1"
     },
     "repositories": [{
 	 "type": "vcs",

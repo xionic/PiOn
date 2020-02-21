@@ -23,6 +23,7 @@ export class module_number extends pion_base {
 		return css`
 			input {
 				width:100%;
+				background: white;
 			}			
 		`}
 	

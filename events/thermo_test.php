@@ -37,12 +37,15 @@ Scheduler::register_task("Living Lights off", "pi1", new WeeklyTimer("*", [23], 
 		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(0));
 	});
 });
+/*
+Scheduler::register_task("test", "xealot_server", new FixedIntervalTimer(10), function(){
+	\Amp\call(function(){
+		//trigger a change event if value has changed
+		yield get_item('Nick Room Temp')->set_value(Session::$INTERNAL, new Value(rand(0,50)));
+		//yield get_item('Nick Room Temp')->set_value(Session::$INTERNAL, $val);
+		
+	});
+});*/
 
-\Amp\Loop::delay(1000,function(){	
-		yield get_item("TV Light")->set_value(Session::$INTERNAL, new Value(1));
-		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(1));
-		yield get_item("Nick Bed Lights")->set_value(Session::$INTERNAL, new Value(1));
-
-});
 
 ?>

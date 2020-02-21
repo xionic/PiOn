@@ -18,6 +18,7 @@
 	use \PiOn\Item\ItemMessage;
 	use \PiOn\RestMessage;
 	use \PiOn\Event\Scheduler;
+	use \PiOn\WebSocket;
 
 	use Amp\Loop;
 	use Amp\ByteStream\ResourceOutputStream;
@@ -76,12 +77,16 @@
 			
 		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
 
+		//websocket
+		$ws = new WebSocket;
+
 		//static content handler
 		$documentRoot = new DocumentRoot(__DIR__ . '/web/build/default');
 		$router = new Amp\Http\Server\Router;
 		$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {	
 			return yield handle_rest_request($request);
 		}));
+		$router->addRoute('GET', '/websocket/', $ws);
 		$router->setFallback($documentRoot);
 		$server = new HttpServer($sockets, $router, create_logger("server")); 
 		
@@ -122,8 +127,14 @@
 	function get_item($name): Item{		
 		return get_model()->get_item($name);
 	}
+	function get_items(): array {		
+		return get_model()->get_items();
+	}
 	function get_node($name): Node{
 		return get_model()->get_node($name);
+	}
+	function get_nodes(): array {
+		return get_model()->get_nodes();
 	}
 	function get_loop(): \Amp\Loop{
 		global $loop;

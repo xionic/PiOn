@@ -55,7 +55,7 @@ class WeeklyTimer implements Timer{
 							//throw exception
 							throw new \Exception("Failed to parse date string: $ds");
 						}
-						plog("Adding weekly timer for now + $day days $hour hours $min minutes $sec secs = " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
+						plog("Adding weekly timer for $day days $hour hours $min minutes $sec secs = " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
 						$this->week_fire_times[] = $ts - $relative_time;
 						//add next week's schedule too to make finding the next fire time easier
 						$ts = strtotime("+$day days $hour hours $min minutes $sec secs midnight next sunday");
@@ -82,7 +82,7 @@ class WeeklyTimer implements Timer{
 				return $diff;
 			}
 		}
-		throw new Exception("No next runtime found");
+		throw new Exception("No next run time found");
 	}
 	
 	function start(Callable $callback): void {
@@ -94,7 +94,13 @@ class WeeklyTimer implements Timer{
 	private function fire_next(Callable $callback): void {
 		if($this->running){
 			$THIS = $this;
-			Loop::delay($THIS->next_run_time_rel()*1000, function () use ($callback, $THIS){
+			$next_run_time = $this->next_run_time_rel();
+			$next_run_time_millis = $next_run_time*1000;
+			$h = floor($next_run_time / 3600);
+			$m = floor(($next_run_time % 3600)/60);
+			$s = ($next_run_time % 3600) % 60;
+			plog("Weekly timer scheduling next event with loop in ". $next_run_time ." seconds ($h hours, $m mins, $s secs)", VERBOSE, Session::$INTERNAL);
+			Loop::delay($next_run_time_millis, function () use ($callback, $THIS){
 				call_user_func($callback);
 				$THIS->fire_next($callback);
 			});

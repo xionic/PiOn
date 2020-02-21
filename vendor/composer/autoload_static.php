@@ -25,6 +25,7 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'a56027adf84a32da155734de2d858e65' => __DIR__ . '/..' . '/amphp/http-server/src/functions.php',
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         '33c308296b07af966b5bf768a0113f1e' => __DIR__ . '/..' . '/amphp/http-server-static-content/src/functions.php',
+        '3d05d4f147c95ba663000bd908d45656' => __DIR__ . '/..' . '/amphp/websocket/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -61,6 +62,8 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'A' => 
         array (
             'Amp\\WindowsRegistry\\' => 20,
+            'Amp\\Websocket\\Server\\' => 21,
+            'Amp\\Websocket\\' => 14,
             'Amp\\Sync\\' => 9,
             'Amp\\Socket\\' => 11,
             'Amp\\Process\\' => 12,
@@ -121,6 +124,14 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'Amp\\WindowsRegistry\\' => 
         array (
             0 => __DIR__ . '/..' . '/amphp/windows-registry/lib',
+        ),
+        'Amp\\Websocket\\Server\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/websocket-server/src',
+        ),
+        'Amp\\Websocket\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/websocket/src',
         ),
         'Amp\\Sync\\' => 
         array (

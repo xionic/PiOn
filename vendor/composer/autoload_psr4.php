@@ -16,6 +16,8 @@ return array(
     'Kelunik\\Certificate\\' => array($vendorDir . '/kelunik/certificate/lib'),
     'FastRoute\\' => array($vendorDir . '/nikic/fast-route/src'),
     'Amp\\WindowsRegistry\\' => array($vendorDir . '/amphp/windows-registry/lib'),
+    'Amp\\Websocket\\Server\\' => array($vendorDir . '/amphp/websocket-server/src'),
+    'Amp\\Websocket\\' => array($vendorDir . '/amphp/websocket/src'),
     'Amp\\Sync\\' => array($vendorDir . '/amphp/sync/src'),
     'Amp\\Socket\\' => array($vendorDir . '/amphp/socket/src'),
     'Amp\\Process\\' => array($vendorDir . '/amphp/process/lib'),

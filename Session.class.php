@@ -9,9 +9,9 @@ class Session {
 	private $req_num;
 	public static $INTERNAL; // Session object for code not run under a session. E.g. Event callbacks
 	
-	function __construct(){
+	function __construct($prefix = ""){
 		$this->id = \uniqid();
-		$this->req_num = self::$req_num_counter++;
+		$this->req_num = $prefix . self::$req_num_counter++;
 	}
 	
 	function set_attribute(string $key, $data): void {		
@@ -36,7 +36,7 @@ class Session {
 		return array_key_exists($key, $this->attributes);		
 	}
 	
-	public function get_req_num(): int{
+	public function get_req_num(): string{
 		return $this->req_num;
 	}
 	

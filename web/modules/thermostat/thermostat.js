@@ -68,7 +68,7 @@ export class module_thermostat extends pion_base {
 
 	render() {
 		if(!this.has_received_first_update){
-			return html`<p></p>`;
+			return html`<p>LOADING...</p>`;
 		} else {
 			this.has_rendered = true;
 			return html`
@@ -77,41 +77,49 @@ export class module_thermostat extends pion_base {
 
 				<module-text noupdate class="itemmodule" therm_module="temp"></module-text>
 				&deg;C
-				<module-number noupdate class="itemmodule" therm_module="setpoint"  @pion_change="${this.onpion_change}"></module-number>			
+				<module-number noupdate class="itemmodule" therm_module="setpoint" @pion_change="${this.onpion_change}"></module-number>			
 				
-				<module-switch disabled noupdate class="itemmodule" therm_module="heater_state"   ></module-switch>
+				<module-switch disabled noupdate class="itemmodule" therm_module="heater_state"></module-switch>
 			`;
 		}
 	}
 	
 	set_value(value){	
-		this.current_temp = value.data.current_temp.data;
-		this.setpoint = value.data.setpoint.data;
-		this.state = value.data.state.data ? true : false;
-		this.heater_state = value.data.heater_state.data;
+
+		if(value.data.hasOwnProperty("current_temp")){
+			this.current_temp = value.data.current_temp.data;
+			$(this.shadowRoot).arrive("[therm_module='temp']", {existing: true}, function() {
+				// 'this' refers to the newly created element
+				this.set_value(value.data.current_temp)
+			});
+		}
+
+		if(value.data.hasOwnProperty("heater_state")){
+			this.heater_state = value.data.heater_state.data;
+			$(this.shadowRoot).arrive("[therm_module='heater_state']", {existing: true}, function() {
+				// 'this' refers to the newly created element
+				this.set_value(value.data.heater_state)
+			});
+		}
+
+		if(value.data.hasOwnProperty("setpoint")){
+			this.setpoint = value.data.setpoint.data;
+			$(this.shadowRoot).arrive("[therm_module='setpoint']", {existing: true}, function() {
+				// 'this' refers to the newly created element
+				this.set_value(value.data.setpoint)
+			});
+		}
+
+		if(value.data.hasOwnProperty("state")){
+			this.state = value.data.state.data ? true : false;
+			$(this.shadowRoot).arrive("[therm_module='state']", {existing: true}, function() {
+				// 'this' refers to the newly created element
+				this.set_value(value.data.state)
+			});
+		}
+
 		this.has_received_first_update = true;
-		
-		$(this.shadowRoot).arrive("[therm_module='temp']", function() {
-			// 'this' refers to the newly created element
-			this.set_value(value.data.current_temp)
-		});
-		$(this.shadowRoot).arrive("[therm_module='setpoint']", function() {
-			// 'this' refers to the newly created element
-			this.set_value(value.data.setpoint)
-		});
-		$(this.shadowRoot).arrive("[therm_module='state']", function() {
-			// 'this' refers to the newly created element
-			this.set_value(value.data.state)
-		});
-		$(this.shadowRoot).arrive("[therm_module='heater_state']", function() {
-			// 'this' refers to the newly created element
-			this.set_value(value.data.heater_state)
-		});
 	}
-	
-	/*get_value(){
-		
-	}*/
 }
 
 customElements.define('module-thermostat', module_thermostat);

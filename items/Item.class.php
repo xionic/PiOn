@@ -29,7 +29,7 @@ abstract class Item {
 	public $type = null;
 	public $last_value; 
 		
-	public function get_value(?Session $session): Promise { // Resolves to Value
+	public function get_value(Session $session): Promise { // Resolves to Value
 		return \Amp\Call(function() use($session) {
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node		
 				plog("Item GET '" . $this->name . "' is local", VERBOSE, $session);
@@ -92,13 +92,17 @@ abstract class Item {
 
 		});
 	}
-	public function set_value(?Session $session, Value $value): Promise { // Resolves to Value
+	
+	public function set_value(Session $session, Value $value): Promise { // Resolves to Value
 		return \Amp\Call(function() use ($value, $session){
 			
 			plog("Trying to set value of item: '{$this->name}' to '".json_encode($value->data)."'", DEBUG, $session);
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node	
 
 				plog("Item SET '" . $this->name . "' is local", VERBOSE, $session);
+
+				//we need to actuaklly set the value before firing events
+				$result = yield $this->set_value_local($session, $value);
 
 				//fire item change event if needed	
 				$newval = $value->data;
@@ -107,12 +111,11 @@ abstract class Item {
 				if(
 					(is_object($newval) && is_object($oldval) && $newval != $oldval)
 					|| ($oldval != $newval)
-				){
-				//if(true){			
+				){	
 					EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_VALUE_CHANGED, $this->name, $value));
 				}
 
-				return $this->set_value_local($session, $value);	
+				return $result;	
 
 			} else { // item on remote node
 				plog("Item SET '" . $this->name . "' is on another host '" . $this->node_name . "'. Sending value...", VERBOSE, $session);

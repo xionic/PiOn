@@ -23,6 +23,7 @@ class Argh{
 	 * notzero		-	must not be zero (implies 'numeric')
 	 * notblank		-	string must not be blank (implies 'string')
 	 * string		-	must be string
+	 * bool|boolean			-	must be a boolean accouring to is_bool
 	 * array			- 	must be array
 	 * func			- 	provided Closure must return true. 
 	 * lbound arg	-	must not be below arg (e.g. "lbound 2")
@@ -130,6 +131,11 @@ class Argh{
 						case "notblank" :
 							$this->checkNotBlank($curValue, $arg);
 							break;
+
+						case "bool":
+						case "boolean" :
+							$this->checkBoolean($curValue, $arg);
+							break;
 							
 						case "array":
 							$this->checkIsArray($curValue, $arg);
@@ -204,6 +210,16 @@ class Argh{
 		if(!$this->checkIsString($value, $arg) || $value == "")
 		{
 			$this->handleValidationFail("Argument is a blank string: ". $arg, $arg, $value);
+			return false;
+		}
+		return true;
+	}
+
+	private function checkBoolean($value, $arg)
+	{
+		if(!is_bool($value) && $value != 0 && $value != 1)
+		{
+			$this->handleValidationFail("Argument is not a boolean ". $arg, $arg, $value);
 			return false;
 		}
 		return true;
@@ -336,11 +352,14 @@ class Argh{
 		$returnVal = $this->argArray;
 		foreach($pathComponents as $c){			
 			$returnVal = $this->retrievePathValue($c, $returnVal);
-		}		
+		}
+		//echo "GETARG: $path\n";
+		//var_dump($returnVal);
 		return $returnVal;
 	}
 	
 	private function retrievePathValue(String $elemName, $argList){ // $argList array or object
+		//var_dump($elemName, $argList);
 		if(is_object($argList)){
 			if(!property_exists($argList, $elemName))
 				throw new InvalidPropertyException($elemName);
@@ -355,26 +374,89 @@ class Argh{
 	//expand wildcards in the argDesc array e.g. /test/* -> /test/1 /test/2 /test/3 ... /test/[array length]
 	private function expandDescWildcards(){
 		$keys = array_keys($this->argDesc);
-		for($i = 0; $i < count($keys); $i++){
+		for($counter = 0; $counter < count($keys); $counter++){ // need a trad for because length changes
+			$key = $keys[$counter];
+			$keyDesc = $this->argDesc[$key];
 			//do we have a wildcard?
-			if(($pos = strpos($keys[$i],"/*/")) !== false){ // note: this is NOT regex - it is literally /*/
-				//get the array at this layer
-				$pathComponents = explode("/",substr($keys[$i],0,$pos)); // path up to the *
-				$pathComponents = array_slice($pathComponents,1); //discard the first empty element
-				$curVal = $this->argArray;
-				foreach($pathComponents as $c){
-					$curVal = $this->retrievePathValue($c, $curVal);
-				}
-				//add a new elem to argDesc for each elem in the array - could be hairy for large arrays :/
-				for($elemCounter = 0; $elemCounter < count($curVal); $elemCounter++){
-					//append onto the argDesc array with expanded path. Use the same checks e.g. /test/1/restOfarray, /test/2/restOfArray ...
-					$newKey = substr($keys[$i],0,$pos) . "/" . $elemCounter . "/" . substr($keys[$i],$pos+3);
-					$keys[] = $newKey; //push new key on so it too is processed by the super loop
-					$this->argDesc[$newKey] = $this->argDesc[$keys[$i]];
-				}
-				//finally remove the wildcard entry
-				unset($this->argDesc[$keys[$i]]);
+			if(strpos($key,"*") === false){
+				//no wildcard, nothing to expand
+				//echo "COTNINUE\n";
+				continue;
 			}
+			//get the array at this layer
+			$stripped_key = preg_replace("/\/$/", "", $key);
+			//echo "\nKEY: $key\n";
+			$pathComponents = explode("/", $stripped_key); 
+			$pathComponents = array_slice($pathComponents,1); //discard the first empty element			
+			//var_dump($key, $pathComponents);
+			$curVal = $this->argArray;
+			$curPath = "";
+			//var_dump($this->argArray);
+		
+			for($i = 0; $i < count($pathComponents); $i++){
+				$c = $pathComponents[$i];				
+				//echo "PATHCOMP: $c CURPATH: $curPath\n";
+				if($c == "*"){		
+					/*$first = $this->getFirstElementName($curVal);						
+					$curVal = $this->retrievePathValue($first, $curVal);
+					var_dump($curVal);*/
+					//add a new elem to argDesc for each elem in the array - could be hairy for large arrays :/
+					
+					if(is_object($curVal)){
+						$length = count(get_object_vars($curVal));
+					} else if(is_array($curVal)) {
+						$length = count($curVal);
+					} else {
+						$length = 1;
+					}
+					//echo "LENGTH $length\n";
+					$remainingPath = "";
+					$remainingPath = implode("/", array_slice($pathComponents, $i+1));
+					if($remainingPath != "")
+						$remainingPath = "/" . $remainingPath;
+
+					//echo "REMAINING: $remainingPath\n";
+					for($elemCounter = 0; $elemCounter < $length; $elemCounter++){
+						//append onto the argDesc array with expanded path. Use the same checks e.g. /test/1/restOfarray, /test/2/restOfArray ...
+						if(is_object($curVal)){
+							//var_dump(array_keys(get_object_vars($curVal))[$elemCounter]);
+							$keyName = array_keys(get_object_vars($curVal))[$elemCounter];
+							//echo "KEYNAME: $keyName\n";
+							$newKey = $curPath . "/" . $keyName . $remainingPath;
+						} else {							
+							$newKey = $curPath . "/" . $elemCounter . $remainingPath;
+						}
+						//echo "ADDING NEW KEY: $newKey - '$curPath '/$elemCounter' '$remainingPath' \n";
+						$keys[] = $newKey; //push new key on so it too is processed by the super loop
+						$this->argDesc[$newKey] = $keyDesc;
+					}
+					continue 2; // we've expanded this * and added the rest back on the $keys "queue" to be further expanded if required
+				} else {
+					$curPath .= "/$c";				
+					$curVal = $this->retrievePathValue($c, $curVal);
+					//echo "ADDING NEW KEY NO WILDCARD: $curPath/$c \n";
+					//$keys[] = "$curPath/$c";
+				}
+				//var_dump($curVal);
+				//finally remove the wildcard entry
+				unset($this->argDesc[$key]);
+			}
+			
+		}
+		//var_dump(implode("\n", array_keys($this->argDesc)));
+	}
+
+	/*private function expandDescWildcards(){
+		$keys = array_keys($this->argDesc);
+
+	}*/
+
+	//gets the first element name from an array or object;
+	private function getFirstElementName($val): String{
+		if(is_object($val)){
+			return get_object_vars($val)[0];
+		} else {
+			return 0;
 		}
 	}
 	

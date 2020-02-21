@@ -27,6 +27,15 @@ export class ItemMessage {
 	static get SET(){
 		return "SET";
 	}
+
+	static from_json(json){
+		let obj = JSON.parse();
+		return from_obj(obj);
+	}
+
+	static from_obj(obj){
+		return new ItemMessage(obj.item_name, obj.action, obj.value);
+	}
 	
 	to_json(){
 		return JSON.stringify({
