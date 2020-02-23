@@ -1,7 +1,7 @@
 <?php
 namespace PiOn\Item;
 
-use \Pion\Hardware\Hardware as Hardware;
+use \Pion\Hardware\Hardware;
 use \PiOn\Session;
 
 use \Amp\Promise;

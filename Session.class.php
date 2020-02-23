@@ -39,6 +39,10 @@ class Session {
 	public function get_req_num(): string{
 		return $this->req_num;
 	}
+
+	public function get_id(): string {
+		return $this->id;
+	}
 	
 	public static function init(){
 		Session::$INTERNAL = new Session();

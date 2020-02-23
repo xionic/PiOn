@@ -114,7 +114,9 @@ class Model {
 	}
 	
 	function get_item($item_name): Item{
-		//var_dump($this->items[$item_name]);
+		Argh::validate(["item_name" => $item_name],[
+			"item_name" => ["notblank"]
+		]);
 		if(array_key_exists($item_name, $this->items)){
 		//echo "NIUSDFSF $item_name\n";
 			return $this->items[$item_name];

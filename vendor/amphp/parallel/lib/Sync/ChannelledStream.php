@@ -15,23 +15,23 @@ use function Amp\call;
  */
 final class ChannelledStream implements Channel
 {
-    /** @var \Amp\ByteStream\InputStream */
+    /** @var InputStream */
     private $read;
 
-    /** @var \Amp\ByteStream\OutputStream */
+    /** @var OutputStream */
     private $write;
 
     /** @var \SplQueue */
     private $received;
 
-    /** @var \Amp\Parser\Parser */
+    /** @var ChannelParser */
     private $parser;
 
     /**
      * Creates a new channel from the given stream objects. Note that $read and $write can be the same object.
      *
-     * @param \Amp\ByteStream\InputStream $read
-     * @param \Amp\ByteStream\OutputStream $write
+     * @param InputStream $read
+     * @param OutputStream $write
      */
     public function __construct(InputStream $read, OutputStream $write)
     {
@@ -46,7 +46,7 @@ final class ChannelledStream implements Channel
      */
     public function send($data): Promise
     {
-        return call(function () use ($data) {
+        return call(function () use ($data): \Generator {
             try {
                 return yield $this->write->write($this->parser->encode($data));
             } catch (StreamException $exception) {
@@ -60,7 +60,7 @@ final class ChannelledStream implements Channel
      */
     public function receive(): Promise
     {
-        return call(function () {
+        return call(function (): \Generator {
             while ($this->received->isEmpty()) {
                 try {
                     $chunk = yield $this->read->read();

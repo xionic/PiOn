@@ -12,11 +12,11 @@ final class PooledWorker implements Worker
     /** @var callable */
     private $push;
 
-    /** @var \Amp\Parallel\Worker\Worker */
+    /** @var Worker */
     private $worker;
 
     /**
-     * @param \Amp\Parallel\Worker\Worker $worker
+     * @param Worker $worker
      * @param callable $push Callable to push the worker back into the queue.
      */
     public function __construct(Worker $worker, callable $push)
@@ -68,7 +68,7 @@ final class PooledWorker implements Worker
     /**
      * {@inheritdoc}
      */
-    public function kill()
+    public function kill(): void
     {
         $this->worker->kill();
     }

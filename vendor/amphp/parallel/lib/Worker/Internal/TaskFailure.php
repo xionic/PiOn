@@ -3,8 +3,9 @@
 namespace Amp\Parallel\Worker\Internal;
 
 use Amp\Failure;
-use Amp\Parallel\Worker\TaskError;
-use Amp\Parallel\Worker\TaskException;
+use Amp\Parallel\Sync;
+use Amp\Parallel\Worker\TaskFailureError;
+use Amp\Parallel\Worker\TaskFailureException;
 use Amp\Promise;
 
 /** @internal */
@@ -25,7 +26,7 @@ final class TaskFailure extends TaskResult
     /** @var int|string */
     private $code;
 
-    /** @var array */
+    /** @var string[] */
     private $trace;
 
     /** @var self|null */
@@ -38,7 +39,7 @@ final class TaskFailure extends TaskResult
         $this->parent = $exception instanceof \Error ? self::PARENT_ERROR : self::PARENT_EXCEPTION;
         $this->message = $exception->getMessage();
         $this->code = $exception->getCode();
-        $this->trace = $exception->getTraceAsString();
+        $this->trace = Sync\flattenThrowableBacktrace($exception);
 
         if ($previous = $exception->getPrevious()) {
             $this->previous = new self($id, $previous);
@@ -54,23 +55,10 @@ final class TaskFailure extends TaskResult
     {
         $previous = $this->previous ? $this->previous->createException() : null;
 
-        $format = 'Uncaught %s in worker with message "%s" and code "%s"; use %s::getWorkerTrace() '
-            . 'for the stack trace in the worker';
-
         if ($this->parent === self::PARENT_ERROR) {
-            return new TaskError(
-                $this->type,
-                \sprintf($format, $this->type, $this->message, $this->code, TaskError::class),
-                $this->trace,
-                $previous
-            );
+            return new TaskFailureError($this->type, $this->message, $this->code, $this->trace, $previous);
         }
 
-        return new TaskException(
-            $this->type,
-            \sprintf($format, $this->type, $this->message, $this->code, TaskException::class),
-            $this->trace,
-            $previous
-        );
+        return new TaskFailureException($this->type, $this->message, $this->code, $this->trace, $previous);
     }
 }

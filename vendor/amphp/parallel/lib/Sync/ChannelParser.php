@@ -43,8 +43,8 @@ final class ChannelParser extends Parser
      *
      * @return \Generator
      *
-     * @throws \Amp\Parallel\Sync\ChannelException
-     * @throws \Amp\Parallel\Sync\SerializationException
+     * @throws ChannelException
+     * @throws SerializationException
      */
     private static function parser(callable $push): \Generator
     {
@@ -81,7 +81,7 @@ final class ChannelParser extends Parser
      */
     private static function encodeUnprintableChars(string $data): string
     {
-        return \preg_replace_callback("/[^\x20-\x7e]/", function (array $matches) {
+        return \preg_replace_callback("/[^\x20-\x7e]/", function (array $matches): string {
             return "\\x" . \dechex(\ord($matches[0]));
         }, $data);
     }

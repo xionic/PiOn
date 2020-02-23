@@ -18,7 +18,7 @@
 	use \PiOn\Item\ItemMessage;
 	use \PiOn\RestMessage;
 	use \PiOn\Event\Scheduler;
-	use \PiOn\WebSocket;
+	use \PiOn\WebSocketManager;
 
 	use Amp\Loop;
 	use Amp\ByteStream\ResourceOutputStream;
@@ -78,7 +78,8 @@
 		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
 
 		//websocket
-		$ws = new WebSocket;
+		$ws_manager = new WebSocketManager;
+		$ws = $ws_manager->get_websocket();
 
 		//static content handler
 		$documentRoot = new DocumentRoot(__DIR__ . '/web/build/default');

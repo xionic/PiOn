@@ -23,14 +23,25 @@ export function getTimestamp(){
 export function send_update(elem, item_name, value){
 	let item_message = new ItemMessage(item_name, ItemMessage.SET, value, null, null);
 	let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, null, null, null, item_message);
-	console.debug("Sending update to server for item ", item_name, " and rest_message:", rest_message);
+	console.debug(`Sending update to server for item '${item_name}' and item_message:`, item_message);
 	$.ajax({
 		url: config.api_url,
 		data: {
 			data: rest_message.to_json()
 		}
 	}).done(function(data){
-		console.debug("Value update for '", item_name, "' was successful with data: ", data);		
+		let resp_rest_message = RestMessage.from_obj(data);
+		let resp_item_message = RestMessage.from_obj(resp_rest_message.payload);
+		switch(resp_rest_message.context){
+			case RestMessage.REST_CONTEXT_ERROR:
+				console.log("REST Received ERROR message: " + rest_message.payload);
+				alert("ERROR: " + rest_message.payload);
+			break;
+			default: 
+				console.debug(`Value update for '${item_name}' was successful with data: `, data);		
+		}
+	}).fail(function(data){
+		console.error(data);
 	});
 }
 
@@ -53,8 +64,8 @@ function get_module_html(name, item_name){
 		console.error("Invalid module: " + name);
 		throw new InvalidModuleExeption("Invalid module '" + name + "'");
 	}	
-	let obj = {html: '<module-' + name + " class='itemmodule' id='module_container_" + 			module_id_counter + "' item_name='" + item_name + "'></module-" + name + ">",
-			id: "module_container_" + module_id_counter
+	let obj = {html: '<module-' + name + " class='itemmodule' id='module_container_" + module_id_counter + "' item_name='" + item_name + "'></module-" + name + ">", 
+	id: "module_container_" + module_id_counter
 	};
 	module_id_counter++;
 	return obj;
@@ -62,8 +73,9 @@ function get_module_html(name, item_name){
 
 var item_elem_list = []; //List of all htmlelements for each module instantiated. [{item_name:..., "id": ...} ...]
 
-//make sure everything is loaded before we start pissing with litelement
 var websocket;
+var subscribers = {} // subscribers.item_name = array of (pion_base) element objects
+//make sure everything is loaded before we start pissing with litelement
 $().ready(function(){
 	setTimeout(function(){// MEGA HACK. modules must register before we can do this, but we have no way of knowing when this is complete.
 		$("#rooms").html("<pion-main></pion-main>");
@@ -86,13 +98,7 @@ $().ready(function(){
 			sitemap[room].forEach(elem => {
 				items[elem.item_name] = ["ITEM_VALUE_CHANGED"];
 			})
-			/*for(const item_num in room ){
-				items[item_num][sitemap.room.item_num.name] = ["ITEM_VALUE_CHANGED"];
-			}*/
-		}
-		let sub_msg = new SubscribeMessage(items, SubscribeMessage.SUBSCRIBE, true);
-		let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);		
-		websocket.send(rest_message.to_json());
+		}		
 	});
 
 	// Listen for messages
@@ -107,20 +113,42 @@ $().ready(function(){
 				rest_message.payload.forEach(function(item){
 					let item_message = ItemMessage.from_obj(item);
 					console.debug("WS: Received value for item: ", item_message.item_name, " with data: ", item_message.value.data);
-					let elems = document.querySelectorAll("span[data-item_name='" + item_message.item_name + "'] .itemmodule");
+					/*let elems = document.querySelectorAll("span.itemvalue *[item_name='" + item_message.item_name + "']");
 					if(elems != null){
 						elems.forEach(function(elem){
 							elem.set_value(item_message.value);
 						});
-					}
+					}*/
+					subscribers[item_message.item_name].forEach(function(elem){
+						elem.set_value(item_message.value)
+					});
 				});
 				break;
 			case RestMessage.REST_CONTEXT_ERROR:
-			console.log("WS: Received ERROR message: " + RestMessage.payload);
-				alert("ERROR: " + RestMessage.payload);
+				console.log("WS: Received ERROR message: " + rest_message.payload);
+				alert("ERROR: " + rest_message.payload);
 		}
 	});
 });
+
+/**
+ * 
+ * @param {pion_base} elem 
+ * @param {array} items {item_name: [event_name1, ...]}
+ * @param {Boolean} request_values whether to retresh values for all subscribed items
+ */
+export function ws_subscribe(elem, items, request_values){
+	console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
+	for(const item in items){
+		if(!subscribers.hasOwnProperty(item)){			
+			subscribers[item] = [];
+		}
+		subscribers[item].push(elem);
+	}
+	let sub_msg = new SubscribeMessage(items, SubscribeMessage.SUBSCRIBE, request_values);
+	let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
+	websocket.send(rest_message.to_json());
+}
 
 export class Main extends LitElement {
 	

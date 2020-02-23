@@ -98,7 +98,7 @@ abstract class Driver
      */
     
     private function tick()
-    { //echo "Tick #" . $this->counter++."\n";
+    { echo "Tick #" . $this->counter++."\n";
         if (empty($this->deferQueue)) {
             $this->deferQueue = $this->nextTickQueue;
         } else {

@@ -17,6 +17,8 @@ use function Amp\call;
  * The thread context is not itself threaded. A local instance of the context is
  * maintained both in the context that creates the thread and in the thread
  * itself.
+ *
+ * @deprecated ext-pthreads development has been halted, see https://github.com/krakjoe/pthreads/issues/929
  */
 final class Thread implements Context
 {
@@ -28,7 +30,7 @@ final class Thread implements Context
     /** @var Internal\Thread An internal thread instance. */
     private $thread;
 
-    /** @var \Amp\Parallel\Sync\ChannelledSocket A channel for communicating with the thread. */
+    /** @var ChannelledSocket A channel for communicating with the thread. */
     private $channel;
 
     /** @var resource */
@@ -71,7 +73,7 @@ final class Thread implements Context
     public static function run(callable $function, ...$args): Promise
     {
         $thread = new self($function, ...$args);
-        return call(function () use ($thread) {
+        return call(function () use ($thread): \Generator {
             yield $thread->start();
             return $thread;
         });
@@ -172,7 +174,7 @@ final class Thread implements Context
 
         $channel = $this->channel = new ChannelledSocket($channel, $channel);
 
-        $this->watcher = Loop::repeat(self::EXIT_CHECK_FREQUENCY, static function ($watcher) use ($thread, $channel) {
+        $this->watcher = Loop::repeat(self::EXIT_CHECK_FREQUENCY, static function ($watcher) use ($thread, $channel): void {
             if (!$thread->isRunning()) {
                 // Delay closing to avoid race condition between thread exiting and data becoming available.
                 Loop::delay(self::EXIT_CHECK_FREQUENCY, [$channel, "close"]);
@@ -190,7 +192,7 @@ final class Thread implements Context
      *
      * @throws ContextException If killing the thread was unsuccessful.
      */
-    public function kill()
+    public function kill(): void
     {
         if ($this->thread !== null) {
             try {
@@ -206,7 +208,7 @@ final class Thread implements Context
     /**
      * Closes channel and socket if still open.
      */
-    private function close()
+    private function close(): void
     {
         if ($this->channel !== null) {
             $this->channel->close();
@@ -232,7 +234,7 @@ final class Thread implements Context
             throw new StatusError('The thread has not been started or has already finished.');
         }
 
-        return call(function () {
+        return call(function (): \Generator {
             Loop::enable($this->watcher);
 
             try {
@@ -263,7 +265,7 @@ final class Thread implements Context
             throw new StatusError('The process has not been started.');
         }
 
-        return call(function () {
+        return call(function (): \Generator {
             Loop::enable($this->watcher);
 
             try {
@@ -297,7 +299,7 @@ final class Thread implements Context
             throw new \Error('Cannot send exit result objects.');
         }
 
-        return call(function () use ($data) {
+        return call(function () use ($data): \Generator {
             Loop::enable($this->watcher);
 
             try {

@@ -35,7 +35,7 @@ final class DefaultPool implements Pool
     /** @var \Closure */
     private $push;
 
-    /** @var \Amp\Promise|null */
+    /** @var Promise|null */
     private $exitStatus;
 
     /**
@@ -43,7 +43,7 @@ final class DefaultPool implements Pool
      *
      * @param int $maxSize The maximum number of workers the pool should spawn.
      *     Defaults to `Pool::DEFAULT_MAX_SIZE`.
-     * @param \Amp\Parallel\Worker\WorkerFactory|null $factory A worker factory to be used to create
+     * @param WorkerFactory|null $factory A worker factory to be used to create
      *     new workers.
      *
      * @throws \Error
@@ -67,7 +67,7 @@ final class DefaultPool implements Pool
         $idleWorkers = $this->idleWorkers;
         $busyQueue = $this->busyQueue;
 
-        $this->push = static function (Worker $worker) use ($workers, $idleWorkers, $busyQueue) {
+        $this->push = static function (Worker $worker) use ($workers, $idleWorkers, $busyQueue): void {
             if (!$workers->contains($worker) || ($workers[$worker] -= 1) > 0) {
                 return;
             }
@@ -136,21 +136,21 @@ final class DefaultPool implements Pool
     }
 
     /**
-     * Enqueues a task to be executed by the worker pool.
+     * Enqueues a {@see Task} to be executed by the worker pool.
      *
      * @param Task $task The task to enqueue.
      *
-     * @return \Amp\Promise<mixed> The return value of Task::run().
+     * @return Promise<mixed> The return value of Task::run().
      *
-     * @throws \Amp\Parallel\Context\StatusError If the pool has been shutdown.
-     * @throws \Amp\Parallel\Worker\TaskException If the task throws an exception.
+     * @throws StatusError If the pool has been shutdown.
+     * @throws TaskFailureThrowable If the task throws an exception.
      */
     public function enqueue(Task $task): Promise
     {
         $worker = $this->pull();
 
         $promise = $worker->enqueue($task);
-        $promise->onResolve(function () use ($worker) {
+        $promise->onResolve(function () use ($worker): void {
             ($this->push)($worker);
         });
         return $promise;
@@ -159,9 +159,9 @@ final class DefaultPool implements Pool
     /**
      * Shuts down the pool and all workers in it.
      *
-     * @return \Amp\Promise<int[]> Array of exit status from all workers.
+     * @return Promise<int[]> Array of exit status from all workers.
      *
-     * @throws \Amp\Parallel\Context\StatusError If the pool has not been started.
+     * @throws StatusError If the pool has not been started.
      */
     public function shutdown(): Promise
     {
@@ -184,7 +184,7 @@ final class DefaultPool implements Pool
     /**
      * Kills all workers in the pool and halts the worker pool.
      */
-    public function kill()
+    public function kill(): void
     {
         $this->running = false;
 
@@ -207,8 +207,8 @@ final class DefaultPool implements Pool
     /**
      * Pulls a worker from the pool.
      *
-     * @return \Amp\Parallel\Worker\Worker
-     * @throws \Amp\Parallel\Context\StatusError
+     * @return Worker
+     * @throws StatusError
      */
     private function pull(): Worker
     {

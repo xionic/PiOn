@@ -3,6 +3,7 @@
 namespace Amp\Parallel\Context;
 
 use Amp\Loop;
+use Amp\Parallel\Sync\ChannelException;
 use Amp\Parallel\Sync\ChannelledSocket;
 use Amp\Parallel\Sync\ExitFailure;
 use Amp\Parallel\Sync\ExitResult;
@@ -10,6 +11,7 @@ use Amp\Parallel\Sync\ExitSuccess;
 use Amp\Parallel\Sync\SerializationException;
 use Amp\Parallel\Sync\SynchronizationError;
 use Amp\Promise;
+use Amp\TimeoutException;
 use parallel\Runtime;
 use function Amp\call;
 
@@ -66,14 +68,13 @@ final class Parallel implements Context
      *
      * @param string|array $script Path to PHP script or array with first element as path and following elements options
      *     to the PHP script (e.g.: ['bin/worker', 'Option1Value', 'Option2Value'].
-     * @param mixed ...$args Additional arguments to pass to the given callable.
      *
      * @return Promise<Thread> The thread object that was spawned.
      */
     public static function run($script): Promise
     {
         $thread = new self($script);
-        return call(function () use ($thread) {
+        return call(function () use ($thread): \Generator {
             yield $thread->start();
             return $thread;
         });
@@ -199,7 +200,7 @@ final class Parallel implements Context
             }
 
             try {
-                Loop::unreference(Loop::repeat(self::EXIT_CHECK_FREQUENCY, function () {
+                Loop::unreference(Loop::repeat(self::EXIT_CHECK_FREQUENCY, function (): void {
                     // Timer to give the chance for the PHP VM to be interrupted by Runtime::kill(), since system calls such as
                     // select() will not be interrupted.
                 }));
@@ -227,7 +228,7 @@ final class Parallel implements Context
                     $result = new ExitFailure($exception);
                 }
 
-                Promise\wait(call(function () use ($channel, $result) {
+                Promise\wait(call(function () use ($channel, $result): \Generator {
                     try {
                         yield $channel->send($result);
                     } catch (SerializationException $exception) {
@@ -252,7 +253,7 @@ final class Parallel implements Context
             $this->args
         ]);
 
-        return call(function () use ($future) {
+        return call(function () use ($future): \Generator {
             try {
                 $this->channel = yield $this->hub->accept($this->id);
                 $this->hub->add($this->id, $this->channel, $future);
@@ -272,7 +273,7 @@ final class Parallel implements Context
     /**
      * Immediately kills the context.
      */
-    public function kill()
+    public function kill(): void
     {
         $this->killed = true;
 
@@ -288,7 +289,7 @@ final class Parallel implements Context
     /**
      * Closes channel and socket if still open.
      */
-    private function close()
+    private function close(): void
     {
         $this->runtime = null;
 
@@ -317,7 +318,7 @@ final class Parallel implements Context
             throw new StatusError('The thread has not been started or has already finished.');
         }
 
-        return call(function () {
+        return call(function (): \Generator {
             try {
                 $response = yield $this->channel->receive();
                 $this->close();
@@ -341,16 +342,20 @@ final class Parallel implements Context
     public function receive(): Promise
     {
         if ($this->channel === null) {
-            throw new StatusError('The process has not been started.');
+            throw new StatusError('The thread has not been started.');
         }
 
-        return call(function () {
-            $data = yield $this->channel->receive();
+        return call(function (): \Generator {
+            try {
+                $data = yield $this->channel->receive();
+            } catch (ChannelException $e) {
+                throw new ContextException("The thread stopped responding, potentially due to a fatal error or calling exit", 0, $e);
+            }
 
             if ($data instanceof ExitResult) {
                 $data = $data->getResult();
                 throw new SynchronizationError(\sprintf(
-                    'Thread process unexpectedly exited with result of type: %s',
+                    'Thread unexpectedly exited with result of type: %s',
                     \is_object($data) ? \get_class($data) : \gettype($data)
                 ));
             }
@@ -372,7 +377,27 @@ final class Parallel implements Context
             throw new \Error('Cannot send exit result objects.');
         }
 
-        return $this->channel->send($data);
+        return call(function () use ($data): \Generator {
+            try {
+                return yield $this->channel->send($data);
+            } catch (ChannelException $e) {
+                if ($this->channel === null) {
+                    throw new ContextException("The thread stopped responding, potentially due to a fatal error or calling exit", 0, $e);
+                }
+
+                try {
+                    $data = yield Promise\timeout($this->join(), 100);
+                } catch (ContextException | ChannelException | TimeoutException $ex) {
+                    $this->kill();
+                    throw new ContextException("The thread stopped responding, potentially due to a fatal error or calling exit", 0, $e);
+                }
+
+                throw new SynchronizationError(\sprintf(
+                    'Thread unexpectedly exited with result of type: %s',
+                    \is_object($data) ? \get_class($data) : \gettype($data)
+                ), 0, $e);
+            }
+        });
     }
 
     /**

@@ -52,8 +52,7 @@ export class RestMessage {
 		return resp;
 	}
 
-	static from_json(json){
-		let obj = JSON.parse(json);
+	static from_obj(obj){
 		return new RestMessage(
 			obj.type,
 			obj.context,
@@ -62,6 +61,11 @@ export class RestMessage {
 			obj.target_port,
 			obj.payload
 		)
+	}
+
+	static from_json(json){
+		let obj = JSON.parse(json);
+		return RestMessage.from_obj(obj);
 	}
 	
 	to_json(){

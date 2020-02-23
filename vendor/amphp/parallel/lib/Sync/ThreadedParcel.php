@@ -9,10 +9,12 @@ use function Amp\call;
 
 /**
  * A thread-safe container that shares a value between multiple threads.
+ *
+ * @deprecated ext-pthreads development has been halted, see https://github.com/krakjoe/pthreads/issues/929
  */
 final class ThreadedParcel implements Parcel
 {
-    /** @var \Amp\Sync\ThreadedMutex */
+    /** @var ThreadedMutex */
     private $mutex;
 
     /** @var \Threaded */
@@ -42,7 +44,7 @@ final class ThreadedParcel implements Parcel
      */
     public function synchronized(callable $callback): Promise
     {
-        return call(function () use ($callback) {
+        return call(function () use ($callback): \Generator {
             /** @var \Amp\Sync\Lock $lock */
             $lock = yield $this->mutex->acquire();
 

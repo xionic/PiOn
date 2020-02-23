@@ -8,6 +8,7 @@ use \PiOn\Event\ItemEvent;
 use \PiOn\Event\EventManager;
 use \PiOn\InvalidArgException;
 use \PiOn\Session;
+use \PiOn\Hardware\OperationNotSupportedException;
 
 use \Amp\Promise;
 use \Amp\Success;
@@ -56,43 +57,46 @@ function handle_RestMessage(Session $session, RestMessage $rest_message): Promis
 		$response_obj = null;
 		switch($rest_message->context){
 			case RestMessage::REST_CONTEXT_ITEM:
-			//var_dump($rest_message);
-				$item_message = ItemMessage::from_obj($rest_message->payload);
+				try {
+				//var_dump($rest_message);
+					$item_message = ItemMessage::from_obj($rest_message->payload);
 
-				plog("Rest Message context : {$rest_message->context}", DEBUG, $session);
+					plog("Rest Message context : {$rest_message->context}", DEBUG, $session);
+					
+					if(!in_array($item_message->action, [ItemMessage::GET, ItemMessage::SET])){
+						plog("Invalid Action: " . $item_message->action, VERBOSE, $session);
+						return respond("Invalid action {$item_message->action}", 400);
+					}
+					$item = null;
+					try{
+						$item = get_item($item_message->item_name);
+					}
+					catch(InvalidArgException $e){
+						plog("Requested item unknown: {$item_message->item_name}", VERBOSE, $session);
+						return respond("Unknown Item: {$item_message->item_name}", 400);
+					}
 				
-				if(!in_array($item_message->action, [ItemMessage::GET, ItemMessage::SET])){
-					plog("Invalid Action: " . $item_message->action, VERBOSE, $session);
-					return respond("Invalid action {$item_message->action}", 400);
-				}
-				$item = null;
-				try{
-					$item = get_item($item_message->item_name);
-				}
-				catch(InvalidArgException $e){
-					plog("Requested item unknown: {$item_message->item_name}", VERBOSE, $session);
-					return respond("Unknown Item: {$item_message->item_name}", 400);
-				}
-			
-			
-				$item_value = null;
-				switch($item_message->action){
-					case ItemMessage::GET:
-						plog("get request received for item: '{$item_message->item_name}'", DEBUG, $session);
-						$item_value = yield $item->get_value($session);
+				
+					$item_value = null;
+					switch($item_message->action){
+						case ItemMessage::GET:
+							plog("get request received for item: '{$item_message->item_name}'", DEBUG, $session);
+							$item_value = yield $item->get_value($session);
+							break;
+						case ItemMessage::SET:
+							plog("set request received for item: '{$item_message->item_name}' with value " . json_encode($item_message->value->data), DEBUG, $session);			
+							$item_value = yield $item->set_value($session, $item_message->value);
+								
 						break;
-					case ItemMessage::SET:
-						plog("set request received for item: '{$item_message->item_name}' with value " . json_encode($item_message->value->data), DEBUG, $session);			
-						$item_value = yield $item->set_value($session, $item_message->value);
-							
-					break;
-					default:
-						return respond("Invalid Item Action: {$item_message->action}", 400);
-				}							
-				
-				$response_obj = new ItemMessage($item_message->item_name, $item_message->action, $item_value);
-				plog("Item '{$item->name}' {$item_message->action} req returning actual value: ". json_encode($item_value->data), DEBUG, $session);
-				
+						default:
+							return respond("Invalid Item Action: {$item_message->action}", 400);
+					}							
+					
+					$response_obj = new ItemMessage($item_message->item_name, $item_message->action, $item_value);
+					plog("Item '{$item->name}' {$item_message->action} req returning actual value: ". json_encode($item_value->data), DEBUG, $session);
+				} catch (OperationNotSupportedException $e){
+					return new Success($rest_message->build_error_resp("Operation '{$item_message->action}' not supported for type '" .$item->type . "'"));
+				}
 			break;
 			
 			case RestMessage::REST_CONTEXT_EVENT:
@@ -112,6 +116,7 @@ function handle_RestMessage(Session $session, RestMessage $rest_message): Promis
 				plog("Invalid context: {$rest_message->context}", VERBOSE, $session);
 				return respond("Invalid context: {$rest_message->context}", 400);
 		}
+		
 		$resp_rest_message = $rest_message->build_resp($response_obj);
 		return new Success($resp_rest_message);
 	});

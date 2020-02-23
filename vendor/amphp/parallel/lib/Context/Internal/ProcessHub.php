@@ -30,6 +30,9 @@ class ProcessHub
     /** @var Deferred[] */
     private $acceptor = [];
 
+    /** @var string|null */
+    private $toUnlink;
+
     public function __construct()
     {
         $isWindows = \strncasecmp(\PHP_OS, "WIN", 3) === 0;
@@ -37,7 +40,10 @@ class ProcessHub
         if ($isWindows) {
             $this->uri = "tcp://127.0.0.1:0";
         } else {
-            $this->uri = "unix://" . \tempnam(\sys_get_temp_dir(), "amp-parallel-ipc-") . ".sock";
+            $suffix = \bin2hex(\random_bytes(10));
+            $path = \sys_get_temp_dir() . "/amp-parallel-ipc-" . $suffix . ".sock";
+            $this->uri = "unix://" . $path;
+            $this->toUnlink = $path;
         }
 
         $this->server = \stream_socket_server($this->uri, $errno, $errstr, \STREAM_SERVER_BIND | \STREAM_SERVER_LISTEN);
@@ -54,7 +60,7 @@ class ProcessHub
 
         $keys = &$this->keys;
         $acceptor = &$this->acceptor;
-        $this->watcher = Loop::onReadable($this->server, static function (string $watcher, $server) use (&$keys, &$acceptor) {
+        $this->watcher = Loop::onReadable($this->server, static function (string $watcher, $server) use (&$keys, &$acceptor): \Generator {
             // Error reporting suppressed since stream_socket_accept() emits E_WARNING on client accept failure.
             if (!$client = @\stream_socket_accept($server, 0)) {  // Timeout of 0 to be non-blocking.
                 return; // Accepting client failed.
@@ -88,6 +94,9 @@ class ProcessHub
     {
         Loop::cancel($this->watcher);
         \fclose($this->server);
+        if ($this->toUnlink !== null) {
+            @\unlink($this->toUnlink);
+        }
     }
 
     public function getUri(): string
@@ -104,7 +113,7 @@ class ProcessHub
 
     public function accept(int $pid): Promise
     {
-        return call(function () use ($pid) {
+        return call(function () use ($pid): \Generator {
             $this->acceptor[$pid] = new Deferred;
 
             Loop::enable($this->watcher);

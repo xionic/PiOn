@@ -1,11 +1,18 @@
 import {LitElement, html}  from 'lit-element';
-import {register_module, send_update} from '../../main.js';
+import { register_module, send_update, ws_subscribe} from '../../main.js';
 import {Value} from '../../Value.js';
+import { SubscribeMessage } from '../SubscribeMessage.js';
 
 export class pion_base extends LitElement {
 	
 	constructor(){
-		super();
+		super();		
+	}
+
+	firstUpdated(props){
+		let items = {};
+		items[this.getAttribute("item_name")] = ["ITEM_VALUE_CHANGED"];
+		ws_subscribe(this, items, SubscribeMessage.REQUEST_VALUES);
 	}
 	
 	/*

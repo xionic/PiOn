@@ -63,7 +63,8 @@ abstract class Item {
 					EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_VALUE_CHANGED, $this->name, $item_value));
 				}
 				//var_dump($this->resp_item_message->value);die;
-				
+				/*if(NODE_NAME == "pi1")
+					sleep(2);*/
 				
 			
 			
@@ -74,12 +75,12 @@ abstract class Item {
 				$item_message = new ItemMessage($this->name, ItemMessage::GET);			
 				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name,$target_node->port, $item_message);
 				
-				try {
+				//try {
 					$resp_rest_message = yield send($session, $rest_message);
-				} catch (UnprocessedRequestException $e){
+				/*} catch (UnprocessedRequestException $e){
 					plog("Cound not connect to node '{$target_node->name}'", ERROR, $session);
 					return new Value(null, false, "Cound not connect to node '{$target_node->name}'");
-				}
+				}*/
 				$resp_item_message = ItemMessage::from_obj($resp_rest_message->payload);
 				$item_value = Value::from_obj($resp_item_message->value);
 				

@@ -1,7 +1,8 @@
 <?php
 namespace PiOn\Item;
 
-use \Pion\Hardware\Hardware as Hardware;
+use \Pion\Hardware\Hardware;
+use \Pion\Hardware\OperationNotSupportedException;
 use \PiOn\Session;
 
 use \Amp\Promise;
@@ -20,7 +21,7 @@ class ItemText extends Item{
 	}
 	
 	protected function set_value_local(Session $session, Value $value): Promise {
-		return new Failure(new OperationNotSupportedException);
+		throw new OperationNotSupportedException("ItemText does not support SET");
 	}
 
 }

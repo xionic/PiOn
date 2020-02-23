@@ -16,7 +16,7 @@ export class module_number extends pion_base {
 	}	
 
 	render() {
-		return html`<input @change="${this.on_change}" .value="${this.val}" type="number">`;
+		return html`<input @change="${this.on_change}" .value="${this.val}" type="number" step="0.5">`;
 	}
 
 	static get styles(){

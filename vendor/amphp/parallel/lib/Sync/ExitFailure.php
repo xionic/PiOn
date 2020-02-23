@@ -13,7 +13,7 @@ final class ExitFailure implements ExitResult
     /** @var int|string */
     private $code;
 
-    /** @var array */
+    /** @var string[] */
     private $trace;
 
     /** @var self|null */
@@ -24,7 +24,7 @@ final class ExitFailure implements ExitResult
         $this->type = \get_class($exception);
         $this->message = $exception->getMessage();
         $this->code = $exception->getCode();
-        $this->trace = $exception->getTraceAsString();
+        $this->trace = flattenThrowableBacktrace($exception);
 
         if ($previous = $exception->getPrevious()) {
             $this->previous = new self($previous);
@@ -39,22 +39,10 @@ final class ExitFailure implements ExitResult
         throw $this->createException();
     }
 
-    private function createException(): PanicError
+    private function createException(): ContextPanicError
     {
         $previous = $this->previous ? $this->previous->createException() : null;
 
-        return new PanicError(
-            $this->type,
-            \sprintf(
-                'Uncaught %s in worker with message "%s" and code "%s"; use %s::getPanicTrace() '
-                    . 'for the stack trace in the context',
-                $this->type,
-                $this->message,
-                $this->code,
-                PanicError::class
-            ),
-            $this->trace,
-            $previous
-        );
+        return new ContextPanicError($this->type, $this->message, $this->code, $this->trace, $previous);
     }
 }

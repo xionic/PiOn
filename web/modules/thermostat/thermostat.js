@@ -1,6 +1,6 @@
 import {LitElement, html, css}  from 'lit-element';
 import {pion_base} from '../pion_base.js';
-import {register_module, getTimestamp, send_update, shadow_selector} from '../../main.js';
+import {register_module, getTimestamp, send_update, ws_subscribe} from '../../main.js';
 import {Value} from '../../Value.js';
 
 
@@ -8,23 +8,16 @@ export class module_thermostat extends pion_base {
 	
 	static get properties() {
 		return { 		
-			current_temp: {Number},
-			setpoint : {Number},
-			state: {Number},
-			heater_state: {Number}
+			temp_item: {String},
+			setpoint : {String},
+			state_switch: {String},
+			heater_switch: {String}
 		};
 	}
 
 	constructor() {
 		super();
-		this.has_received_first_update = false; // has the element received at least one value 
-		this.has_rendered = false;
-		
-		
-	}
-	
-	switch_changed(){
-		alert("here");
+		this.updateReceived = false;		
 	}
 	
 	static get styles(){
@@ -67,58 +60,27 @@ export class module_thermostat extends pion_base {
 	}	
 
 	render() {
-		if(!this.has_received_first_update){
-			return html`<p>LOADING...</p>`;
-		} else {
-			this.has_rendered = true;
-			return html`
-
-				<module-switch noupdate class="itemmodule" therm_module="state"  @pion_change="${this.onpion_change}"></module-switch>
-
-				<module-text noupdate class="itemmodule" therm_module="temp"></module-text>
-				&deg;C
-				<module-number noupdate class="itemmodule" therm_module="setpoint" @pion_change="${this.onpion_change}"></module-number>			
-				
-				<module-switch disabled noupdate class="itemmodule" therm_module="heater_state"></module-switch>
-			`;
+		if(!this.updateReceived){
+			return html`<span>LOADING...</span>`;
 		}
+		return html`
+			<module-switch item_name="${this.state_switch}" class="itemmodule" therm_module="state"></module-switch>
+
+			<module-temperature item_name="${this.temp_item}" class="itemmodule" therm_module="temp"></module-temperature>
+
+			<module-number item_name="${this.setpoint}" class="itemmodule" therm_module="setpoint"></module-number>			
+			
+			<module-switch item_name="${this.heater_switch}" disabled class="itemmodule" therm_module="heater_state"></module-switch>
+		`;
 	}
 	
+	//the "value" of a thermostat item defines the items that comprise it
 	set_value(value){	
-
-		if(value.data.hasOwnProperty("current_temp")){
-			this.current_temp = value.data.current_temp.data;
-			$(this.shadowRoot).arrive("[therm_module='temp']", {existing: true}, function() {
-				// 'this' refers to the newly created element
-				this.set_value(value.data.current_temp)
-			});
-		}
-
-		if(value.data.hasOwnProperty("heater_state")){
-			this.heater_state = value.data.heater_state.data;
-			$(this.shadowRoot).arrive("[therm_module='heater_state']", {existing: true}, function() {
-				// 'this' refers to the newly created element
-				this.set_value(value.data.heater_state)
-			});
-		}
-
-		if(value.data.hasOwnProperty("setpoint")){
-			this.setpoint = value.data.setpoint.data;
-			$(this.shadowRoot).arrive("[therm_module='setpoint']", {existing: true}, function() {
-				// 'this' refers to the newly created element
-				this.set_value(value.data.setpoint)
-			});
-		}
-
-		if(value.data.hasOwnProperty("state")){
-			this.state = value.data.state.data ? true : false;
-			$(this.shadowRoot).arrive("[therm_module='state']", {existing: true}, function() {
-				// 'this' refers to the newly created element
-				this.set_value(value.data.state)
-			});
-		}
-
-		this.has_received_first_update = true;
+		this.temp_item = value.data.temp_item;
+		this.setpoint = value.data.setpoint;
+		this.state_switch = value.data.state_switch;
+		this.heater_switch = value.data.heater_switch;
+		this.updateReceived = true;
 	}
 }
 

@@ -1,7 +1,8 @@
 <?php
 namespace PiOn\Item;
 
-use \Pion\Hardware\Hardware as Hardware;
+use \Pion\Hardware\Hardware;
+use \Pion\Hardware\OperationNotSupportedException;
 use \PiOn\Event\EventManager;
 use \PiOn\Event\Scheduler;
 use \PiOn\Event\FixedIntervalTimer;
@@ -11,6 +12,7 @@ use \xionic\Argh\Argh;
 
 use \Amp\Promise;
 use \Amp\Success;
+use \Amp\Failure;
 
 /**
  * available item_args:
@@ -103,43 +105,21 @@ class ItemThermostat extends Item {
 			} else {
 				$this->heater_switch->set_value(Session::$INTERNAL,new Value(0));
 			}
-
-			//One of our sub-items has changed - so trigger a change on this, mostly for websocket updates
-			//EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_EVENT, $this->name, $this->get_value));
-
-			//trigger an update event
-			yield $this->get_value(Session::$INTERNAL);
-
 		});
 	}
 	
-	//returns value structure {state: on|off, setpoint: int, heater_state: bool, current_temp: float}
+	//This is a meta item - the value gives data the ui will need to link together the item group
 	protected function get_value_local(Session $session): Promise{
-		return \Amp\call(function() use ($session){
-			$state =  (yield $this->state_switch->get_value($session));
-			$heater = (yield $this->heater_switch->get_value($session));
-			$temp = (yield $this->temp_item->get_value($session));
-			$setpoint = (yield $this->setpoint->get_value($session));
-			
-		
-			$value = (Object) ["state"=> $state, "heater_state" => $heater, "current_temp" => $temp, "setpoint" => $setpoint];
-			//var_dump($value);
-			return new Value($value);
-		
-		});		
+		return new Success(new Value((Object)[
+			"state_switch" => $this->state_switch->name,
+			"heater_switch" => $this->heater_switch->name,
+			"temp_item" => $this->temp_item->name,
+			"setpoint" => $this->setpoint->name
+		])); 
 	}
 	
-	protected function set_value_local(Session $session, Value $values): Promise{ //validation
-		Argh::validate($values, [
-			"/data/state" => ["obj"],
-			"/data/setpoint" => ["obj"],
-		]);
-		return \Amp\call(function() use($session, $values){
-			//var_dump($values);
-			yield $this->state_switch->set_value($session, Value::from_obj($values->data->state));
-			yield $this->setpoint->set_value($session, Value::from_obj($values->data->setpoint));
-			return yield $this->get_value_local($session);
-		});
+	protected function set_value_local(Session $session, Value $values): Promise{
+		throw new OperationNotSupportedException("ItemThermostat does not support SET");
 	}
 	
 }

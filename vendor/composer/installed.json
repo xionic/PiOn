@@ -538,24 +538,24 @@
     },
     {
         "name": "amphp/http-server",
-        "version": "v2.0.0-rc4",
-        "version_normalized": "2.0.0.0-RC4",
+        "version": "v2.0.0",
+        "version_normalized": "2.0.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-server.git",
-            "reference": "2c3d5724b4b86f9a7fa7feed13a7c50e2bf8ad1b"
+            "reference": "5e75761240e33cc7c6ac9eff303aaf87df9125d9"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-server/zipball/2c3d5724b4b86f9a7fa7feed13a7c50e2bf8ad1b",
-            "reference": "2c3d5724b4b86f9a7fa7feed13a7c50e2bf8ad1b",
+            "url": "https://api.github.com/repos/amphp/http-server/zipball/5e75761240e33cc7c6ac9eff303aaf87df9125d9",
+            "reference": "5e75761240e33cc7c6ac9eff303aaf87df9125d9",
             "shasum": ""
         },
         "require": {
             "amphp/amp": "^2",
             "amphp/byte-stream": "^1.3",
             "amphp/hpack": "^3",
-            "amphp/http": "^1.6-rc1",
+            "amphp/http": "^1.6",
             "amphp/socket": "^1",
             "cash/lrucache": "^1",
             "league/uri": "^6",
@@ -576,7 +576,7 @@
         "suggest": {
             "ext-zlib": "Allows GZip compression of response bodies"
         },
-        "time": "2020-01-04T18:10:10+00:00",
+        "time": "2020-02-18T15:52:29+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -822,32 +822,33 @@
     },
     {
         "name": "amphp/parallel",
-        "version": "v1.2.0",
-        "version_normalized": "1.2.0.0",
+        "version": "v1.3.0",
+        "version_normalized": "1.3.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/parallel.git",
-            "reference": "53aa422eaf89a539b4df58284f7bdf5219e37f66"
+            "reference": "346d3f50939d3533a49ef161a0b9c8cca6eee809"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/parallel/zipball/53aa422eaf89a539b4df58284f7bdf5219e37f66",
-            "reference": "53aa422eaf89a539b4df58284f7bdf5219e37f66",
+            "url": "https://api.github.com/repos/amphp/parallel/zipball/346d3f50939d3533a49ef161a0b9c8cca6eee809",
+            "reference": "346d3f50939d3533a49ef161a0b9c8cca6eee809",
             "shasum": ""
         },
         "require": {
             "amphp/amp": "^2",
-            "amphp/byte-stream": "^1.5",
+            "amphp/byte-stream": "^1.6.1",
             "amphp/parser": "^1",
             "amphp/process": "^1",
-            "amphp/sync": "^1.0.1"
+            "amphp/sync": "^1.0.1",
+            "php": ">=7.1"
         },
         "require-dev": {
             "amphp/php-cs-fixer-config": "dev-master",
-            "amphp/phpunit-util": "^1",
-            "phpunit/phpunit": "^6"
+            "amphp/phpunit-util": "^1.1",
+            "phpunit/phpunit": "^8 || ^7"
         },
-        "time": "2019-05-11T17:13:47+00:00",
+        "time": "2020-02-23T15:28:43+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -855,6 +856,8 @@
                 "Amp\\Parallel\\": "lib"
             },
             "files": [
+                "lib/Context/functions.php",
+                "lib/Sync/functions.php",
                 "lib/Worker/functions.php"
             ]
         },
@@ -864,12 +867,12 @@
         ],
         "authors": [
             {
-                "name": "Stephen Coakley",
-                "email": "me@stephencoakley.com"
-            },
-            {
                 "name": "Aaron Piotrowski",
                 "email": "aaron@trowski.com"
+            },
+            {
+                "name": "Stephen Coakley",
+                "email": "me@stephencoakley.com"
             }
         ],
         "description": "Parallel processing component for Amp.",
@@ -1193,17 +1196,17 @@
     },
     {
         "name": "amphp/websocket-server",
-        "version": "v2.0.0-rc1",
-        "version_normalized": "2.0.0.0-RC1",
+        "version": "v2.0.0-rc2",
+        "version_normalized": "2.0.0.0-RC2",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/websocket-server.git",
-            "reference": "8c723e902a56a41eefbf30d7ee1475755743daa2"
+            "reference": "84b4923c64a2e1f9707ee712192e62b30d448d31"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/websocket-server/zipball/8c723e902a56a41eefbf30d7ee1475755743daa2",
-            "reference": "8c723e902a56a41eefbf30d7ee1475755743daa2",
+            "url": "https://api.github.com/repos/amphp/websocket-server/zipball/84b4923c64a2e1f9707ee712192e62b30d448d31",
+            "reference": "84b4923c64a2e1f9707ee712192e62b30d448d31",
             "shasum": ""
         },
         "require": {
@@ -1213,7 +1216,7 @@
             "amphp/http-server": "^2",
             "amphp/socket": "^1",
             "amphp/websocket": "^1",
-            "php": ">=7.1"
+            "php": ">=7.2"
         },
         "require-dev": {
             "amphp/http-client": "^4",
@@ -1221,16 +1224,14 @@
             "amphp/http-server-static-content": "^1.0.4",
             "amphp/log": "^1",
             "amphp/php-cs-fixer-config": "dev-master",
-            "amphp/phpunit-util": "^1.1",
-            "infection/infection": "^0.9.3",
+            "amphp/phpunit-util": "^1.3",
             "league/climate": "^3",
-            "league/uri-schemes": "^1.1",
-            "phpunit/phpunit": "^8 || ^7"
+            "phpunit/phpunit": "^9 || ^8 || ^7"
         },
         "suggest": {
             "ext-zlib": "Required for compression"
         },
-        "time": "2019-08-21T17:09:20+00:00",
+        "time": "2020-02-22T05:38:29+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

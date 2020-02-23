@@ -20,6 +20,9 @@ export class SubscribeMessage {
 	static get REFRESH_ALL(){
 		return "REFRESH_ALL";
 	}
+	static get REQUEST_VALUES() {
+		return "REQUEST_VALUES";
+	}
 	
 	to_json(){
 		return JSON.stringify({

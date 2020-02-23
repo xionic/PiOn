@@ -4,12 +4,14 @@ namespace Amp\Parallel\Context;
 
 use Amp\Loop;
 use Amp\Parallel\Sync\ChannelException;
+use Amp\Parallel\Sync\ChannelledSocket;
 use Amp\Parallel\Sync\ExitResult;
 use Amp\Parallel\Sync\SynchronizationError;
 use Amp\Process\Process as BaseProcess;
 use Amp\Process\ProcessInputStream;
 use Amp\Process\ProcessOutputStream;
 use Amp\Promise;
+use Amp\TimeoutException;
 use function Amp\call;
 
 final class Process implements Context
@@ -29,10 +31,10 @@ final class Process implements Context
     /** @var Internal\ProcessHub */
     private $hub;
 
-    /** @var \Amp\Process\Process */
+    /** @var Process */
     private $process;
 
-    /** @var \Amp\Parallel\Sync\ChannelledSocket */
+    /** @var ChannelledSocket */
     private $channel;
 
     /**
@@ -49,7 +51,7 @@ final class Process implements Context
     public static function run($script, string $cwd = null, array $env = [], string $binary = null): Promise
     {
         $process = new self($script, $cwd, $env, $binary);
-        return call(function () use ($process) {
+        return call(function () use ($process): \Generator {
             yield $process->start();
             return $process;
         });
@@ -100,7 +102,7 @@ final class Process implements Context
                     self::$pharCopy = \sys_get_temp_dir() . "/phar-" . \bin2hex(\random_bytes(10)) . ".phar";
                     \copy(\Phar::running(false), self::$pharCopy);
 
-                    \register_shutdown_function(static function () {
+                    \register_shutdown_function(static function (): void {
                         @\unlink(self::$pharCopy);
                     });
 
@@ -109,10 +111,11 @@ final class Process implements Context
 
                 $contents = \file_get_contents(self::SCRIPT_PATH);
                 $contents = \str_replace("__DIR__", \var_export($path, true), $contents);
-                self::$pharScriptPath = $scriptPath = \tempnam(\sys_get_temp_dir(), "amp-process-runner-");
+                $suffix = \bin2hex(\random_bytes(10));
+                self::$pharScriptPath = $scriptPath = \sys_get_temp_dir() . "/amp-process-runner-" . $suffix . ".php";
                 \file_put_contents($scriptPath, $contents);
 
-                \register_shutdown_function(static function () {
+                \register_shutdown_function(static function (): void {
                     @\unlink(self::$pharScriptPath);
                 });
             }
@@ -160,7 +163,7 @@ final class Process implements Context
         throw new \Error("Could not locate PHP executable binary");
     }
 
-    private function formatOptions(array $options)
+    private function formatOptions(array $options): string
     {
         $result = [];
 
@@ -183,7 +186,7 @@ final class Process implements Context
      */
     public function start(): Promise
     {
-        return call(function () {
+        return call(function (): \Generator {
             try {
                 $pid = yield $this->process->start();
 
@@ -193,7 +196,9 @@ final class Process implements Context
 
                 return $pid;
             } catch (\Throwable $exception) {
-                $this->process->kill();
+                if ($this->isRunning()) {
+                    $this->kill();
+                }
                 throw new ContextException("Starting the process failed", 0, $exception);
             }
         });
@@ -216,11 +221,11 @@ final class Process implements Context
             throw new StatusError("The process has not been started");
         }
 
-        return call(function () {
+        return call(function (): \Generator {
             try {
                 $data = yield $this->channel->receive();
             } catch (ChannelException $e) {
-                throw new ContextException("The context stopped responding, potentially due to a fatal error or calling exit", 0, $e);
+                throw new ContextException("The process stopped responding, potentially due to a fatal error or calling exit", 0, $e);
             }
 
             if ($data instanceof ExitResult) {
@@ -248,7 +253,29 @@ final class Process implements Context
             throw new \Error("Cannot send exit result objects");
         }
 
-        return $this->channel->send($data);
+        return call(function () use ($data): \Generator {
+            try {
+                return yield $this->channel->send($data);
+            } catch (ChannelException $e) {
+                if ($this->channel === null) {
+                    throw new ContextException("The process stopped responding, potentially due to a fatal error or calling exit", 0, $e);
+                }
+
+                try {
+                    $data = yield Promise\timeout($this->join(), 100);
+                } catch (ContextException | ChannelException | TimeoutException $ex) {
+                    if ($this->isRunning()) {
+                        $this->kill();
+                    }
+                    throw new ContextException("The process stopped responding, potentially due to a fatal error or calling exit", 0, $e);
+                }
+
+                throw new SynchronizationError(\sprintf(
+                    'Process unexpectedly exited with result of type: %s',
+                    \is_object($data) ? \get_class($data) : \gettype($data)
+                ), 0, $e);
+            }
+        });
     }
 
     /**
@@ -260,7 +287,7 @@ final class Process implements Context
             throw new StatusError("The process has not been started");
         }
 
-        return call(function () {
+        return call(function (): \Generator {
             try {
                 $data = yield $this->channel->receive();
             } catch (\Throwable $exception) {
@@ -299,7 +326,7 @@ final class Process implements Context
      * @throws \Amp\Process\ProcessException
      * @throws \Amp\Process\StatusError
      */
-    public function signal(int $signo)
+    public function signal(int $signo): void
     {
         $this->process->signal($signo);
     }
@@ -363,7 +390,7 @@ final class Process implements Context
     /**
      * {@inheritdoc}
      */
-    public function kill()
+    public function kill(): void
     {
         $this->process->kill();
 
