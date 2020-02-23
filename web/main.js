@@ -74,6 +74,7 @@ function get_module_html(name, item_name){
 var item_elem_list = []; //List of all htmlelements for each module instantiated. [{item_name:..., "id": ...} ...]
 
 var websocket;
+var ws_promise;
 var subscribers = {} // subscribers.item_name = array of (pion_base) element objects
 //make sure everything is loaded before we start pissing with litelement
 $().ready(function(){
@@ -83,6 +84,19 @@ $().ready(function(){
 	
 	//setup wetsocket
 	websocket = new WebSocket("ws://" + config.websocket_url);
+	ws_promise = new Promise(function(resolve){
+		// Connection opened
+		websocket.addEventListener('open', function (event) {
+			resolve(websocket);
+			//subscribe to all required items	
+			let items = {};
+			for (const room in sitemap) {
+				sitemap[room].forEach(elem => {
+					items[elem.item_name] = ["ITEM_VALUE_CHANGED"];
+				})
+			}
+		});
+	});
 
 	websocket.addEventListener('error', function(event) {
 		console.error("WebSocket error observed:", event);
@@ -90,16 +104,7 @@ $().ready(function(){
 	});
 
 	
-	// Connection opened
-	websocket.addEventListener('open', function (event) {
-		//subscribe to all required items	
-		let items = {};
-		for(const room in sitemap){
-			sitemap[room].forEach(elem => {
-				items[elem.item_name] = ["ITEM_VALUE_CHANGED"];
-			})
-		}		
-	});
+	
 
 	// Listen for messages
 	websocket.addEventListener('message', function (event) {		
@@ -138,16 +143,18 @@ $().ready(function(){
  * @param {Boolean} request_values whether to retresh values for all subscribed items
  */
 export function ws_subscribe(elem, items, request_values){
-	console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
-	for(const item in items){
-		if(!subscribers.hasOwnProperty(item)){			
-			subscribers[item] = [];
+	ws_promise.then(function(){
+		console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
+		for(const item in items){
+			if(!subscribers.hasOwnProperty(item)){			
+				subscribers[item] = [];
+			}
+			subscribers[item].push(elem);
 		}
-		subscribers[item].push(elem);
-	}
-	let sub_msg = new SubscribeMessage(items, SubscribeMessage.SUBSCRIBE, request_values);
-	let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
-	websocket.send(rest_message.to_json());
+		let sub_msg = new SubscribeMessage(items, SubscribeMessage.SUBSCRIBE, request_values);
+		let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
+		websocket.send(rest_message.to_json());
+	});
 }
 
 export class Main extends LitElement {
