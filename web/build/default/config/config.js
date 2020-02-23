@@ -1,3 +1,7 @@
 var config = {
-  backend_url: "http://xealot:28080/api/"
+  host: "xealot",
+  port: "28081"
 };
+config.backend_url = config.host + ":" + config.port + "/";
+config.websocket_url = config.backend_url + "websocket/";
+config.api_url = "http://" + config.backend_url + "api/";

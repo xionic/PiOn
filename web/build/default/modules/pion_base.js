@@ -1,9 +1,16 @@
 import { LitElement, html } from "../node_modules/lit-element/lit-element.js";
-import { register_module, send_update } from '../../main.js';
+import { register_module, send_update, ws_subscribe } from '../../main.js';
 import { Value } from '../../Value.js';
+import { SubscribeMessage } from '../SubscribeMessage.js';
 export class pion_base extends LitElement {
   constructor() {
     super();
+  }
+
+  firstUpdated(props) {
+    let items = {};
+    items[this.getAttribute("item_name")] = ["ITEM_VALUE_CHANGED"];
+    ws_subscribe(this, items, SubscribeMessage.REQUEST_VALUES);
   }
   /*
   * All modules should fire a 'pion_change' event on change, since change events do not go through the shadow dom

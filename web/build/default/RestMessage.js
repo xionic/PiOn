@@ -1,3 +1,4 @@
+var REST_MESSAGE_COUNTER = 0;
 export class RestMessage {
   /*
   	Class fields not supported by FF android(plus others) yet.
@@ -16,6 +17,7 @@ export class RestMessage {
     this.target_node = target_node;
     this.target_port = target_port;
     this.payload = payload;
+    this.id = REST_MESSAGE_COUNTER++;
   } //"types"
 
 
@@ -25,7 +27,8 @@ export class RestMessage {
 
   static get RESP() {
     return "RESP";
-  }
+  } //contexts
+
 
   static get REST_CONTEXT_EVENT() {
     return "REST_CONTEXT_EVENT";
@@ -33,6 +36,33 @@ export class RestMessage {
 
   static get REST_CONTEXT_ITEM() {
     return "REST_CONTEXT_ITEM";
+  }
+
+  static get REST_CONTEXT_ITEMS() {
+    return "REST_CONTEXT_ITEMS";
+  }
+
+  static get REST_CONTEXT_SUBSCRIBE() {
+    return "REST_CONTEXT_SUBSCRIBE";
+  }
+
+  static get REST_CONTEXT_ERROR() {
+    return "REST_CONTEXT_ERROR";
+  }
+
+  build_resp(payload) {
+    resp = new RestMessage("RESP", this.context, "client", config.host, config.port, payload);
+    resp.id = this.id;
+    return resp;
+  }
+
+  static from_obj(obj) {
+    return new RestMessage(obj.type, obj.context, obj.sending_node, obj.target_node, obj.target_port, obj.payload);
+  }
+
+  static from_json(json) {
+    let obj = JSON.parse(json);
+    return RestMessage.from_obj(obj);
   }
 
   to_json() {

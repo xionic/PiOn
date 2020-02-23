@@ -6,8 +6,6 @@ var sitemap = {
     "item_name": "date test",
     "type": "text"
   }, {
-    "item_name": "bconsoled_lights"
-  }, {
     "item_name": "GPIO test",
     "type": "switch"
   }, {
@@ -15,7 +13,7 @@ var sitemap = {
     "type": "text"
   }, {
     "item_name": "Nick Room Temp",
-    "type": "text"
+    "type": "temperature"
   }, {
     "item_name": "Nick Thermo",
     "type": "thermostat"
@@ -35,7 +33,5 @@ var sitemap = {
   }, {
     "item_name": "Xico Power",
     "type": "switch"
-  }, {
-    "item_name": "liviginbed_lights"
   }]
 };
