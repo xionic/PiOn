@@ -1,0 +1,5 @@
+#!/bin/bash
+./polymer build -v
+
+rm -r build/default/config/
+ln -s ../../config/ ./build/default/
