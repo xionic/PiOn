@@ -38,6 +38,11 @@ abstract class Item {
 
 				try{
 					$item_value = yield $this->get_value_local($session);
+					//transform the value if configured
+					if(property_exists($this->item_args, "transform")){
+						$item_value->data = TransformManager::transform($this->item_args->transform, $item_value->data);
+					}
+					
 				} catch(OperationNotSupportedException $e){ //GET not supported. return sucess:	
 					if($this->last_value == null){						
 						$item_value = new Value($this->last_value->data, true, "OperationNotSupportedException", $this->last_value->timestamp, $this->last_value->certainty);
@@ -45,12 +50,7 @@ abstract class Item {
 						$item_value = new Value(null, true, "GET not supported and last_value not yet set", time(), Value::CERTAIN);
 					}
 					//var_dump($resp_item_message);
-				}
-
-				//transform the value if configured
-				if(property_exists($this->item_args, "transform")){
-					$item_value->data = TransformManager::transform($this->item_args->transform, $item_value->data);
-				}
+				}				
 				
 				//fire item change event if needed	
 				$newval = $item_value->data;
@@ -75,12 +75,12 @@ abstract class Item {
 				$item_message = new ItemMessage($this->name, ItemMessage::GET);			
 				$rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, $target_node->name,$target_node->port, $item_message);
 				
-				//try {
+				try {
 					$resp_rest_message = yield send($session, $rest_message);
-				/*} catch (UnprocessedRequestException $e){
+				} catch (UnprocessedRequestException $e){
 					plog("Cound not connect to node '{$target_node->name}'", ERROR, $session);
-					return new Value(null, false, "Cound not connect to node '{$target_node->name}'");
-				}*/
+					return new Value(null, true, "Cound not connect to node '{$target_node->name}'");
+				}
 				$resp_item_message = ItemMessage::from_obj($resp_rest_message->payload);
 				$item_value = Value::from_obj($resp_item_message->value);
 				

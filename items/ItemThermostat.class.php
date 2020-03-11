@@ -97,9 +97,9 @@ class ItemThermostat extends Item {
 
 				plog("Processing thermostat '{$this->name}'. temp:$temp_val set:$setpoint_val, hyst:$hyst\n", VERBOSE, Session::$INTERNAL);
 				//$temp = 23.1;
-				if($temp_val > $setpoint_val){
+				if($temp_val > ($setpoint_val + $hyst/2)){
 					$this->heater_switch->set_value(Session::$INTERNAL,new Value(0));
-				} else if ($temp_val < ($setpoint_val - $hyst)){
+				} else if ($temp_val < ($setpoint_val - $hyst/2)){
 					$this->heater_switch->set_value(Session::$INTERNAL, new Value(1));
 				}
 			} else {

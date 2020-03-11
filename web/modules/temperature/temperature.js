@@ -10,14 +10,20 @@ export class module_temperature extends module_text {
 		super();
     }
 
-	render() {
+	pion_render(){		
 		let time = '';
 		if(this.val.hasOwnProperty("timestamp")){
 			let date = new Date(this.val.timestamp * 1000);
 			time = ('0' + date.getHours()).slice(-2) + ":" + ('0' +date.getMinutes()).slice(-2) + ":" + ('0' + date.getSeconds()).slice(-2);
 		}
 		return html`<span>${this.val.data}&deg;C@${time}</span>`;
-	}	
+	}
+
+	static get styles() {
+		return [
+			super.styles
+		];
+	}
 }
 
 customElements.define('module-temperature', module_temperature);

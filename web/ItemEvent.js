@@ -1,5 +1,7 @@
 export class ItemEvent {
-    static get ITEM_VALUE_CHANGED(){
-        return "ITEM_VALUE_CHANGED";
+    static get events(){
+        return {
+            ITEM_VALUE_CHANGED: "ITEM_VALUE_CHANGED"
+        }
     }
 }

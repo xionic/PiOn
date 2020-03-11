@@ -12,7 +12,7 @@ class SubscribeMessage {
     /**
      * @var String["item_name" => String[event_name]] $item_names
      */
-    public $item_names;
+    public $subscriptions;
 
     /**
      * @var bool $get_now Causes item's current values to be send after subscribing - must be REQUEST_ALL or REQUEST_VALUE
@@ -20,8 +20,11 @@ class SubscribeMessage {
      */
     public $get_now;
 
-    function __construct($item_names, String $type, string $get_now = null){
-        $this->item_names = $item_names;
+    /**
+     * @paran Object $subscriptions [item_name => [event_names]]
+     */
+    function __construct($subscriptions, String $type, string $get_now = null){
+        $this->subscriptions = $subscriptions;
         $this->type = $type;
         $this->get_now = $get_now;
     }
@@ -33,15 +36,15 @@ class SubscribeMessage {
     static function from_obj($obj): SubscribeMessage{
         Argh::validate($obj, [
             "get_now" => ["optional", "boolean"],
-			"item_names" => ["obj"],
+			"subscriptions" => ["obj"],
 			"type" => ["notblank"],
-			"/item_names/*" => ["array"],
-			"/item_names/*/*" => ["notblank"]
+			"/subscriptions/*" => ["array"],
+			"/subscriptions/*/*" => ["notblank"]
         ]);
 
         $get_now = property_exists($obj, "get_now") ? $obj->get_now : null;
         
-       return new SubscribeMessage($obj->item_names, $obj->type, $get_now);
+       return new SubscribeMessage($obj->subscriptions, $obj->type, $get_now);
     }
 }
 

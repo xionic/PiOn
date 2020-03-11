@@ -9,6 +9,9 @@ var sitemap = {
     "item_name": "GPIO test",
     "type": "switch"
   }, {
+    "item_name": "ESP8266 Plug Test",
+    "type": "switch"
+  }, {
     "item_name": "Text test",
     "type": "text"
   }, {
@@ -16,7 +19,12 @@ var sitemap = {
     "type": "temperature"
   }, {
     "item_name": "Nick Thermo",
-    "type": "thermostat"
+    "type": "thermostat",
+    "type_args": {
+      "heater_switch": {
+        "type": "simple_toggle"
+      }
+    }
   }],
   "Living Room": [{
     "item_name": "Nick Heater",

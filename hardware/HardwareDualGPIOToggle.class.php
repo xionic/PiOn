@@ -36,7 +36,7 @@ class HardwareDualGPIOToggle extends Hardware {
 		//init toggle states
 		if($node_name == NODE_NAME){
 			foreach($args->switches as $key => $pin){
-				$this->states[$key] = 0;				
+				$this->states[$key] = 0;
 			}
 			if(property_exists($args, "resend")){ // create recurring task to resend states
 				$THIS = $this;
@@ -44,8 +44,8 @@ class HardwareDualGPIOToggle extends Hardware {
 					//plog(", DEBUG);
 					foreach($THIS->states as $key => $state){
 						plog("Reasserting value of HardwareDualGPIOToggle switch #$key to $state", DEBUG, Session::$INTERNAL);
-						\Amp\call(function() use ($THIS, $key){
-							$THIS->hardware_set((Object)["switch_num" => $key], new Value(null));	
+						\Amp\call(function() use ($THIS, $key, $value){
+							$THIS->hardware_set((Object)["switch_num" => $key], new Value($value));	
 						});
 					}
 				});

@@ -18,14 +18,19 @@ class HardwareHTTP extends Hardware{
 
 	function hardware_get(Session $session, Object $item_args): Promise{	
 		return \Amp\call(function() use ($session, $item_args){
-			$data = file_get_contents($item_args->url);
-			plog("HardwareHTTP request returned: $data", DEBUG, $session);
+			$data = file_get_contents($item_args->get_url);
+			plog("HardwareHTTP GET request returned: $data", DEBUG, $session);
 			return $data;
 		});
 	}
 
+	//value will be appended to URL
 	function hardware_set(Session $session, Object $item_args, $value): Promise{
-		// return new Value($this->do_exec($item_args->get_command), Value::CERTAIN);
+		return \Amp\call(function() use ($session, $item_args, $value){
+			$data = file_get_contents($item_args->set_url . "/" . urlencode($value->data));
+			plog("HardwareHTTP SET request returned: $data", DEBUG, $session);
+			return $data;
+		});
 	}
 
  

@@ -34,11 +34,11 @@ class Argh{
 	 * ?class name		- 	must be instanceof given class or null
 	*/
 
-	public static function validate($argArray, array $argDesc, Callable $callback = null): bool {		
-		return (new Argh())->_validate($argArray, $argDesc, $callback);
+	public static function validate($argArray, array $argDesc, Callable $callback = null, $debug = false): bool {		
+		return (new Argh())->_validate($argArray, $argDesc, $callback, $debug);
 	}
 		
-	private function _validate($argArray, $argDesc, $callback): bool{
+	private function _validate($argArray, $argDesc, $callback, $debug): bool{
 		
 		if($argArray == null)
 			throw new \Exception ("object|array to be checked cannot be null");
@@ -48,6 +48,7 @@ class Argh{
 		$this->argArray = $argArray;
 		$this->argDesc = $argDesc;
 		$this->callback = $callback;
+		$this->debug = $debug;
 
 		//expand wildcards :S
 		$this->expandDescWildcards();
@@ -169,6 +170,8 @@ class Argh{
 							break;
 						
 					}
+					$cArg = isset($c["constraintArg"]) ? $c["constraintArg"] : "";
+					$this->debug("Constraint: " . htmlentities($c["constraint"]) . " with args: '" .$cArg. "' passed for key: " . $arg . " Value: ". var_export($curValue, true));
 				}
 			}
 		}
@@ -290,7 +293,7 @@ class Argh{
 	}
 	
 	private function checkRegex($regex, $value, $arg)
-	{
+	{		
 		if((preg_match($regex,$value)) !== 1)
 		{
 			$this->handleValidationFail("Argument is does not match regex(".$regex."): ". $arg, $arg, $value);
@@ -463,6 +466,12 @@ class Argh{
 	public function getVersion()
 	{
 		return $this->version;
+	}
+
+	private function debug($text){
+		if($this->debug){
+			echo "$text\n";
+		}
 	}
 }
 

@@ -25,29 +25,6 @@ export class module_thermostat extends pion_base {
     this.updateReceived = false;
   }
 
-  static get styles() {
-    return css`
-			.itemmodule {
-				/*float: left;*/
-				display: inline-block;				
-			}
-			module-number {
-				width:45px;
-			}
-			* {
-				padding: 0 5px;
-			}
-			module-switch[therm_module="state"] {
-				padding-right:2px;
-				position: relative;
-				left:10px;
-			}
-			module-text[therm_module="temp"] {
-				padding-right:0px;
-			}
-	`;
-  }
-
   onpion_change(ev) {
     switch (ev.originalTarget.getAttribute("therm_module")) {
       case "setpoint":
@@ -65,20 +42,29 @@ export class module_thermostat extends pion_base {
     }, false, null, getTimestamp(), Value.CERTAIN));
   }
 
-  render() {
-    if (!this.updateReceived) {
-      return html`<span>LOADING...</span>`;
-    }
-
-    return html`
+  pion_render() {
+    let elem_state = $(`
 			<module-switch item_name="${this.state_switch}" class="itemmodule" therm_module="state"></module-switch>
-
-			<module-temperature item_name="${this.temp_item}" class="itemmodule" therm_module="temp"></module-temperature>
-
-			<module-number item_name="${this.setpoint}" class="itemmodule" therm_module="setpoint"></module-number>			
-			
+		`)[0];
+    elem_state.type_args = this.type_args.hasOwnProperty("state_switch") ? this.type_args.state_switch : {};
+    let elem_temp = $(`
+			<module-temperature item_name="${this.temp_item}" class="itemmodule" therm_module="temp" .type_args=${this.type_args.temp_item}></module-temperature>
+		`)[0];
+    elem_temp.type_args = this.type_args.hasOwnProperty("temp_item") ? this.type_args.temp_item : {};
+    let elem_setpoint = $(`
+			<module-number item_name="${this.setpoint}" class="itemmodule" therm_module="setpoint"></module-number>
+		`)[0];
+    elem_setpoint.type_args = this.type_args.hasOwnProperty("setpoint") ? this.type_args.setpoint : {};
+    let elem_heater = $(`
 			<module-switch item_name="${this.heater_switch}" disabled class="itemmodule" therm_module="heater_state"></module-switch>
-		`;
+		`)[0];
+    elem_heater.type_args = this.type_args.hasOwnProperty("heater_switch") ? this.type_args.heater_switch : {};
+    let container = document.createElement("SPAN");
+    container.appendChild(elem_state);
+    container.appendChild(elem_temp);
+    container.appendChild(elem_setpoint);
+    container.appendChild(elem_heater);
+    return html`${container}`;
   } //the "value" of a thermostat item defines the items that comprise it
 
 

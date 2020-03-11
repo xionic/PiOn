@@ -7,7 +7,7 @@ export class module_temperature extends module_text {
     super();
   }
 
-  render() {
+  pion_render() {
     let time = '';
 
     if (this.val.hasOwnProperty("timestamp")) {
@@ -16,6 +16,10 @@ export class module_temperature extends module_text {
     }
 
     return html`<span>${this.val.data}&deg;C@${time}</span>`;
+  }
+
+  static get styles() {
+    return [super.styles];
   }
 
 }

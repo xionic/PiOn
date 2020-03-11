@@ -28,20 +28,26 @@ class WebSocketClientHandler implements ClientHandler{
     private $subscribers = [];
 
     function __construct(){
-        //init sinscriptions
-        foreach(Event::events as $ev_name){
-            foreach(get_items() as $item){
+        //init subscriptions
+        foreach(get_items() as $item){
+             $this->subscriptions[$item->name] = [];
+            foreach(Event::events as $ev_name){
                 $this->subscriptions[$item->name][$ev_name] = [];
             }
         }
 
         EventManager::register_all_item_events_handler(function (string $event_name, string $item_name, Value $value){
-            plog("Websocket received event for item: '$item_name', event: '$event_name', # subscriptions: " . count($this->subscriptions[$item_name][$event_name]), DEBUG, Session::$INTERNAL);
-            //var_dump($this->subscriptions);
+            $count = 0;
+            if(array_key_exists($item_name, $this->subscriptions) && array_key_exists($event_name, $this->subscriptions[$item_name])){
+                $count = count($this->subscriptions[$item_name][$event_name]);
+            }
+            plog("Websocket received event for item: '$item_name', event: '$event_name', # subscriptions: $count", DEBUG, Session::$INTERNAL);
+
+            var_dump($this->subscriptions);
             foreach($this->subscriptions[$item_name][$event_name] as $client_id){
                 $item_message = new ItemMessage($item_name, ItemMessage::GET, $value);
                 $rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, "client", null, $item_message);
-                plog("Websocket sending update for item: '$item_name'", DEBUG, Session::$INTERNAL);
+                plog("Websocket sending update for item: '$item_name' to client_id: $client_id", DEBUG, Session::$INTERNAL);
                 $this->subscribers[$client_id]->send($rest_message->to_json());
 
              }
@@ -73,16 +79,16 @@ class WebSocketClientHandler implements ClientHandler{
             while ($message = yield $client->receive()) {
                 \assert($message instanceof Message);
                 $msg = yield $message->buffer();
-                plog("+ + + Received WebSocket message: $msg", DEBUG, $session);
+                plog("↓WS↓ Received WebSocket message: $msg", DEBUG, $session);
                 $rest_message = RestMessage::from_json($msg);
-                \Amp\call(function() use ($rest_message, $session, $client){
+                \Amp\asyncCall(function() use ($rest_message, $session, $client){
                     switch($rest_message->context){
                         case RestMessage::REST_CONTEXT_SUBSCRIBE:
                             $sub_message = SubscribeMessage::from_obj($rest_message->payload);
                             plog("SUBSCRIBE message for type: {$sub_message->type}, get_now: {$sub_message->get_now}", DEBUG, $session);
                             switch($sub_message->type){
                                 case SubscribeMessage::SUBSCRIBE:
-                                    foreach($sub_message->item_names as $item_name => $events){
+                                    foreach($sub_message->subscriptions as $item_name => $events){
                                         foreach($events as $event_name){
                                         // $this->subscriptions[$client->getId()][$item_name][] = $event_name;
                                         $this->subscriptions[$item_name][$event_name][] = $client->getId();
@@ -95,7 +101,7 @@ class WebSocketClientHandler implements ClientHandler{
 
                                     } else if($sub_message->get_now == SubscribeMessage::REQUEST_VALUES){
                                         plog("client requested values of just subscribed items", DEBUG, $session);
-                                        $resp_rest_message = yield $this->request_values($session, $client, get_object_vars($sub_message->item_names));
+                                        $resp_rest_message = yield $this->request_values($session, $client, get_object_vars($sub_message->subscriptions));
                                         yield $this->send($session, $client, $resp_rest_message->to_json());
                                     }
                                     break;
@@ -172,12 +178,12 @@ class WebSocketClientHandler implements ClientHandler{
     }
 
     private function send(Session $session, $client, string $data): Promise{
-        plog("- - - WS Sending $data", DEBUG, $session);
+        plog("↑WS↑ Sending $data", DEBUG, $session);
         return $client->send($data);
     }
 
     private function send_error(Session $session, $client, string $err_msg): Promise {
-        plog("- - - WS sending ERROR message: $err_msg", ERROR, $session);
+        plog("↑WS↑ sending ERROR message: $err_msg", ERROR, $session);
         return $client->send((new RestMessage(RestMessage::RESP, RestMessage::REST_CONTEXT_ERROR, NODE_NAME, "client", null, $err_msg))->to_json());
     }
 

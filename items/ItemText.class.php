@@ -21,7 +21,11 @@ class ItemText extends Item{
 	}
 	
 	protected function set_value_local(Session $session, Value $value): Promise {
-		throw new OperationNotSupportedException("ItemText does not support SET");
+		return \Amp\call(function() use($session){
+			// we call get because it just hits a URL ATM, no POST option or anything
+			$this->text = yield $this->hardware->get($session, $this->item_args);		
+			return new Value($this->text);
+		});
 	}
 
 }

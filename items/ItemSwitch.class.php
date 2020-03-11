@@ -26,7 +26,7 @@ class ItemSwitch extends Item {
 		});
 	}
 	function set_value_local(Session $session, Value $set_val): Promise {//Value
-		return \Amp\call(function() use($session, $set_val){
+			return \Amp\call(function() use($session, $set_val){
 			$this->state = intval($set_val->data);
 			if($this->hardware != null){
 				return new Value([

@@ -12,27 +12,40 @@ export class module_number extends pion_base {
 
 	constructor() {
 		super();
-		this.val = "999";
-	}	
-
-	render() {
-		return html`<input @change="${this.on_change}" .value="${this.val}" type="number" step="0.5">`;
+		this.spinner_created = false;
+		//this.container = document.createElement("INPUT");
+		
+		
+	}
+	
+	updated(){
+		if(this.hasReceivedvalue && !this.spinner_created){
+			self = this;
+			this.spinner = $(this.querySelector("input")).spinner();
+			this.spinner.on("spinchange", function (ev, ui) {
+				self.on_change(ev);
+			});
+			this.spinner.on("spin", function (ev, ui) {
+				self.val = ui.value;
+				self.on_change(ev);
+			});
+			this.spinner_created = true;
+		}
+		
+		
 	}
 
-	static get styles(){
-		return css`
-			input {
-				width:100%;
-				background: white;
-			}			
-		`}
+	pion_render(){		
+		return html`<input @change="${this.on_change}" .value="${this.val}" type="number" step="0.5">`;
+		//return html`${this.container}`;
+	}
 	
 	set_value(value){
-		this.val = value.data;	  
+		this.val = value.data;
 	}
 	
 	get_value(){
-		return this.shadowRoot.querySelector("input").value;
+		return this.val;
 	}
 }
 

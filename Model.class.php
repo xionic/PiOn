@@ -23,21 +23,15 @@ class Model {
 		try{
 
 			Argh::validate($model_conf, [
-				"nodes" => ["array"],
+				"nodes" => ["obj"],
 				"/nodes/*/" => ['obj'],
-				"/nodes/*/name" => ['notblank', function($value){
-					//TODO ensure unique
-					return true;
-				}],
+				
 				"/nodes/*/hostname" => ["notblank"],
 				"/nodes/*/port" => ["int", "notzero"],
 
-				"hardware" => ["array"],
+				"hardware" => ["obj"],
 				"/hardware/*/" => ['obj'],
-				"/hardware/*/name" => ['notblank', function($value){
-					//TODO ensure unique
-					return true;
-				}],
+				
 				"/hardware/*/type" => ["notblank"],
 				"/hardware/*/typeargs" => ["?obj"],
 				"/hardware/*/node" => ["notblank", function($value){
@@ -45,14 +39,11 @@ class Model {
 					return true;
 				}],
 				"/hardware/*/capabilities" => ["array"],
-				"/hardware/*/capabilities/*/" => ["regex /(get|set)/"],
+				"/hardware/*/capabilities/*/" => ["regex /(^get$|^set$)/"],
 
-				"items" => ["array"],
+				"items" => ["obj"],
 				"/items/*/" => ['obj'],
-				"/items/*/name" => ['notblank', function($value){
-					//TODO ensure unique
-					return true;
-				}],
+				
 				"/items/*/node" => ["notblank", function($value){
 					//TODO ensure exists
 					return true;
@@ -64,7 +55,7 @@ class Model {
 					return true;
 				}],
 				"/items/*/hardware/args" => ["optional", "obj"]	,
-			]);
+			], null, false);
 
 		} catch(ValidationException $ve){
 			plog("Failed to read config.json", ERROR, Session::$INTERNAL);
@@ -73,28 +64,28 @@ class Model {
 		plog("config.json validation succeeded", VERBOSE, Session::$INTERNAL);
 
 		//load nodes
-		foreach($model_conf->nodes as $node){
-			$this->nodes[$node->name] = new \PiOn\Node\NodeStandard($node->name, $node->hostname, $node->port);
+		foreach($model_conf->nodes as $node_name => $node){
+			$this->nodes[$node_name] = new \PiOn\Node\NodeStandard($node_name, $node->hostname, $node->port);
 		}
 		
 		//load hardware
-		foreach($model_conf->hardware as $hw){ //SECURITY
+		foreach($model_conf->hardware as $hardware_name => $hw){ //SECURITY
 			$class = "\PiOn\Hardware\Hardware".$hw->type;
 			//var_dump($class);
 			//new Value("r");
 			//new \PiOn\Hardware\HardwareGPIO(null, null, null, null);
-			$this->hardware[$hw->name] = new $class($hw->name, $hw->node, $hw->capabilities, $hw->typeargs);
+			$this->hardware[$hardware_name] = new $class($hardware_name, $hw->node, $hw->capabilities, $hw->typeargs);
 		}
 		
 		//load items
-		foreach($model_conf->items as $item){ //SECURITY
+		foreach($model_conf->items as $item_name => $item){ //SECURITY
 			$hw = null;
 			$hw_args = null;
 			if(property_exists($item->hardware, "name")){
 				$hw = $this->get_hardware($item->hardware->name);
 				$hw_args = $item->hardware->args;
 			}				
-			$this->items[$item->name] = Item::create_item($item->type, $item->name, $item->node, $item->itemargs, $hw, $hw_args);			
+			$this->items[$item_name] = Item::create_item($item->type, $item_name, $item->node, $item->itemargs, $hw, $hw_args);			
 		}
 		
 		//var_dump($this);
@@ -122,7 +113,7 @@ class Model {
 			return $this->items[$item_name];
 		}
 		else{
-			plog("Unknown item name: $item_name", ERROR, Session::$INTERNAL);
+			plog("Unknown item name: $item_name", ERROR, Session::$INTERNAL); //TODO
 			throw new InvalidArgException("Unknown item name: $item_name");
 		}
 	}

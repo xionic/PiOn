@@ -33,6 +33,7 @@
 	use Amp\Log\StreamHandler;
 	use Psr\Log\NullLogger;
 	use Monolog\Logger;
+	use Monolog\Handler\RotatingFileHandler;
 	use Seld\JsonLint\JsonParser;
 	use \Amp\Promise;
 	use \Amp\Http\Server\Router;
@@ -46,14 +47,23 @@
 	
 	//Load Config
 	plog("Reading config.json", INFO, Session::$INTERNAL);
-	$config_json = file_get_contents("config/config.json");
 	$config = null;
 	$parser = new JsonParser;
+	$cur_file = "";
 	try {
-		$config = $parser->parse($config_json);
+		$cur_file = "config/config.json";
+		$config = $parser->parse(file_get_contents($cur_file));
+		$config->model = (Object)[];
+
+		$cur_file = "config/nodes.config.json";
+		$config->model->nodes = $parser->parse(file_get_contents($cur_file));
+		$cur_file = "config/items.config.json";
+		$config->model->items = $parser->parse(file_get_contents($cur_file));
+		$cur_file = "config/hardware.config.json";
+		$config->model->hardware = $parser->parse(file_get_contents($cur_file));
 	} catch(Exception $e){
 		$details = $e->getDetails();
-		plog("Failed to parse config.json. Error at line: {$details['line']}", FATAL, Session::$INTERNAL);
+		plog("Failed to parse $cur_file. Error at line: {$details['line']}", FATAL, Session::$INTERNAL);
 	}
 	
 	//Model creation
@@ -66,6 +76,19 @@
 	
 	//model initialisation
 	$model->init();
+
+	Loop::setErrorHandler(function (\Throwable $e) {
+		try {
+			throw $e;
+		} catch (\Amp\MultiReasonException $mre){
+			echo "Loop Exception\n";
+			foreach($mre->getReasons() as $reason){
+				echo "$reason\n";
+			}
+		} catch (\Throwable $e){
+			echo "error handler -> " . $e->getMessage() . PHP_EOL;
+		}
+	});
 	
 
 	Loop::run(function() use ($this_node){
@@ -142,14 +165,18 @@
 		return $loop;
 	}
 	
+	
 	function create_logger(String $name): Logger{
 		global $loggers;
+		$log_file_path = "log/PiOn.log";
 		$loggers[$name] = new Logger($name);
-		$logHandler = new StreamHandler(new ResourceOutputStream(STDOUT));
-		$logHandler->setFormatter(new ConsoleFormatter);
-		$log_file = fopen("log/PiOn.log", "a");
-		$logFileHandler = new \Monolog\Handler\StreamHandler($log_file);
-		$loggers[$name]->pushHandler($logFileHandler);
+		$logHandlerConsole = new StreamHandler(new ResourceOutputStream(STDOUT));
+		$logHandlerConsole->setFormatter(new ConsoleFormatter);
+		$loggers[$name]->pushHandler($logHandlerConsole);
+		
+		$logHandler = new RotatingFileHandler($log_file_path, 28);
+		//$log_file = fopen($log_file_path, "a");
+		//$logFileHandler = new \Monolog\Handler\StreamHandler($log_file);
 		$loggers[$name]->pushHandler($logHandler);
 		return $loggers[$name];
 	}
@@ -182,7 +209,7 @@
 				throw new Exception("Error status received from " . $target_node->hostname . ": " . $resp->getStatus() . " Body is: " . $json);
 			}
 			$rest_message = RestMessage::from_json($json);
-			plog("Got response: " . json_encode($rest_message), DEBUG, $session);
+			plog("Got response from '$url': " . json_encode($rest_message), DEBUG, $session);
 
 			//plog("Successfully retrieved remote value from node: " . $THIS->node_name. ", Value: ". ($item_message->value == null ? "NULL":$item_message->value), DEBUG);
 			

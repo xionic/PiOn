@@ -2,8 +2,8 @@ body {
 	background-color: #3f3f4e;
 	color: #ddddee;
 	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif, sans-serif;
-	widows: 92%;
-	float:left;
+	width: 92%;
+	float: left;
 }
 
 ul{
@@ -48,4 +48,16 @@ span.itemname{
 span.itemvalue{
 	float:right;
 	margin: 5px;
+}
+
+.failed {
+	background:#dd8484;
+}
+
+img.loading {
+	height:25px
+}
+
+.itemmodule{
+	display:inline-block;
 }

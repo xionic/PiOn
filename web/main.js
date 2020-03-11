@@ -1,4 +1,5 @@
 import {html, LitElement} from 'lit-element';
+import {render} from 'lit-html';
 import {RestMessage} from './RestMessage.js';
 import {ItemMessage} from './ItemMessage.js';
 import {SubscribeMessage} from './SubscribeMessage.js';
@@ -64,29 +65,71 @@ function get_module_html(name, item_name){
 		console.error("Invalid module: " + name);
 		throw new InvalidModuleExeption("Invalid module '" + name + "'");
 	}	
-	let obj = {html: '<module-' + name + " class='itemmodule' id='module_container_" + module_id_counter + "' item_name='" + item_name + "'></module-" + name + ">", 
+	let obj = {html: "<module-" + name + " class='itemmodule' id='module_container_" + module_id_counter + "' item_name='" + item_name + "'></module-" + name + ">", 
+	/*let l = "number";
+	let obj = {html: html`<module-number></module-number>`, */
 	id: "module_container_" + module_id_counter
 	};
 	module_id_counter++;
 	return obj;
 }
 
-var item_elem_list = []; //List of all htmlelements for each module instantiated. [{item_name:..., "id": ...} ...]
-
 var websocket;
 var ws_promise;
-var subscribers = {} // subscribers.item_name = array of (pion_base) element objects
+var subscribers = {} // subscribers - item_name => [event_name => [element, ...], ...] 
+
 //make sure everything is loaded before we start pissing with litelement
-$().ready(function(){
+$().ready(function(){	
 	setTimeout(function(){// MEGA HACK. modules must register before we can do this, but we have no way of knowing when this is complete.
 		$("#rooms").html("<pion-main></pion-main>");
 	},500);
-	
+
+	setInterval(function(){
+		let text_state = "";
+		switch(websocket.readyState){
+			case 0:
+			text_state = "connecting";
+				break;
+			case 1:
+			text_state = "connected";
+				break;
+			case 2:
+			text_state = "closing";
+				break;
+			case 3:
+			text_state = "closed";
+				break;
+		}
+		var current_date = new Date(); 
+		let hours = "" + current_date.getHours();
+		let mins = "" + current_date.getMinutes();
+		let secs = "" + current_date.getSeconds();
+		text_state = "Websocket is " + text_state + "@" + hours.padStart(2, "0") + ":" + mins.padStart(2, "0") + ":" + secs.padStart(2, "0");
+		$("#websocket_status").text(text_state);		
+	}, 1000);
+	$("#websocket_status").click(function(){
+		alert("Reconnecting websocket");
+		ws_reconnect();
+	});
+	//For testing purposes (right click)
+	$("#websocket_status").contextmenu(function(){
+		alert("Disconnecting websocket");
+		websocket.close();
+	});
+
+	ws_connect();
+});
+
+function ws_connect(old_subscribers) {
+	//reset vars	
+	subscribers = [];
+	ws_promise = null;
+
 	//setup wetsocket
 	websocket = new WebSocket("ws://" + config.websocket_url);
-	ws_promise = new Promise(function(resolve){
+	ws_promise = new Promise(function (resolve) {
 		// Connection opened
-		websocket.addEventListener('open', function (event) {
+		websocket.onopen = function (event) {
 			resolve(websocket);
 			//subscribe to all required items	
 			let items = {};
@@ -95,27 +138,45 @@ $().ready(function(){
 					items[elem.item_name] = ["ITEM_VALUE_CHANGED"];
 				})
 			}
-		});
+			if (typeof old_subscribers === 'object') { // if subscribers is passed this is a reconnect and we need to re-subscribe
+				console.debug("WS: Resubscribing on new connection");
+
+				//rearrange old_subscribers to item => {item_name: [event_name]}
+				let new_subs = {};
+				for (const item_name in old_subscribers){	
+					new_subs[item_name] = [];
+					for (const event_name in old_subscribers[item_name]) {						
+						new_subs[item_name].push(event_name)
+						old_subscribers[item_name][event_name].forEach(function(elem){
+							ws_subscribe(new_subs, elem, true);
+						});
+					}
+				}
+			}
+		}
 	});
 
-	websocket.addEventListener('error', function(event) {
+	websocket.onclose = function (event) {
+		console.error("WebSocket close observed:", event);
+		//alert("WebSocket Closed - see console");
+		ws_reconnect();
+	}
+	websocket.onerror = function (event) {
 		console.error("WebSocket error observed:", event);
-		alert("WebSocket Error - see console");
-	});
-
-	
-	
+		//alert("WebSocket Error - see console");
+		ws_reconnect();
+	}
 
 	// Listen for messages
-	websocket.addEventListener('message', function (event) {		
+	websocket.onmessage = function (event) {
 		let rest_message = RestMessage.from_json(event.data);
 		console.log('Message from WebSocket ', rest_message);
 
-		switch(rest_message.context){
+		switch (rest_message.context) {
 			case RestMessage.REST_CONTEXT_ITEM:
-			rest_message.payload = [rest_message.payload];
+				rest_message.payload = [rest_message.payload];
 			case RestMessage.REST_CONTEXT_ITEMS:
-				rest_message.payload.forEach(function(item){
+				rest_message.payload.forEach(function (item) {
 					let item_message = ItemMessage.from_obj(item);
 					console.debug("WS: Received value for item: ", item_message.item_name, " with data: ", item_message.value.data);
 					/*let elems = document.querySelectorAll("span.itemvalue *[item_name='" + item_message.item_name + "']");
@@ -124,17 +185,22 @@ $().ready(function(){
 							elem.set_value(item_message.value);
 						});
 					}*/
-					subscribers[item_message.item_name].forEach(function(elem){
-						elem.set_value(item_message.value)
+					subscribers[item_message.item_name][ItemEvent.events.ITEM_VALUE_CHANGED].forEach(function(elem){
+						elem._set_value(item_message.value)
 					});
 				});
 				break;
 			case RestMessage.REST_CONTEXT_ERROR:
 				console.log("WS: Received ERROR message: " + rest_message.payload);
-				alert("ERROR: " + rest_message.payload);
+				//alert("ERROR: " + rest_message.payload);
 		}
-	});
-});
+	}
+}
+
+function ws_reconnect(){
+	console.debug("Websocket attempting to reconnect");
+	ws_connect(subscribers);
+}
 
 /**
  * 
@@ -142,25 +208,45 @@ $().ready(function(){
  * @param {array} items {item_name: [event_name1, ...]}
  * @param {Boolean} request_values whether to retresh values for all subscribed items
  */
-export function ws_subscribe(elem, items, request_values){
-	ws_promise.then(function(){
-		console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
-		for(const item in items){
-			if(!subscribers.hasOwnProperty(item)){			
-				subscribers[item] = [];
+export function ws_subscribe(items, elem, request_values){
+	let handler =  function(items, elem, request_values){
+	
+		ws_promise.then(function(){
+			console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
+			let sub_obj = {}; // object to pass to SubscribeMessage - doesn't have element refs
+			for(const item in items){
+				if(item === 'undefined'){
+					console.log("SHI*T");
+				}
+				sub_obj[item] = [];
+				if (!subscribers.hasOwnProperty(item)) {
+					subscribers[item] = {};
+				}		
+
+				items[item].forEach(function(event){
+					sub_obj[item].push(event);
+					if (!subscribers[item].hasOwnProperty(event)) {				
+						subscribers[item][event] = [];
+					}
+					subscribers[item][event].push(elem);
+				});
 			}
-			subscribers[item].push(elem);
-		}
-		let sub_msg = new SubscribeMessage(items, SubscribeMessage.SUBSCRIBE, request_values);
-		let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
-		websocket.send(rest_message.to_json());
-	});
+			let sub_msg = new SubscribeMessage(sub_obj, SubscribeMessage.SUBSCRIBE, request_values);
+			let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
+			websocket.send(rest_message.to_json());
+		});
+	}
+	handler.call(null, items,elem,request_values);
 }
 
 export class Main extends LitElement {
 	
 	constructor(){
 		super();
+	}
+
+	createRenderRoot() {
+		return this;
 	}
 	
 	render(){	
@@ -175,11 +261,20 @@ export class Main extends LitElement {
 				$(itemli).addClass("item");
 				itemli.append($("<span>",{class: "itemname", text: item.item_name}));
 				var item_value_span = $("<span>",{class: "itemvalue", "data-item_name":item.item_name, "data-type": item.type});
+
+				let type_args = {};
+				if(item.hasOwnProperty("type_args")){
+					type_args = item.type_args;
+				}
 				
 				try{
 					let module_spec = get_module_html(item.type, item.item_name);
-					item_elem_list.push(module_spec);
-					item_value_span.html(module_spec.html);					
+					let item_module = $(module_spec.html);
+					item_module[0].type_args = type_args
+			
+					render(html`${item_module}`, item_value_span[0]);
+					//item_value_span.append(.append($("<module-switch>"));
+				//	item_value_span.append(module_spec.html.getTemplateElement());				
 					
 					itemli.append(item_value_span);
 					
@@ -187,22 +282,6 @@ export class Main extends LitElement {
 					let item_message = new ItemMessage(item.item_name, ItemMessage.GET, null)
 					let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, "client", null, null, item_message)
 
-					//websocket.send(rest_message.to_json());
-					/*
-					$.ajax({
-						url: config.api_url,
-						data: { data: rest_message.to_json()}
-					}).done(function(data, text_status, jqxhr){
-						//console.log(data);
-						var payload = data.payload;
-						console.debug("Successfully retrieved value for item: ", item, " with data: ", data, " from: ", config.api_url);
-						//console.log(item_value_span[0]);
-						item_value_span[0].querySelector(".itemmodule").set_value(payload.value);
-						
-					}).fail(function(jqXHR, textStatus, errorThrown){
-						console.error("AJAX FAILED. status: '" + textStatus + "' error:'" + errorThrown + "'", jqXHR);
-					});*/
-					//itemli.append();
 					roomul.append(itemli);
 				
 				} catch(e){

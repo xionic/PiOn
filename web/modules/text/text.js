@@ -1,4 +1,4 @@
-import {html}  from 'lit-html';
+import {html,css}  from 'lit-element';
 import {pion_base} from '../pion_base.js';
 import {register_module} from '../../main.js';
 
@@ -14,8 +14,14 @@ export class module_text extends pion_base {
 		this.val = {data: "LOADING"};
 	}
 
-	render() {
+	pion_render() {		
 		return html`<span>${this.val.data}</span>`;
+	}
+
+	static get styles() {
+		return [
+			super.styles
+		];
 	}
 	
 	set_value(value){

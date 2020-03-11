@@ -4,7 +4,7 @@ namespace PiOn\Event;
 use \Amp\Loop;
 use \PiOn\Session;
 
-class WeeklyTimer implements Timer{
+class WeeklyTimer implements Timer {
 	
 	private $sec, $min, $hour, $days;
 	private $week_fire_times = []; // fire times in seconds into the week. i.e. max value is 7*24*60*60
@@ -44,24 +44,19 @@ class WeeklyTimer implements Timer{
 				$this->secs[] = $d;
 			}
 		}
-		$relative_time = strtotime("midnight last sunday");
+		$relative_time = strtotime("midnight sunday this week");
 		foreach($this->days as $day){
 			foreach($this->hours as $hour){
 				foreach($this->mins as $min){
 					foreach($this->secs as $sec){
-						$ds = "+$day days $hour hours $min minutes $sec secs midnight last sunday";
+						$ds = "+$day days $hour hours $min minutes $sec secs midnight sunday this week";
 						$ts = strtotime($ds);
 						if(!$ts){
 							//throw exception
 							throw new \Exception("Failed to parse date string: $ds");
 						}
 						plog("Adding weekly timer for $day days $hour hours $min minutes $sec secs = " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
-						$this->week_fire_times[] = $ts - $relative_time;
-						//add next week's schedule too to make finding the next fire time easier
-						$ts = strtotime("+$day days $hour hours $min minutes $sec secs midnight next sunday");
-						$this->week_fire_times[] = $ts - $relative_time;
-						//$d = new DateTime;$d->setTimestamp(intval($week_fire_times[0])); echo $d->format("D H:i:s") . PHP_EOL;
-						
+						$this->week_fire_times[] = $ts - $relative_time;						
 					}
 				}
 			}
@@ -69,20 +64,28 @@ class WeeklyTimer implements Timer{
 		//var_dump($week_fire_times);
 		
 	}
+
+	/**
+	 * Returns the current base timestamp used for relative weekly calculations
+	 */
+	/*private function get_current_base(){
+
+	}*/
 	
 	//Return number of seconds until this timer should next fire
 	private function next_run_time_rel (): int {
 		sort($this->week_fire_times);
 		foreach($this->week_fire_times as $rel_fire_time){
 			//add the time of the week fire time to the beginning of this week
-			$real_fire_time = $rel_fire_time + strtotime("midnight last sunday");
+			$real_fire_time = $rel_fire_time + strtotime("midnight sunday this week");
+			plog("next_run_time_rel: $rel_fire_time $real_fire_time",DEBUG, Session::$INTERNAL);
 			//compare our real fire time to the current time and see if the event is in the past or future
 			$diff = $real_fire_time - time();
 			if($diff > 0){ // this is the next run time
 				return $diff;
 			}
 		}
-		throw new Exception("No next run time found");
+		throw new \Exception("No next run time found");
 	}
 	
 	function start(Callable $callback): void {
