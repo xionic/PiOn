@@ -65,11 +65,13 @@ class Model {
 
 		//load nodes
 		foreach($model_conf->nodes as $node_name => $node){
+			plog("Creating Node '{$node_name}'", DEBUG, Session::$INTERNAL);
 			$this->nodes[$node_name] = new \PiOn\Node\NodeStandard($node_name, $node->hostname, $node->port);
 		}
 		
 		//load hardware
 		foreach($model_conf->hardware as $hardware_name => $hw){ //SECURITY
+			plog("Creating Hardware '{$hardware_name} of type '{$hw->type}''", DEBUG, Session::$INTERNAL);
 			$class = "\PiOn\Hardware\Hardware".$hw->type;
 			//var_dump($class);
 			//new Value("r");
@@ -79,6 +81,7 @@ class Model {
 		
 		//load items
 		foreach($model_conf->items as $item_name => $item){ //SECURITY
+			plog("Creating Iten '{$item_name}' of type '{$item->type}'", DEBUG, Session::$INTERNAL);
 			$hw = null;
 			$hw_args = null;
 			if(property_exists($item->hardware, "name")){
@@ -97,8 +100,9 @@ class Model {
 	function init(){
 		$init_promises = [];
 		foreach($this->items as $item){	
-			if(method_exists($item, "init"))		
-				$init_promises[] = $item->init();
+			if(method_exists($item, "init")){
+				$item->init();
+			}
 		}
 		//\Amp\Promise\wait(\Amp\Promise\all($init_promises));
 		plog("Model init finished", INFO, Session::$INTERNAL);

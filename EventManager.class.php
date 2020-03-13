@@ -37,7 +37,8 @@ class EventManager {
 		/*self::$event_handlers->{ITEM_EVENT}->$event_name->$item_name[] = new StandardClass(array("node_name" => NODE_NAME, "callback" => $handler));*/
 	}
 
-	public static function register_item_event_handler(String $item_name, String $event_type, String $event_name, Callable $handler): void { //TODO validate events		
+	public static function register_item_event_handler(String $item_name, String $event_type, String $event_name, Callable $handler, String $node_name = NODE_NAME): void { //TODO validate events		
+		if($node_name != NODE_NAME) return;
 		plog("Registering item event for item: '$item_name' and event_type: '$event_type' for event: '$event_name'", VERBOSE, Session::$INTERNAL);
 		self::$event_handlers->{ITEM_EVENT}->$event_name->$item_name[] = $handler;
 	}

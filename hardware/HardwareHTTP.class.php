@@ -18,7 +18,11 @@ class HardwareHTTP extends Hardware{
 
 	function hardware_get(Session $session, Object $item_args): Promise{	
 		return \Amp\call(function() use ($session, $item_args){
-			$data = file_get_contents($item_args->get_url);
+			if(property_exists($item_args, "get_url")){
+				$data = file_get_contents($item_args->get_url);
+			} else {
+				$data = null;
+			}
 			plog("HardwareHTTP GET request returned: $data", DEBUG, $session);
 			return $data;
 		});

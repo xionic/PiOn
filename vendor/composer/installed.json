@@ -997,17 +997,17 @@
     },
     {
         "name": "amphp/socket",
-        "version": "v1.1.0",
-        "version_normalized": "1.1.0.0",
+        "version": "v1.1.1",
+        "version_normalized": "1.1.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/socket.git",
-            "reference": "cf56db51bff8570a0741f9de8f0922ef589642d3"
+            "reference": "020b65271596f84f4b3127d2eab81ad2790f9fb6"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/socket/zipball/cf56db51bff8570a0741f9de8f0922ef589642d3",
-            "reference": "cf56db51bff8570a0741f9de8f0922ef589642d3",
+            "url": "https://api.github.com/repos/amphp/socket/zipball/020b65271596f84f4b3127d2eab81ad2790f9fb6",
+            "reference": "020b65271596f84f4b3127d2eab81ad2790f9fb6",
             "shasum": ""
         },
         "require": {
@@ -1024,8 +1024,13 @@
             "amphp/phpunit-util": "^1",
             "phpunit/phpunit": "^6"
         },
-        "time": "2019-12-31T13:59:21+00:00",
+        "time": "2020-02-27T21:29:37+00:00",
         "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.x-dev"
+            }
+        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -1189,6 +1194,79 @@
             "amp",
             "amphp",
             "async",
+            "http",
+            "non-blocking",
+            "websocket"
+        ]
+    },
+    {
+        "name": "amphp/websocket-client",
+        "version": "v1.0.0-rc2",
+        "version_normalized": "1.0.0.0-RC2",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/amphp/websocket-client.git",
+            "reference": "f42543a99c56d4635dfd9f06cdf32dfc147f4836"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/amphp/websocket-client/zipball/f42543a99c56d4635dfd9f06cdf32dfc147f4836",
+            "reference": "f42543a99c56d4635dfd9f06cdf32dfc147f4836",
+            "shasum": ""
+        },
+        "require": {
+            "amphp/amp": "^2.2",
+            "amphp/http": "^1.3",
+            "amphp/http-client": "^4",
+            "amphp/socket": "^1",
+            "amphp/websocket": "^1",
+            "league/uri": "^6",
+            "php": ">=7.2",
+            "psr/http-message": "^1"
+        },
+        "require-dev": {
+            "amphp/http-server": "^2",
+            "amphp/php-cs-fixer-config": "dev-master",
+            "amphp/phpunit-util": "^1.1",
+            "amphp/websocket-server": "^2-rc2",
+            "phpunit/phpunit": "^8 || ^7",
+            "psr/log": "^1"
+        },
+        "time": "2020-02-26T19:19:00+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Amp\\Websocket\\Client\\": "src"
+            },
+            "files": [
+                "src/functions.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Bob Weinand",
+                "email": "bobwei9@hotmail.com"
+            },
+            {
+                "name": "Aaron Piotrowski",
+                "email": "aaron@trowski.com"
+            },
+            {
+                "name": "Niklas Keller",
+                "email": "me@kelunik.com"
+            }
+        ],
+        "description": "Async WebSocket client for PHP based on Amp.",
+        "keywords": [
+            "amp",
+            "amphp",
+            "async",
+            "client",
             "http",
             "non-blocking",
             "websocket"

@@ -43,8 +43,8 @@ class WebSocketClientHandler implements ClientHandler{
             }
             plog("Websocket received event for item: '$item_name', event: '$event_name', # subscriptions: $count", DEBUG, Session::$INTERNAL);
 
-            var_dump($this->subscriptions);
-            foreach($this->subscriptions[$item_name][$event_name] as $client_id){
+            //var_dump($this->subscriptions);
+            foreach(array_keys($this->subscriptions[$item_name][$event_name]) as $client_id){
                 $item_message = new ItemMessage($item_name, ItemMessage::GET, $value);
                 $rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, "client", null, $item_message);
                 plog("Websocket sending update for item: '$item_name' to client_id: $client_id", DEBUG, Session::$INTERNAL);
@@ -70,10 +70,11 @@ class WebSocketClientHandler implements ClientHandler{
     public function handleClient(Client $client, Request $request, Response $response): Promise {
         $session  = new Session("ws:");
         $this->subscribers[$client->getId()] = $client;
-        $this->subscribers[$client->getId()]->onClose(function($client, $close_clode, $close_reason){
+        $this->subscribers[$client->getId()]->onClose(function($client, $close_clode, $close_reason) use ($session){
+             plog("- - - WS Closed. Client Id: " . $client->getId(), DEBUG, $session);
             $this->remove_client($client);
         });
-        plog("+ + + WS New Connection. Client Id: " . $client->getId() . " Assigned session_id " . $session->get_id(), DEBUG, $session);
+        plog("+ + + WS New Connection from '{$client->getRemoteAddress()->toString()}' Client Id: " . $client->getId() . " Assigned session_id " . $session->get_id(), DEBUG, $session);
 
         return call(function() use($session, $client) { 
             while ($message = yield $client->receive()) {
@@ -90,10 +91,13 @@ class WebSocketClientHandler implements ClientHandler{
                                 case SubscribeMessage::SUBSCRIBE:
                                     foreach($sub_message->subscriptions as $item_name => $events){
                                         foreach($events as $event_name){
+                                           
                                         // $this->subscriptions[$client->getId()][$item_name][] = $event_name;
-                                        $this->subscriptions[$item_name][$event_name][] = $client->getId();
+                                        //null because all info is in the keys
+                                            $this->subscriptions[$item_name][$event_name][$client->getId()] = null;
                                         }
                                     }
+                                    var_dump($sub_message);
                                     if($sub_message->get_now == SubscribeMessage::REQUEST_ALL){
                                         plog("client requested values of all items", DEBUG, $session);
                                         $resp_rest_message = yield $this->request_all($session, $client);
@@ -191,9 +195,9 @@ class WebSocketClientHandler implements ClientHandler{
         unset($this->subscribers[$client->getId()]);
         foreach($this->subscriptions as $item_name => $event_name_arr){
             foreach($event_name_arr as $event_name => $client_arr){
-                foreach($client_arr as $client_id){
+                foreach(array_keys($client_arr) as $client_id){
                     if($client_id == $client->getId()){
-                        unset($this->subscriptions[$item_name][$event_name]);
+                        unset($this->subscriptions[$item_name][$event_name][$client_id]);
                     }
                 }
             }

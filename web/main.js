@@ -142,19 +142,22 @@ function ws_connect(old_subscribers) {
 				console.debug("WS: Resubscribing on new connection");
 
 				//rearrange old_subscribers to item => {item_name: [event_name]}
-				let new_subs = {};
+				//let new_subs = {};
 				for (const item_name in old_subscribers){	
-					new_subs[item_name] = [];
+					//new_subs[item_name] = [];
 					for (const event_name in old_subscribers[item_name]) {						
-						new_subs[item_name].push(event_name)
+						//new_subs[item_name].push(event_name)
+						let resub = {};
+						resub[item_name] = [event_name];
 						old_subscribers[item_name][event_name].forEach(function(elem){
-							ws_subscribe(new_subs, elem, true);
+							ws_subscribe(resub, elem, SubscribeMessage.REQUEST_VALUES);
 						});
 					}
 				}
 			}
 		}
 	});
+	//console.log(ws_promise);
 
 	websocket.onclose = function (event) {
 		console.error("WebSocket close observed:", event);
@@ -164,7 +167,7 @@ function ws_connect(old_subscribers) {
 	websocket.onerror = function (event) {
 		console.error("WebSocket error observed:", event);
 		//alert("WebSocket Error - see console");
-		ws_reconnect();
+		//ws_reconnect();
 	}
 
 	// Listen for messages
@@ -230,10 +233,12 @@ export function ws_subscribe(items, elem, request_values){
 					}
 					subscribers[item][event].push(elem);
 				});
+
+				let sub_msg = new SubscribeMessage(sub_obj, SubscribeMessage.SUBSCRIBE, request_values);
+				let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
+				//console.log(websocket);
+				websocket.send(rest_message.to_json());
 			}
-			let sub_msg = new SubscribeMessage(sub_obj, SubscribeMessage.SUBSCRIBE, request_values);
-			let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
-			websocket.send(rest_message.to_json());
 		});
 	}
 	handler.call(null, items,elem,request_values);

@@ -209,7 +209,9 @@
 				throw new Exception("Error status received from " . $target_node->hostname . ": " . $resp->getStatus() . " Body is: " . $json);
 			}
 			$rest_message = RestMessage::from_json($json);
-			plog("Got response from '$url': " . json_encode($rest_message), DEBUG, $session);
+			$url_comps = parse_url($url);
+			$from_str = $url_comps["scheme"] . "://" . $url_comps["host"] . ":" . $url_comps["port"];
+			plog("Got response from '{$from_str}': " . json_encode($rest_message), DEBUG, $session);
 
 			//plog("Successfully retrieved remote value from node: " . $THIS->node_name. ", Value: ". ($item_message->value == null ? "NULL":$item_message->value), DEBUG);
 			
