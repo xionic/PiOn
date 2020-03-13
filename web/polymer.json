@@ -17,6 +17,7 @@
 		"modules/*",
 		"modules/*/*",		
 		"node_modules/**/*",
+		"elements/*",
 		"config/*"
 	]	
   
