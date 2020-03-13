@@ -19,8 +19,7 @@ export class module_switch extends pion_base {
   constructor() {
     super();
     this.val = false; //default
-
-    console.log("--------type_args:", this.type_args, this);
+    //console.log("--------type_args:", this.type_args, this);
   }
 
   get_value() {

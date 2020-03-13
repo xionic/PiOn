@@ -25,6 +25,9 @@ var sitemap = {
         "type": "simple_toggle"
       }
     }
+  }, {
+    "item_name": "Nick Location",
+    "type": "text"
   }],
   "Living Room": [{
     "item_name": "Nick Heater",

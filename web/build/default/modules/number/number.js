@@ -12,7 +12,6 @@ export class module_number extends pion_base {
 
   constructor() {
     super();
-    this.val = "999";
     this.spinner_created = false; //this.container = document.createElement("INPUT");
   }
 

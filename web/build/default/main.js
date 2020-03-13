@@ -88,6 +88,43 @@ $().ready(function () {
     // MEGA HACK. modules must register before we can do this, but we have no way of knowing when this is complete.
     $("#rooms").html("<pion-main></pion-main>");
   }, 500);
+  setInterval(function () {
+    let text_state = "";
+
+    switch (websocket.readyState) {
+      case 0:
+        text_state = "connecting";
+        break;
+
+      case 1:
+        text_state = "connected";
+        break;
+
+      case 2:
+        text_state = "closing";
+        break;
+
+      case 3:
+        text_state = "closed";
+        break;
+    }
+
+    var current_date = new Date();
+    let hours = "" + current_date.getHours();
+    let mins = "" + current_date.getMinutes();
+    let secs = "" + current_date.getSeconds();
+    text_state = "Websocket is " + text_state + "@" + hours.padStart(2, "0") + ":" + mins.padStart(2, "0") + ":" + secs.padStart(2, "0");
+    $("#websocket_status").text(text_state);
+  }, 1000);
+  $("#websocket_status").click(function () {
+    alert("Reconnecting websocket");
+    ws_reconnect();
+  }); //For testing purposes (right click)
+
+  $("#websocket_status").contextmenu(function () {
+    alert("Disconnecting websocket");
+    websocket.close();
+  });
   ws_connect();
 });
 
@@ -113,33 +150,32 @@ function ws_connect(old_subscribers) {
       if (typeof old_subscribers === 'object') {
         // if subscribers is passed this is a reconnect and we need to re-subscribe
         console.debug("WS: Resubscribing on new connection"); //rearrange old_subscribers to item => {item_name: [event_name]}
-
-        let new_subs = {};
+        //let new_subs = {};
 
         for (const item_name in old_subscribers) {
-          new_subs[item_name] = [];
-
+          //new_subs[item_name] = [];
           for (const event_name in old_subscribers[item_name]) {
-            new_subs[item_name].push(event_name);
+            //new_subs[item_name].push(event_name)
+            let resub = {};
+            resub[item_name] = [event_name];
             old_subscribers[item_name][event_name].forEach(function (elem) {
-              ws_subscribe(new_subs, elem, true);
+              ws_subscribe(resub, elem, SubscribeMessage.REQUEST_VALUES);
             });
           }
         }
       }
     };
-  });
+  }); //console.log(ws_promise);
 
   websocket.onclose = function (event) {
-    console.error("WebSocket close observed:", event);
-    alert("WebSocket Closed - see console");
+    console.error("WebSocket close observed:", event); //alert("WebSocket Closed - see console");
+
     ws_reconnect();
   };
 
   websocket.onerror = function (event) {
-    console.error("WebSocket error observed:", event);
-    alert("WebSocket Error - see console");
-    ws_reconnect();
+    console.error("WebSocket error observed:", event); //alert("WebSocket Error - see console");
+    //ws_reconnect();
   }; // Listen for messages
 
 
@@ -170,7 +206,7 @@ function ws_connect(old_subscribers) {
 
       case RestMessage.REST_CONTEXT_ERROR:
         console.log("WS: Received ERROR message: " + rest_message.payload);
-        alert("ERROR: " + rest_message.payload);
+      //alert("ERROR: " + rest_message.payload);
     }
   };
 }
@@ -188,32 +224,40 @@ function ws_reconnect() {
 
 
 export function ws_subscribe(items, elem, request_values) {
-  return ws_promise.then(function () {
-    console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
-    let sub_obj = {}; // object to pass to SubscribeMessage - doesn't have element refs
+  let handler = function (items, elem, request_values) {
+    ws_promise.then(function () {
+      console.log("WS: Subscribing to items: ", items, " get_values: " + request_values);
+      let sub_obj = {}; // object to pass to SubscribeMessage - doesn't have element refs
 
-    for (const item in items) {
-      sub_obj[item] = [];
-
-      if (!subscribers.hasOwnProperty(item)) {
-        subscribers[item] = {};
-      }
-
-      items[item].forEach(function (event) {
-        sub_obj[item].push(event);
-
-        if (!subscribers[item].hasOwnProperty(event)) {
-          subscribers[item][event] = [];
+      for (const item in items) {
+        if (item === 'undefined') {
+          console.log("SHI*T");
         }
 
-        subscribers[item][event].push(elem);
-      });
-    }
+        sub_obj[item] = [];
 
-    let sub_msg = new SubscribeMessage(sub_obj, SubscribeMessage.SUBSCRIBE, request_values);
-    let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg);
-    websocket.send(rest_message.to_json());
-  });
+        if (!subscribers.hasOwnProperty(item)) {
+          subscribers[item] = {};
+        }
+
+        items[item].forEach(function (event) {
+          sub_obj[item].push(event);
+
+          if (!subscribers[item].hasOwnProperty(event)) {
+            subscribers[item][event] = [];
+          }
+
+          subscribers[item][event].push(elem);
+        });
+        let sub_msg = new SubscribeMessage(sub_obj, SubscribeMessage.SUBSCRIBE, request_values);
+        let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', config.host, null, sub_msg); //console.log(websocket);
+
+        websocket.send(rest_message.to_json());
+      }
+    });
+  };
+
+  handler.call(null, items, elem, request_values);
 }
 export class Main extends LitElement {
   constructor() {

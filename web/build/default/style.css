@@ -61,3 +61,11 @@ img.loading {
 .itemmodule{
 	display:inline-block;
 }
+
+.inline_title{
+	display:inline-block;
+}
+
+span#websocket_status{
+	float:right;
+}
