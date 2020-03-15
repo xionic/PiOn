@@ -130,6 +130,7 @@ function ws_connect(old_subscribers) {
 	ws_promise = null;
 
 	//setup wetsocket
+	console.debug("Opening websocket");
 	websocket = new WebSocket("ws://" + config.websocket_url);
 	ws_promise = new Promise(function (resolve) {
 		// Connection opened
@@ -305,7 +306,7 @@ export class Main extends LitElement {
 			});
 			roomli.append(roomul);
 			$("#rooms").append(roomli);		
-			console.log("Finished li setup");
+			console.log("Finished room setup for: " + room);
 		});	
 		/*
 		//back through and add event handlers now that they've been added to the dom

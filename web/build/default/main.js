@@ -26,6 +26,7 @@ export function send_update(elem, item_name, value) {
   console.debug(`Sending update to server for item '${item_name}' and item_message:`, item_message);
   $.ajax({
     url: config.api_url,
+    method: "GET",
     data: {
       data: rest_message.to_json()
     }
@@ -88,34 +89,37 @@ $().ready(function () {
     // MEGA HACK. modules must register before we can do this, but we have no way of knowing when this is complete.
     $("#rooms").html("<pion-main></pion-main>");
   }, 500);
-  setInterval(function () {
-    let text_state = "";
+  ws_connect();
+  ws_promise.then(function () {
+    setInterval(function () {
+      let text_state = "";
 
-    switch (websocket.readyState) {
-      case 0:
-        text_state = "connecting";
-        break;
+      switch (websocket.readyState) {
+        case 0:
+          text_state = "connecting";
+          break;
 
-      case 1:
-        text_state = "connected";
-        break;
+        case 1:
+          text_state = "connected";
+          break;
 
-      case 2:
-        text_state = "closing";
-        break;
+        case 2:
+          text_state = "closing";
+          break;
 
-      case 3:
-        text_state = "closed";
-        break;
-    }
+        case 3:
+          text_state = "closed";
+          break;
+      }
 
-    var current_date = new Date();
-    let hours = "" + current_date.getHours();
-    let mins = "" + current_date.getMinutes();
-    let secs = "" + current_date.getSeconds();
-    text_state = "Websocket is " + text_state + "@" + hours.padStart(2, "0") + ":" + mins.padStart(2, "0") + ":" + secs.padStart(2, "0");
-    $("#websocket_status").text(text_state);
-  }, 1000);
+      var current_date = new Date();
+      let hours = "" + current_date.getHours();
+      let mins = "" + current_date.getMinutes();
+      let secs = "" + current_date.getSeconds();
+      text_state = "Websocket is " + text_state + "@" + hours.padStart(2, "0") + ":" + mins.padStart(2, "0") + ":" + secs.padStart(2, "0");
+      $("#websocket_status").text(text_state);
+    }, 1000);
+  });
   $("#websocket_status").click(function () {
     alert("Reconnecting websocket");
     ws_reconnect();
@@ -125,7 +129,6 @@ $().ready(function () {
     alert("Disconnecting websocket");
     websocket.close();
   });
-  ws_connect();
 });
 
 function ws_connect(old_subscribers) {
@@ -133,6 +136,7 @@ function ws_connect(old_subscribers) {
   subscribers = [];
   ws_promise = null; //setup wetsocket
 
+  console.debug("Opening websocket");
   websocket = new WebSocket("ws://" + config.websocket_url);
   ws_promise = new Promise(function (resolve) {
     // Connection opened
@@ -280,6 +284,9 @@ export class Main extends LitElement {
       var roomul = $("<ul>"); //build UI from sitemap.json
 
       $(sitemap[room]).each(function (key, item) {
+        let params = new URLSearchParams(document.location.search.substring(1));
+        if (item.auth && params.get("auth") == null) return; //dev hack
+
         var itemli = $("<li>");
         $(itemli).addClass("item");
         itemli.append($("<span>", {
@@ -316,7 +323,7 @@ export class Main extends LitElement {
       });
       roomli.append(roomul);
       $("#rooms").append(roomli);
-      console.log("Finished li setup");
+      console.log("Finished room setup for: " + room);
     });
     /*
     //back through and add event handlers now that they've been added to the dom
