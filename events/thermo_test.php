@@ -8,14 +8,14 @@ use \Pion\Session;
 
 
 
-Scheduler::register_task("Update Nick Temp", "xealot_server", new FixedIntervalTimer(30), function(){
+/*Scheduler::register_task("Update Nick Temp", "xealot_server", new FixedIntervalTimer(30), function(){
 	\Amp\call(function(){
 		//trigger a change event if value has changed
 		$val = yield get_item('Nick Room Temp')->get_value(Session::$INTERNAL);
 		//yield get_item('Nick Room Temp')->set_value(Session::$INTERNAL, $val);
 		
 	});
-});
+});*/
 /*
 Scheduler::register_task("Nick heater up", "xealot_server", new WeeklyTimer("*", [23], [0],[0]), function(){
 	get_item('GPIO Toggler test 1')->set_value(new Value(23.5));

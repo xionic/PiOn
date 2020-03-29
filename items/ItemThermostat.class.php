@@ -62,9 +62,9 @@ class ItemThermostat extends Item {
 		}
 
 		//force a change event trigger if temp has changed		
-		Scheduler::register_task("Update Nick Temp", "xealot_server", new FixedIntervalTimer($temp_update_interval), function(){
+		Scheduler::register_task("Thermostat '{$this->name}' updating temp '{$this->temp_item->name}'", $this->node_name, new FixedIntervalTimer($temp_update_interval), function(){
 			\Amp\call(function(){				
-				yield get_item('Nick Room Temp')->get_value(Session::$INTERNAL);				
+				yield $this->temp_item->get_value(Session::$INTERNAL);				
 			});
 		});
 		

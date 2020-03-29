@@ -44,12 +44,12 @@ class WeeklyTimer implements Timer {
 				$this->secs[] = $d;
 			}
 		}
-		$relative_time = strtotime("midnight sunday this week");
+		$relative_time = strtotime("sunday this week");
 		foreach($this->days as $day){
 			foreach($this->hours as $hour){
 				foreach($this->mins as $min){
 					foreach($this->secs as $sec){
-						$ds = "+$day days $hour hours $min minutes $sec secs midnight sunday this week";
+						$ds = "+$day days $hour hours $min minutes $sec secs sunday this week";
 						$ts = strtotime($ds);
 						if(!$ts){
 							//throw exception
@@ -75,17 +75,22 @@ class WeeklyTimer implements Timer {
 	//Return number of seconds until this timer should next fire
 	private function next_run_time_rel (): int {
 		sort($this->week_fire_times);
+		$diffs = [];
 		foreach($this->week_fire_times as $rel_fire_time){
 			//add the time of the week fire time to the beginning of this week
-			$real_fire_time = $rel_fire_time + strtotime("midnight sunday this week");
-			plog("next_run_time_rel: $rel_fire_time $real_fire_time",DEBUG, Session::$INTERNAL);
+			$real_fire_time = $rel_fire_time + strtotime("sunday this week");
+			plog("next_run_time_rel: $rel_fire_time $real_fire_time time_now: " . time(),DEBUG, Session::$INTERNAL);
 			//compare our real fire time to the current time and see if the event is in the past or future
 			$diff = $real_fire_time - time();
 			if($diff > 0){ // this is the next run time
 				return $diff;
-			}
+			}			
 		}
-		throw new \Exception("No next run time found");
+		//No more fire times this week, grab the first one from next week
+		$real_fire_time = $this->week_fire_times[0] + strtotime(" sunday this week") + (60*60*24*7);
+		return $real_fire_time;
+
+		//throw new \Exception("No next run time found");
 	}
 	
 	function start(Callable $callback): void {

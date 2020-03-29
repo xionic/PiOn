@@ -81,7 +81,7 @@ class Model {
 		
 		//load items
 		foreach($model_conf->items as $item_name => $item){ //SECURITY
-			plog("Creating Iten '{$item_name}' of type '{$item->type}'", DEBUG, Session::$INTERNAL);
+			plog("Creating Item '{$item_name}' of type '{$item->type}'", DEBUG, Session::$INTERNAL);
 			$hw = null;
 			$hw_args = null;
 			if(property_exists($item->hardware, "name")){
