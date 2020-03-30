@@ -38,6 +38,9 @@ abstract class Item {
 
 				try{
 					$item_value = yield $this->get_value_local($session);
+					if(get_class($item_value) !== '\PiOn\Item\Value'){
+						plog("Invalid (not Value) type returned by get_value_local()", ERROR, $session);
+					}
 					//transform the value if configured
 					if(property_exists($this->item_args, "transform")){
 						$item_value->data = TransformManager::transform($this->item_args->transform, $item_value->data);

@@ -454,17 +454,17 @@
     },
     {
         "name": "amphp/http-client",
-        "version": "v4.1.0",
-        "version_normalized": "4.1.0.0",
+        "version": "v4.2.2",
+        "version_normalized": "4.2.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-client.git",
-            "reference": "a78fc655b4ab6a327ab210ce2d905ee1ce34d7a9"
+            "reference": "3a07c0dbb84e790ac5351019cb625f976c563faa"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-client/zipball/a78fc655b4ab6a327ab210ce2d905ee1ce34d7a9",
-            "reference": "a78fc655b4ab6a327ab210ce2d905ee1ce34d7a9",
+            "url": "https://api.github.com/repos/amphp/http-client/zipball/3a07c0dbb84e790ac5351019cb625f976c563faa",
+            "reference": "3a07c0dbb84e790ac5351019cb625f976c563faa",
             "shasum": ""
         },
         "require": {
@@ -487,6 +487,7 @@
             "amphp/php-cs-fixer-config": "dev-master",
             "amphp/phpunit-util": "^1.1",
             "ext-json": "*",
+            "kelunik/link-header-rfc5988": "^1.0",
             "phpunit/phpunit": "^7 || ^8"
         },
         "suggest": {
@@ -494,7 +495,7 @@
             "ext-json": "Required for logging HTTP archives",
             "ext-zlib": "Allows using compression for response bodies."
         },
-        "time": "2020-01-17T21:44:53+00:00",
+        "time": "2020-03-17T19:16:45+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -538,17 +539,17 @@
     },
     {
         "name": "amphp/http-server",
-        "version": "v2.0.0",
-        "version_normalized": "2.0.0.0",
+        "version": "v2.0.1",
+        "version_normalized": "2.0.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-server.git",
-            "reference": "5e75761240e33cc7c6ac9eff303aaf87df9125d9"
+            "reference": "9c38d7be6e115ce0ced9f78d2375c28de5871418"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-server/zipball/5e75761240e33cc7c6ac9eff303aaf87df9125d9",
-            "reference": "5e75761240e33cc7c6ac9eff303aaf87df9125d9",
+            "url": "https://api.github.com/repos/amphp/http-server/zipball/9c38d7be6e115ce0ced9f78d2375c28de5871418",
+            "reference": "9c38d7be6e115ce0ced9f78d2375c28de5871418",
             "shasum": ""
         },
         "require": {
@@ -576,7 +577,7 @@
         "suggest": {
             "ext-zlib": "Allows GZip compression of response bodies"
         },
-        "time": "2020-02-18T15:52:29+00:00",
+        "time": "2020-03-10T20:37:39+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -1527,17 +1528,17 @@
     },
     {
         "name": "league/uri",
-        "version": "6.2.0",
-        "version_normalized": "6.2.0.0",
+        "version": "6.2.1",
+        "version_normalized": "6.2.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/thephpleague/uri.git",
-            "reference": "7b29ca33b287b4277d5ce7c26bc1be5d4118b484"
+            "reference": "6998530902550c6e3fefb5ef98d56fe92ecdb603"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/uri/zipball/7b29ca33b287b4277d5ce7c26bc1be5d4118b484",
-            "reference": "7b29ca33b287b4277d5ce7c26bc1be5d4118b484",
+            "url": "https://api.github.com/repos/thephpleague/uri/zipball/6998530902550c6e3fefb5ef98d56fe92ecdb603",
+            "reference": "6998530902550c6e3fefb5ef98d56fe92ecdb603",
             "shasum": ""
         },
         "require": {
@@ -1554,14 +1555,14 @@
             "phpstan/phpstan": "^0.12",
             "phpstan/phpstan-phpunit": "^0.12",
             "phpstan/phpstan-strict-rules": "^0.12",
-            "phpunit/phpunit": "^7.0 | ^8.0"
+            "phpunit/phpunit": "^8.0"
         },
         "suggest": {
             "ext-fileinfo": "Needed to create Data URI from a filepath",
             "ext-intl": "Needed to improve host validation",
             "league/uri-components": "Needed to easily manipulate URI objects"
         },
-        "time": "2020-02-08T16:31:57+00:00",
+        "time": "2020-03-17T14:40:17+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1920,23 +1921,23 @@
     },
     {
         "name": "psr/log",
-        "version": "1.1.2",
-        "version_normalized": "1.1.2.0",
+        "version": "1.1.3",
+        "version_normalized": "1.1.3.0",
         "source": {
             "type": "git",
             "url": "https://github.com/php-fig/log.git",
-            "reference": "446d54b4cb6bf489fc9d75f55843658e6f25d801"
+            "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/php-fig/log/zipball/446d54b4cb6bf489fc9d75f55843658e6f25d801",
-            "reference": "446d54b4cb6bf489fc9d75f55843658e6f25d801",
+            "url": "https://api.github.com/repos/php-fig/log/zipball/0f73288fd15629204f9d42b7055f72dacbe811fc",
+            "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.0"
         },
-        "time": "2019-11-01T11:05:21+00:00",
+        "time": "2020-03-23T09:12:05+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1965,6 +1966,59 @@
             "log",
             "psr",
             "psr-3"
+        ]
+    },
+    {
+        "name": "s1lentium/iptools",
+        "version": "v1.1.1",
+        "version_normalized": "1.1.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/S1lentium/IPTools.git",
+            "reference": "f6f8ab6132ca7443bd7cced1681f5066d725fd5f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/S1lentium/IPTools/zipball/f6f8ab6132ca7443bd7cced1681f5066d725fd5f",
+            "reference": "f6f8ab6132ca7443bd7cced1681f5066d725fd5f",
+            "shasum": ""
+        },
+        "require": {
+            "ext-bcmath": "*",
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.0",
+            "satooshi/php-coveralls": "~1.0"
+        },
+        "time": "2018-09-19T06:15:53+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "IPTools\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Safarov Alisher",
+                "email": "alisher.safarov@outlook.com",
+                "homepage": "https://github.com/S1lentium"
+            }
+        ],
+        "description": "PHP Library for manipulating network addresses (IPv4 and IPv6)",
+        "keywords": [
+            "IP",
+            "IP-Tools",
+            "cidr",
+            "ipv4",
+            "ipv6",
+            "network",
+            "subnet"
         ]
     },
     {
@@ -2017,6 +2071,317 @@
             "parser",
             "validator"
         ]
+    },
+    {
+        "name": "symfony/polyfill-mbstring",
+        "version": "v1.15.0",
+        "version_normalized": "1.15.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/polyfill-mbstring.git",
+            "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
+            "reference": "81ffd3a9c6d707be22e3012b827de1c9775fc5ac",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "suggest": {
+            "ext-mbstring": "For best performance"
+        },
+        "time": "2020-03-09T19:04:49+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.15-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Mbstring\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill for the Mbstring extension",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "mbstring",
+            "polyfill",
+            "portable",
+            "shim"
+        ]
+    },
+    {
+        "name": "symfony/polyfill-php72",
+        "version": "v1.15.0",
+        "version_normalized": "1.15.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/polyfill-php72.git",
+            "reference": "37b0976c78b94856543260ce09b460a7bc852747"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/37b0976c78b94856543260ce09b460a7bc852747",
+            "reference": "37b0976c78b94856543260ce09b460a7bc852747",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.3"
+        },
+        "time": "2020-02-27T09:26:54+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.15-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Polyfill\\Php72\\": ""
+            },
+            "files": [
+                "bootstrap.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony polyfill backporting some PHP 7.2+ features to lower PHP versions",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "compatibility",
+            "polyfill",
+            "portable",
+            "shim"
+        ]
+    },
+    {
+        "name": "symfony/var-dumper",
+        "version": "v4.4.6",
+        "version_normalized": "4.4.6.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/var-dumper.git",
+            "reference": "6dae4692ac91230b33b70d9a48882ff5c838d67a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/var-dumper/zipball/6dae4692ac91230b33b70d9a48882ff5c838d67a",
+            "reference": "6dae4692ac91230b33b70d9a48882ff5c838d67a",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.1.3",
+            "symfony/polyfill-mbstring": "~1.0",
+            "symfony/polyfill-php72": "~1.5"
+        },
+        "conflict": {
+            "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0",
+            "symfony/console": "<3.4"
+        },
+        "require-dev": {
+            "ext-iconv": "*",
+            "symfony/console": "^3.4|^4.0|^5.0",
+            "symfony/process": "^4.4|^5.0",
+            "twig/twig": "^1.34|^2.4|^3.0"
+        },
+        "suggest": {
+            "ext-iconv": "To convert non-UTF-8 strings to UTF-8 (or symfony/polyfill-iconv in case ext-iconv cannot be used).",
+            "ext-intl": "To show region name in time zone dump",
+            "symfony/console": "To use the ServerDumpCommand and/or the bin/var-dump-server script"
+        },
+        "time": "2020-03-18T07:15:43+00:00",
+        "bin": [
+            "Resources/bin/var-dump-server"
+        ],
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "4.4-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "Resources/functions/dump.php"
+            ],
+            "psr-4": {
+                "Symfony\\Component\\VarDumper\\": ""
+            },
+            "exclude-from-classmap": [
+                "/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony mechanism for exploring and dumping PHP variables",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "debug",
+            "dump"
+        ]
+    },
+    {
+        "name": "tightenco/collect",
+        "version": "v5.8.35",
+        "version_normalized": "5.8.35.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tightenco/collect.git",
+            "reference": "c93a7039e6207ad533a09109838fe80933fcc72c"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tightenco/collect/zipball/c93a7039e6207ad533a09109838fe80933fcc72c",
+            "reference": "c93a7039e6207ad533a09109838fe80933fcc72c",
+            "shasum": ""
+        },
+        "require": {
+            "php": "^7.1.3",
+            "symfony/var-dumper": ">=3.4 <5"
+        },
+        "require-dev": {
+            "mockery/mockery": "^1.0",
+            "nesbot/carbon": "^1.26.3",
+            "phpunit/phpunit": "^7.0"
+        },
+        "time": "2019-09-17T18:57:01+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "src/Collect/Support/helpers.php",
+                "src/Collect/Support/alias.php"
+            ],
+            "psr-4": {
+                "Tightenco\\Collect\\": "src/Collect"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Taylor Otwell",
+                "email": "taylorotwell@gmail.com"
+            }
+        ],
+        "description": "Collect - Illuminate Collections as a separate package.",
+        "keywords": [
+            "collection",
+            "laravel"
+        ]
+    },
+    {
+        "name": "williamson/tplinksmartplug",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/xionic/tplinksmartplug.git",
+            "reference": "e0c165e09c8c5046595f6b32c7605769d70150dd"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/xionic/tplinksmartplug/zipball/e0c165e09c8c5046595f6b32c7605769d70150dd",
+            "reference": "e0c165e09c8c5046595f6b32c7605769d70150dd",
+            "shasum": ""
+        },
+        "require": {
+            "s1lentium/iptools": "*",
+            "tightenco/collect": "^5.3"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^5.7"
+        },
+        "time": "2019-08-09T16:52:48+00:00",
+        "type": "library",
+        "extra": {
+            "laravel": {
+                "providers": [
+                    "Williamson\\TPLinkSmartplug\\Laravel\\TPLinkServiceProvider"
+                ],
+                "aliases": {
+                    "TPLink": "Williamson\\TPLinkSmartplug\\Laravel\\Facades\\TPLinkFacade"
+                }
+            }
+        },
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Williamson\\TPLinkSmartplug\\": "src"
+            }
+        },
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jonathan Williamson",
+                "email": "jonnywilliamson@gmail.com"
+            }
+        ],
+        "description": "A PHP library to control and receive information from a TP-Link smartplug.",
+        "keywords": [
+            "HS100",
+            "HS110",
+            "Laravel",
+            "PHP",
+            "SmartPlug",
+            "TPLink",
+            "Timer"
+        ],
+        "support": {
+            "source": "https://github.com/xionic/tplinksmartplug/tree/master"
+        }
     },
     {
         "name": "xionic/argh",
