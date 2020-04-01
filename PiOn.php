@@ -38,6 +38,29 @@
 	use \Amp\Promise;
 	use \Amp\Http\Server\Router;
 	use \Amp\Http\Server\StaticContent\DocumentRoot;
+
+	//use Williamson\TPLinkSmartplug\TPLinkManager;
+	//use Williamson\TPLinkSmartplug\TPLinkCommand;
+
+	/*$tp_manager = new TPLinkManager([
+		'testlamp' => [
+			'ip' => '192.168.1.176',
+			'port' => '9999',
+			'deviceType' => 'IOT.SMARTBULB',
+			'timeout' => 5,
+			'timeout_steam' => 5
+		]
+	]);
+
+	
+
+	$tp_dev = $tp_manager->device('testlamp');
+	//$tp_dev->powerOff(); 
+	//$tp_dev->powerOn(); 
+	//var_dump(json_decode($tp_dev->sendCommand(TPLinkCommand::systemInfo())));
+	var_dump($tp_dev->sendCommand(TPLinkCommand ::lightControlValues(['hue' =>255])));
+	die;
+	*/
 	
 	//Session init
 	Session::init();

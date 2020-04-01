@@ -44,9 +44,13 @@ class Model {
 				"items" => ["obj"],
 				"/items/*/" => ['obj'],
 				
-				"/items/*/node" => ["notblank", function($value){
-					//TODO ensure exists
-					return true;
+				"/items/*/node" => ["notblank", function($value) use($model_conf) {
+					foreach($model_conf->nodes as $node_name => $node){
+						if($node_name == $value){
+							return true;
+						}
+					}
+					return false;
 				}],
 				"/items/*/itemargs" => ["?obj"],
 				"/items/*/enabled" => ["optional", "bool"],
@@ -89,7 +93,7 @@ class Model {
 				if(property_exists($item, "hardware") && property_exists($item->hardware, "name")){
 					$hw = $this->get_hardware($item->hardware->name);
 					$hw_args = $item->hardware->args;
-				}				
+				}
 				$this->items[$item_name] = Item::create_item($item->type, $item_name, $item->node, $item->itemargs, $hw, $hw_args);		
 			}	
 		}

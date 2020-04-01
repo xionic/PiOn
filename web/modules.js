@@ -4,6 +4,7 @@ import {module_switch} from "./modules/switch/switch.js";
 import {module_number} from "./modules/number/number.js";
 import {module_thermostat} from "./modules/thermostat/thermostat.js";
 import {module_temperature} from "./modules/temperature/temperature.js";
+import {module_color} from "./modules/color/color.js";
 
 //Components
 import { simple_toggle } from "./elements/simple_toggle.js";

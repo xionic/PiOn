@@ -7,6 +7,11 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'xionic\\Argh\\' => array($vendorDir . '/xionic/argh/src'),
+    'Williamson\\TPLinkSmartplug\\' => array($vendorDir . '/williamson/tplinksmartplug/src'),
+    'Tightenco\\Collect\\' => array($vendorDir . '/tightenco/collect/src/Collect'),
+    'Symfony\\Polyfill\\Php72\\' => array($vendorDir . '/symfony/polyfill-php72'),
+    'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
+    'Symfony\\Component\\VarDumper\\' => array($vendorDir . '/symfony/var-dumper'),
     'Seld\\JsonLint\\' => array($vendorDir . '/seld/jsonlint/src/Seld/JsonLint'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
@@ -14,6 +19,7 @@ return array(
     'LibDNS\\' => array($vendorDir . '/daverandom/libdns/src'),
     'League\\Uri\\' => array($vendorDir . '/league/uri/src', $vendorDir . '/league/uri-interfaces/src', $vendorDir . '/league/uri-parser/src'),
     'Kelunik\\Certificate\\' => array($vendorDir . '/kelunik/certificate/lib'),
+    'IPTools\\' => array($vendorDir . '/s1lentium/iptools/src'),
     'FastRoute\\' => array($vendorDir . '/nikic/fast-route/src'),
     'Amp\\WindowsRegistry\\' => array($vendorDir . '/amphp/windows-registry/lib'),
     'Amp\\Websocket\\Server\\' => array($vendorDir . '/amphp/websocket-server/src'),
