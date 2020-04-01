@@ -1,4 +1,12 @@
 <?php
+
+use \PiOn\Event\Scheduler;
+use \PiOn\Event\FixedIntervalTimer;
+use \PiOn\Event\WeeklyTimer;
+use \PiOn\Event\EventManager;
+use \PiOn\Item\Value;
+use \Pion\Session;
+
 /*
 Scheduler::register_task("Test timer", "xealot_server", new FixedIntervalTimer(2000), function(){
 	echo "TIMER TEST YYAYYYAYAYAYY\n";
@@ -17,4 +25,31 @@ Scheduler::register_task("Test cal timer", "xealot_server", new WeeklyTimer([4],
 	});
 
 });*/
+
+Scheduler::register_task("Lights On", "pi1", new WeeklyTimer("*", [16], [0],[0]), function(){
+	\Amp\call(function(){
+		yield get_item("TV Light")->set_value(Session::$INTERNAL, new Value(Value::ON));
+		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(Value::ON));
+		yield get_item("ESP8266 Plug Test")->set_value(Session::$INTERNAL, new Value(Value::ON));
+		yield get_item("Nick Bed Lights")->set_value(Session::$INTERNAL, new Value(Value::ON));
+	});
+});
+
+Scheduler::register_task("TV Light off", "pi1", new WeeklyTimer("*", [22], [30],[0]), function(){
+	\Amp\call(function(){
+		yield get_item("TV Light")->set_value(Session::$INTERNAL, new Value(Value::OFF));
+	});
+});
+
+Scheduler::register_task("ESP8266 Light off", "pi1", new WeeklyTimer("*", [23], [0],[0]), function(){
+	\Amp\call(function(){
+		yield get_item("ESP8266 Plug Test")->set_value(Session::$INTERNAL, new Value(Value::OFF));
+	});
+});
+
+Scheduler::register_task("Table Light off", "pi1", new WeeklyTimer("*", [23], [15],[0]), function(){
+	\Amp\call(function(){
+		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(Value::OFF));
+	});
+});
 ?>

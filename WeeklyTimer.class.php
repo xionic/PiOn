@@ -10,6 +10,7 @@ class WeeklyTimer implements Timer {
 	private $week_fire_times = []; // fire times in seconds into the week. i.e. max value is 7*24*60*60
 	private $interval_id;
 	private $running = false;
+	private $task; /** @var $task Task */
 	
 	//takes arrays of units, or "*" for all
 	function __construct($days, $hours, $mins, $secs){
@@ -17,9 +18,43 @@ class WeeklyTimer implements Timer {
 		$this->hours = $hours;
 		$this->mins = $mins;
 		$this->secs = $secs;
+
+		//date_default_timezone_set(date_default_timezone_get());
 	}
 	
 	public function init_schedule(): void {
+				
+		//var_dump($week_fire_times);
+		
+	}
+
+	/**
+	 * Returns the current base timestamp used for relative weekly calculations
+	 */
+	private static function get_start_of_week(): int {
+		return strtotime("sunday last week");
+	}
+
+	/**
+	 * Returns next run time in secs. May be in the next week.
+	 */
+	private function calc_next_run_time_from_now(int $days, int $hours, int $mins, int $secs): int {
+		//echo "d $days h $hours m $mins s $secs\n";
+		$start_of_week = self::get_start_of_week();
+		$secs_in_to_week = ($days * 86400) + ($hours * 3600) + ($mins * 60) + $secs;
+		$next_run_time_rel = ($start_of_week + $secs_in_to_week) - mktime() - 3600; //temp timezone hack;
+		//var_dump($next_run_time_rel);
+		if($next_run_time_rel < 0){ //run time for this week is in the past, schedule for next week
+			$next_run_time_rel += 604800; // secs/week
+		}
+		//var_dump($real_next_run_time * 1000l);
+		//var_dump($next_run_time_rel);
+		return $next_run_time_rel;
+	}
+	
+	function start(Task $task): void {
+		$this->task = $task;
+		$this->running = true;
 		if($this->days == "*"){
 			$this->days = [];
 			foreach(range(0, 6) as $d){
@@ -44,74 +79,63 @@ class WeeklyTimer implements Timer {
 				$this->secs[] = $d;
 			}
 		}
-		$relative_time = strtotime("sunday this week");
+		
 		foreach($this->days as $day){
 			foreach($this->hours as $hour){
 				foreach($this->mins as $min){
 					foreach($this->secs as $sec){
-						$ds = "+$day days $hour hours $min minutes $sec secs sunday this week";
+						//just for logging
+						$ds = "+$day days $hour hours $min minutes $sec secs midnight sunday this week";
 						$ts = strtotime($ds);
-						if(!$ts){
-							//throw exception
-							throw new \Exception("Failed to parse date string: $ds");
-						}
-						plog("Adding weekly timer for $day days $hour hours $min minutes $sec secs = " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
-						$this->week_fire_times[] = $ts - $relative_time;						
+						plog("Adding weekly timer for task '{$this->task->name}' for every " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
+
+						$next_run_time_rel = $this->calc_next_run_time_from_now($day, $hour, $min, $sec);
+					/*var_dump($next_run_time_rel);
+						var_dump($this->get_start_of_week());
+						var_dump($next_run_time_rel + $this->get_start_of_week());*/
+						$this->register_delay($next_run_time_rel, $day, $hour, $min, $sec);
 					}
 				}
 			}
-		}		
-		//var_dump($week_fire_times);
-		
-	}
-
-	/**
-	 * Returns the current base timestamp used for relative weekly calculations
-	 */
-	/*private function get_current_base(){
-
-	}*/
-	
-	//Return number of seconds until this timer should next fire
-	private function next_run_time_rel (): int {
-		sort($this->week_fire_times);
-		$diffs = [];
-		foreach($this->week_fire_times as $rel_fire_time){
-			//add the time of the week fire time to the beginning of this week
-			$real_fire_time = $rel_fire_time + strtotime("sunday this week");
-			plog("next_run_time_rel: $rel_fire_time $real_fire_time time_now: " . time(),DEBUG, Session::$INTERNAL);
-			//compare our real fire time to the current time and see if the event is in the past or future
-			$diff = $real_fire_time - time();
-			if($diff > 0){ // this is the next run time
-				return $diff;
-			}			
 		}
-		//No more fire times this week, grab the first one from next week
-		$real_fire_time = $this->week_fire_times[0] + strtotime(" sunday this week") + (60*60*24*7);
-		return $real_fire_time;
+	}
 
-		//throw new \Exception("No next run time found");
+	private function register_delay($next_run_time_rel, $day, $hour, $min, $sec): void{
+		$delay_string = "";
+		//var_dump("THIS ". $next_run_time_rel % 86400);
+		if(($d = floor($next_run_time_rel / 86400)) > 0){
+			$delay_string .= "$d days";
+		}
+		if(($h = floor(($next_run_time_rel % 86400) / 3600)) > 0){
+			$delay_string .= " $h hours";
+		}
+		if(($m = floor((($next_run_time_rel % 86400) % 3600) / 60)) > 0){
+			$delay_string .= " $m mins ";
+		}
+		$delay_string .= $m%60 . " secs";
+
+		plog("Weekly timer scheduling task '{$this->task->name}' for " . date("Y/m/d H:i:s", $next_run_time_rel + mktime()).". Delaying for $delay_string ($next_run_time_rel secs total)", VERBOSE, Session::$INTERNAL);
+		$THIS = $this;
+		$task = $this->task;
+		Loop::delay($next_run_time_rel*1000, function () use ($task, $THIS, $day, $hour, $min, $sec){
+			call_user_func($task->callback);
+			$this->fire_next(["day" => $day, "hour" => $hour, "min" => $min, "sec" => $sec]);
+		});
 	}
 	
-	function start(Callable $callback): void {
-		$this->running = true;
-		$this->fire_next($callback);
-	}
 	
 	//registers the next event with the loop
-	private function fire_next(Callable $callback): void {
+	private function fire_next(array $fire_time): void {
 		if($this->running){
+			$day = $fire_time["day"];
+			$hour = $fire_time["hour"];
+			$min = $fire_time["min"];
+			$sec = $fire_time["sec"];
+
+			$next_run_time_rel = $this->calc_next_run_time_from_now($day, $hour, $min, $sec);
 			$THIS = $this;
-			$next_run_time = $this->next_run_time_rel();
-			$next_run_time_millis = $next_run_time*1000;
-			$h = floor($next_run_time / 3600);
-			$m = floor(($next_run_time % 3600)/60);
-			$s = ($next_run_time % 3600) % 60;
-			plog("Weekly timer scheduling next event with loop in ". $next_run_time ." seconds ($h hours, $m mins, $s secs)", VERBOSE, Session::$INTERNAL);
-			Loop::delay($next_run_time_millis, function () use ($callback, $THIS){
-				call_user_func($callback);
-				$THIS->fire_next($callback);
-			});
+
+			$this->register_delay($next_run_time_rel, $day, $hour, $min, $sec);
 		}
 	}
 	

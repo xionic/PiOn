@@ -16,7 +16,7 @@ class Scheduler {
 		if($node_name == NODE_NAME){
 			plog("Scheduling task: $name", VERBOSE, Session::$INTERNAL);
 			self::$tasks[$name] = new Task($name, $timer, $callback);
-			self::$tasks[$name]->start();
+			$timer->start(self::$tasks[$name]);
 		}
 	}
 	

@@ -9,6 +9,7 @@ class FixedIntervalTimer implements Timer{
 	private $interval;
 	private $start_offset;
 	private $interval_id;
+	protected $task;
 	
 	//interval and start_offset in seconds
 	function __construct($interval, $start_offset = 0){
@@ -16,10 +17,11 @@ class FixedIntervalTimer implements Timer{
 		$this->start_offset = $start_offset;
 	}
 	
-	function start(Callable $callback): void {
+	function start(Task $task): void {
+		$this->task = $task;
 		plog("New FixedIntervalTimer with interval " . $this->interval, DEBUG, Session::$INTERNAL);
 		$this->interval_id = Loop::repeat($this->interval, function() use($callback){
-			call_user_func($callback);
+			call_user_func($task->callback);
 		});
 	}
 	

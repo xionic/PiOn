@@ -23,20 +23,7 @@ Scheduler::register_task("Nick heater up", "xealot_server", new WeeklyTimer("*",
 Scheduler::register_task("Nick heater down", "xealot_server", new WeeklyTimer("*", [11], [0],[0]), function(){
 	get_item('GPIO Toggler test 1')->set_value(new Value(22));
 });*/
-Scheduler::register_task("Lights On", "pi1", new WeeklyTimer("*", [16], [0],[0]), function(){
-	\Amp\call(function(){
-		yield get_item("TV Light")->set_value(Session::$INTERNAL, new Value(1));
-		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(1));
-		yield get_item("Nick Bed Lights")->set_value(Session::$INTERNAL, new Value(1));
-	});
-});
 
-Scheduler::register_task("Living Lights off", "pi1", new WeeklyTimer("*", [23], [0],[0]), function(){
-	\Amp\call(function(){
-		yield get_item("TV Light")->set_value(Session::$INTERNAL, new Value(0));
-		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(0));
-	});
-});
 /*
 Scheduler::register_task("test", "xealot_server", new FixedIntervalTimer(10), function(){
 	\Amp\call(function(){
