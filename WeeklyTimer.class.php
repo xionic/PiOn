@@ -12,36 +12,54 @@ class WeeklyTimer implements Timer {
 	private $running = false;
 	
 	//takes arrays of units, or "*" for all
-	function __construct($days, $hours, $mins, $secs){
-		$this->days = $days;
+	function __construct($days_or_astro, $hours = null, $mins = null, $secs = null){
+		$this->days = $days_or_astro;
+
+		if(($days_or_astro != "sunrise" && $days_or_astro != "sunset") && ($hours == null || $mins == null || $secs == null)){
+			plog('Weekly timer must be constructed with ($days, $mins, $hours, $secs all) != null, or the strings "sunset|sunrise" as the first argument (rest omitted)', FATAL, Session::$INTERNAL);
+		}
 		$this->hours = $hours;
 		$this->mins = $mins;
 		$this->secs = $secs;
 	}
 	
 	public function init_schedule(): void {
-		if($this->days == "*"){
+		if($this->days == "sunset"){
 			$this->days = [];
-			foreach(range(0, 6) as $d){
+			foreach(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as $d){
 				$this->days[] = $d;
-			}
+				$day_ts = strtotime("next $d");
+				echo time("c", $day_ts);
+				//$ss_time = date_sunrise()
+			} die;
+		} else if($this->days == "sunset"){
+
 		}
-		if($this->hours == "*"){
-			$this->hours = [];
-			foreach(range(0, 23) as $d){
-				$this->hours[] = $d;
+		else {
+			if($this->days == "*"){
+				$this->days = [];
+				foreach(range(0, 6) as $d){
+					$this->days[] = $d;
+				}
 			}
-		}
-		if($this->mins == "*"){
-			$this->mins = [];
-			foreach(range(0, 59) as $d){
-				$this->mins[] = $d;
+			
+			if($this->hours == "*"){
+				$this->hours = [];
+				foreach(range(0, 23) as $d){
+					$this->hours[] = $d;
+				}
 			}
-		}
-		if($this->secs == "*"){
-			$this->secs = [];
-			foreach(range(0, 59) as $d){
-				$this->secs[] = $d;
+			if($this->mins == "*"){
+				$this->mins = [];
+				foreach(range(0, 59) as $d){
+					$this->mins[] = $d;
+				}
+			}
+			if($this->secs == "*"){
+				$this->secs = [];
+				foreach(range(0, 59) as $d){
+					$this->secs[] = $d;
+				}
 			}
 		}
 		$relative_time = strtotime("midnight sunday this week");
