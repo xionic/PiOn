@@ -20,7 +20,7 @@ class FixedIntervalTimer implements Timer{
 	function start(Task $task): void {
 		$this->task = $task;
 		plog("New FixedIntervalTimer with interval " . $this->interval, DEBUG, Session::$INTERNAL);
-		$this->interval_id = Loop::repeat($this->interval, function() use($callback){
+		$this->interval_id = Loop::repeat($this->interval, function() use($task){
 			call_user_func($task->callback);
 		});
 	}
