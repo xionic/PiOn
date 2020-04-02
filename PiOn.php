@@ -76,8 +76,8 @@
 	try {
 		$cur_file = "config/config.json";
 		$config = $parser->parse(file_get_contents($cur_file));
-		$config->model = (Object)[];
 
+		$config->model = (Object)[];
 		$cur_file = "config/nodes.config.json";
 		$config->model->nodes = $parser->parse(file_get_contents($cur_file));
 		$cur_file = "config/items.config.json";
@@ -243,6 +243,16 @@
 		//var_dump($call);
 
 		return $call;
+	}
+
+	function config_get(string $name) {
+		global $config;
+		return $config[$name];
+	}
+
+	function config_set(string $name, $value): void {
+		global $config;
+		$config[$name] = $value;
 	}
 
 ?>

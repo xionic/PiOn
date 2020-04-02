@@ -23,6 +23,8 @@ class Model {
 		try{
 
 			Argh::validate($model_conf, [
+
+				
 				"nodes" => ["obj"],
 				"/nodes/*/" => ['obj'],
 				
