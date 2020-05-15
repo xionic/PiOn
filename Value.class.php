@@ -8,6 +8,8 @@
 	public const CERTAIN = "CERTAIN";
 	public const UNCERTAIN = "UNCERTAIN";
 	public const UNKNOWN = "UNKNOWN";
+	public const ON = 1;
+	public const OFF = 0;
 	 
 	 public $data;
 	 public $timestamp; // Time the value is "valid" at. Up to Items to provide.

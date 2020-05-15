@@ -6,7 +6,7 @@ use \PiOn\Session;
 
 class Task {
 	
-	private $callback;
+	public $callback;
 	private $timer;
 	public $name;	
 	
@@ -18,14 +18,6 @@ class Task {
 			plog("Firing timer '{$this->name}'", VERBOSE, Session::$INTERNAL);
 			call_user_func($callback);
 		};
-	}
-
-	function start(){
-		$this->timer->start($this->callback);		
-	}
-	
-	function time_remaining(): int {
-		//return $this->timer->time_remaining();
 	}
 	
 }

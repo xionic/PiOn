@@ -109,7 +109,8 @@
 				echo "$reason\n";
 			}
 		} catch (\Throwable $e){
-			echo "error handler -> " . $e->getMessage() . PHP_EOL;
+			echo "loop error handler -> " . $e->getMessage() . PHP_EOL;
+			debug_print_backtrace();
 		}
 	});
 	

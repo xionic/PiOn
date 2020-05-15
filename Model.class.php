@@ -55,6 +55,7 @@ class Model {
 					return false;
 				}],
 				"/items/*/itemargs" => ["?obj"],
+				"/items/*/enabled" => ["optional", "bool"],
 				"/items/*/hardware" => ["optional", "obj"],
 				"/items/*/hardware/name" => ["optional", "notblank", function($value){
 					//TODO ensure exists
@@ -87,15 +88,16 @@ class Model {
 		
 		//load items
 		foreach($model_conf->items as $item_name => $item){ //SECURITY
-			plog("Creating Iten '{$item_name}' of type '{$item->type}'", DEBUG, Session::$INTERNAL);
-			$hw = null;
-			$hw_args = null;
-			if(property_exists($item, "hardware") && property_exists($item->hardware, "name")){
-				$hw = $this->get_hardware($item->hardware->name);
-				$hw_args = $item->hardware->args;
-			}
-			
-			$this->items[$item_name] = Item::create_item($item->type, $item_name, $item->node, $item->itemargs, $hw, $hw_args);			
+			if(!property_exists($item, "enabled") || $item->enabled){
+				plog("Creating Item '{$item_name}' of type '{$item->type}'", DEBUG, Session::$INTERNAL);
+				$hw = null;
+				$hw_args = null;
+				if(property_exists($item, "hardware") && property_exists($item->hardware, "name")){
+					$hw = $this->get_hardware($item->hardware->name);
+					$hw_args = $item->hardware->args;
+				}				
+				$this->items[$item_name] = Item::create_item($item->type, $item_name, $item->node, $item->itemargs, $hw, $hw_args);		
+			}	
 		}
 		
 		//var_dump($this);
