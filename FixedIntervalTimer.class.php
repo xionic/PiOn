@@ -13,7 +13,7 @@ class FixedIntervalTimer implements Timer{
 	
 	//interval and start_offset in seconds
 	function __construct($interval, $start_offset = 0){
-		$this->interval = $interval * 1000; // convert to ms;
+		$this->interval = floor($interval * 1000); // convert to ms;
 		$this->start_offset = $start_offset;
 	}
 	

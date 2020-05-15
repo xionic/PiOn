@@ -44,8 +44,8 @@ class HardwareDualGPIOToggle extends Hardware {
 					//plog(", DEBUG);
 					foreach($THIS->states as $key => $state){
 						plog("Reasserting value of HardwareDualGPIOToggle switch #$key to $state", DEBUG, Session::$INTERNAL);
-						\Amp\call(function() use ($THIS, $key, $value){
-							$THIS->hardware_set((Object)["switch_num" => $key], new Value($value));	
+						\Amp\call(function() use ($THIS, $key, $state){
+							$THIS->hardware_set((Object)["switch_num" => $key], new Value($state));	
 						});
 					}
 				});

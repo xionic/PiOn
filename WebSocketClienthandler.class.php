@@ -171,10 +171,13 @@ class WebSocketClientHandler implements ClientHandler{
                     continue;
                 }
             }
-            $results = yield \Amp\Promise\some($proms);
+            $results = yield \Amp\Promise\any($proms);
             $failed = $results[0];
             $succeeded = $results[1];
             foreach($succeeded as $item_name => $value){
+                $item_messages[] = new ItemMessage($item_name, ItemMessage::GET, $value);
+            }
+            foreach($failed as $item_name => $value){
                 $item_messages[] = new ItemMessage($item_name, ItemMessage::GET, $value);
             }
             return new RestMessage(RestMessage::RESP, RestMessage::REST_CONTEXT_ITEMS, NODE_NAME, null, null, $item_messages);
