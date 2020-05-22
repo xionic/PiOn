@@ -17,11 +17,12 @@ use Amp\Socket\TlsInfo;
 use Amp\Success;
 use cash\LRUCache;
 use function Amp\call;
+use function Amp\getCurrentTime;
 
 final class Rfc6455Client implements Client
 {
     /** @var self[] */
-    private static $clients;
+    private static $clients = [];
 
     /** @var int[] */
     private static $bytesReadInLastSecond = [];
@@ -32,10 +33,10 @@ final class Rfc6455Client implements Client
     /** @var Deferred[] */
     private static $rateDeferreds = [];
 
-    /** @var string */
+    /** @var string|null */
     private static $watcher;
 
-    /** @var LRUCache Array of next ping (heartbeat) times. */
+    /** @var LRUCache Least-recently-used cache of next ping (heartbeat) times. */
     private static $heartbeatTimeouts;
 
     /** @var int Cached current time. */
@@ -44,10 +45,10 @@ final class Rfc6455Client implements Client
     /** @var Options */
     private $options;
 
-    /** @var \Amp\Socket\Socket */
+    /** @var Socket */
     private $socket;
 
-    /** @var \Amp\Promise|null */
+    /** @var Promise|null */
     private $lastWrite;
 
     /** @var Promise|null */
@@ -77,7 +78,7 @@ final class Rfc6455Client implements Client
     /** @var ClientMetadata */
     private $metadata;
 
-    /** @var Deferred */
+    /** @var Deferred|null */
     private $closeDeferred;
 
     /**
@@ -99,7 +100,7 @@ final class Rfc6455Client implements Client
         $this->closeDeferred = new Deferred;
 
         if (self::$watcher === null) {
-            self::$now = \time();
+            self::$now = getCurrentTime();
             self::$heartbeatTimeouts = new class(\PHP_INT_MAX) extends LRUCache implements \IteratorAggregate {
                 public function getIterator(): \Iterator
                 {
@@ -108,7 +109,7 @@ final class Rfc6455Client implements Client
             };
 
             self::$watcher = Loop::repeat(1000, static function (): void {
-                self::$now = \time();
+                self::$now = getCurrentTime();
 
                 self::$bytesReadInLastSecond = [];
                 self::$framesReadInLastSecond = [];
@@ -260,6 +261,7 @@ final class Rfc6455Client implements Client
                 }
 
                 $this->metadata->lastReadAt = self::$now;
+                $this->metadata->bytesRead += \strlen($chunk);
                 self::$bytesReadInLastSecond[$this->metadata->id] = (self::$bytesReadInLastSecond[$this->metadata->id] ?? 0) + \strlen($chunk);
 
                 if ($heartbeatEnabled) {
@@ -282,7 +284,7 @@ final class Rfc6455Client implements Client
                 }
             }
         } catch (\Throwable $exception) {
-            // Ignore stream exception, connection will be closed below anyway.
+            $message = 'TCP connection closed with exception: ' . $exception->getMessage();
         }
 
         if ($this->closeDeferred !== null) {
@@ -292,7 +294,8 @@ final class Rfc6455Client implements Client
         }
 
         if (!$this->metadata->closedAt) {
-            $this->close(Code::ABNORMAL_CLOSE, 'Underlying TCP connection closed');
+            $this->metadata->peerInitiatedClose = true;
+            $this->close(Code::ABNORMAL_CLOSE, $message ?? 'TCP connection closed unexpectedly');
         }
     }
 
@@ -387,11 +390,13 @@ final class Rfc6455Client implements Client
                     $reason = \substr($data, 2);
 
                     if ($code < 1000 // Reserved and unused.
-                        || ($code >= 1004 && $code <= 1006) // Should not be sent over wire.
-                        || ($code >= 1014 && $code <= 1015) // Should not be sent over wire.
-                        || ($code >= 1016 && $code <= 1999) // Reserved for future use
-                        || ($code >= 2000 && $code <= 2999) // Reserved for WebSocket extensions.
-                        || $code >= 5000 // 3000-3999 for libraries, 4000-4999 for applications, >= 5000 invalid.
+                        || ($code >= 1004 && $code <= 1006) // Should not be sent over wire
+                        || ($code >= 1014 && $code <= 1015) // Should not be sent over wire
+                        || ($code >= 1016 && $code <= 1999) // Disallowed, reserved for future use
+                        || ($code >= 2000 && $code <= 2999) // Disallowed, reserved for Websocket extensions
+                        // 3000-3999 allowed, reserved for libraries
+                        // 4000-4999 allowed, reserved for applications
+                        || $code >= 5000 // >= 5000 invalid
                     ) {
                         $code = Code::PROTOCOL_ERROR;
                         $reason = 'Invalid close code';
@@ -474,33 +479,33 @@ final class Rfc6455Client implements Client
             $compress = true;
         }
 
-        try {
-            $bytes = 0;
+        $bytes = 0;
 
+        try {
             if (\strlen($data) > $this->options->getFrameSplitThreshold()) {
                 $length = \strlen($data);
                 $slices = (int) \ceil($length / $this->options->getFrameSplitThreshold());
                 $length = (int) \ceil($length / $slices);
 
-                while ($data !== '') {
+                for ($i = 1; $i < $slices; ++$i) {
                     $chunk = \substr($data, 0, $length);
                     $data = (string) \substr($data, $length);
 
                     if ($compress) {
-                        $chunk = $this->compressionContext->compress($chunk, $data === '');
+                        $chunk = $this->compressionContext->compress($chunk, false);
                     }
 
-                    $bytes += yield $this->write($chunk, $opcode, $rsv, $data === '');
+                    $bytes += yield $this->write($chunk, $opcode, $rsv, false);
                     $opcode = Opcode::CONT;
                     $rsv = 0; // RSV must be 0 in continuation frames.
                 }
-            } else {
-                if ($compress) {
-                    $data = $this->compressionContext->compress($data, true);
-                }
-
-                $bytes = yield $this->write($data, $opcode, $rsv, true);
             }
+
+            if ($compress) {
+                $data = $this->compressionContext->compress($data, true);
+            }
+
+            $bytes += yield $this->write($data, $opcode, $rsv, true);
         } catch (StreamException $exception) {
             $code = Code::ABNORMAL_CLOSE;
             $reason = 'Writing to the client failed';
@@ -615,12 +620,10 @@ final class Rfc6455Client implements Client
     public function close(int $code = Code::NORMAL_CLOSE, string $reason = ''): Promise
     {
         if ($this->metadata->closedAt) {
-            return new Success(0);
+            return new Success([$this->metadata->closeCode, $this->metadata->closeReason]);
         }
 
         return call(function () use ($code, $reason) {
-            $bytes = 0;
-
             try {
                 \assert($code !== Code::NONE || $reason === '');
                 $promise = $this->write($code !== Code::NONE ? \pack('n', $code) . $reason : '', Opcode::CLOSE);
@@ -632,18 +635,37 @@ final class Rfc6455Client implements Client
                 if ($this->currentMessageEmitter) {
                     $emitter = $this->currentMessageEmitter;
                     $this->currentMessageEmitter = null;
-                    $emitter->fail(new ClosedException('Connection closed while streaming message body', $code, $reason));
+                    $emitter->fail(new ClosedException(
+                        'Connection closed while streaming message body',
+                        $code,
+                        $reason
+                    ));
                 }
 
                 if ($this->nextMessageDeferred) {
                     $deferred = $this->nextMessageDeferred;
                     $this->nextMessageDeferred = null;
-                    $deferred->resolve();
+
+                    switch ($code) {
+                        case Code::NORMAL_CLOSE:
+                        case Code::NONE:
+                            $deferred->resolve();
+                            break;
+
+                        default:
+                            $deferred->fail(new ClosedException(
+                                'Connection closed abnormally while awaiting message',
+                                $code,
+                                $reason
+                            ));
+                            break;
+                    }
                 }
 
-                $bytes = yield $promise;
+                yield $promise; // Wait for writing close frame to complete.
 
                 if ($this->closeDeferred !== null) {
+                    // Wait for peer close frame for configured number of seconds.
                     yield Promise\timeout($this->closeDeferred->promise(), $this->options->getClosePeriod() * 1000);
                 }
             } catch (\Throwable $exception) {
@@ -670,7 +692,7 @@ final class Rfc6455Client implements Client
                 self::$heartbeatTimeouts = null;
             }
 
-            return $bytes;
+            return [$this->metadata->closeCode, $this->metadata->closeReason];
         });
     }
 

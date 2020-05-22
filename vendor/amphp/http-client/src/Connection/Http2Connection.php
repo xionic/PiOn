@@ -7,7 +7,6 @@ use Amp\Http\Client\Connection\Internal\Http2ConnectionProcessor;
 use Amp\Http\Client\Internal\ForbidCloning;
 use Amp\Http\Client\Internal\ForbidSerialization;
 use Amp\Http\Client\Request;
-use Amp\Http\Http2\Http2Processor;
 use Amp\Promise;
 use Amp\Socket\EncryptableSocket;
 use Amp\Socket\SocketAddress;
@@ -24,7 +23,7 @@ final class Http2Connection implements Connection
     /** @var EncryptableSocket */
     private $socket;
 
-    /** @var Http2Processor */
+    /** @var Http2ConnectionProcessor */
     private $processor;
 
     /** @var int */

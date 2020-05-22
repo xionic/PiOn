@@ -10,6 +10,7 @@ use Amp\Http\Client\Internal\ForbidCloning;
 use Amp\Http\Client\Internal\ForbidSerialization;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
+use Amp\Loop;
 use Amp\Promise;
 use Amp\Struct;
 
@@ -49,6 +50,9 @@ final class Http2Stream
     public $trailers;
 
     /** @var CancellationToken */
+    public $originalCancellation;
+
+    /** @var CancellationToken */
     public $cancellationToken;
 
     /** @var int Bytes received on the stream. */
@@ -81,14 +85,19 @@ final class Http2Stream
     /** @var Stream */
     public $stream;
 
-    /**@var Deferred|null */
+    /** @var Deferred|null */
     public $windowSizeIncrease;
+
+    /** @var string|null */
+    private $watcher;
 
     public function __construct(
         int $id,
         Request $request,
         Stream $stream,
         CancellationToken $cancellationToken,
+        CancellationToken $originalCancellation,
+        ?string $watcher,
         int $serverSize,
         int $clientSize
     ) {
@@ -96,9 +105,28 @@ final class Http2Stream
         $this->request = $request;
         $this->stream = $stream;
         $this->cancellationToken = $cancellationToken;
+        $this->originalCancellation = $originalCancellation;
+        $this->watcher = $watcher;
         $this->serverWindow = $serverSize;
         $this->clientWindow = $clientSize;
         $this->pendingResponse = new Deferred;
         $this->requestBodyCompletion = new Deferred;
+    }
+
+    public function __destruct()
+    {
+        if ($this->watcher !== null) {
+            Loop::cancel($this->watcher);
+        }
+    }
+
+    public function resetInactivityWatcher(): void
+    {
+        if ($this->watcher === null) {
+            return;
+        }
+
+        Loop::disable($this->watcher);
+        Loop::enable($this->watcher);
     }
 }

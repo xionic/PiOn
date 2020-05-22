@@ -2,6 +2,11 @@
 
 namespace Amp\Parallel\Sync;
 
+use Amp\Serialization\SerializationException as SerializerException;
+
+// Alias must be defined in an always-loaded file as catch blocks do not trigger the autoloader.
+\class_alias(SerializerException::class, SerializationException::class);
+
 /**
  * @param \Throwable $exception
  *
@@ -13,7 +18,7 @@ function flattenThrowableBacktrace(\Throwable $exception): array
 
     foreach ($trace as &$call) {
         unset($call['object']);
-        $call['args'] = \array_map(__NAMESPACE__ . '\\flattenArgument', $call['args']);
+        $call['args'] = \array_map(__NAMESPACE__ . '\\flattenArgument', $call['args'] ?? []);
     }
 
     return $trace;
@@ -41,7 +46,7 @@ function formatFlattenedBacktrace(array $trace): string
             $call['file'] ?? '[internal function]',
             $call['line'] ?? 0,
             $name,
-            \implode(', ', $call['args'])
+            \implode(', ', $call['args'] ?? ['...'])
         );
     }
 

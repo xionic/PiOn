@@ -19,17 +19,20 @@ abstract class TaskWorker implements Worker
     const SHUTDOWN_TIMEOUT = 1000;
     const ERROR_TIMEOUT = 250;
 
-    /** @var \Amp\Parallel\Context\Context */
+    /** @var Context */
     private $context;
 
-    /** @var \Amp\Promise|null */
+    /** @var bool */
+    private $started = false;
+
+    /** @var Promise|null */
     private $pending;
 
-    /** @var \Amp\Promise|null */
+    /** @var Promise|null */
     private $exitStatus;
 
     /**
-     * @param \Amp\Parallel\Context\Context $context A context running an instance of TaskRunner.
+     * @param Context $context A context running an instance of TaskRunner.
      */
     public function __construct(Context $context)
     {
@@ -41,6 +44,7 @@ abstract class TaskWorker implements Worker
 
         $context = &$this->context;
         $pending = &$this->pending;
+
         \register_shutdown_function(static function () use (&$context, &$pending): void {
             if ($context === null || !$context->isRunning()) {
                 return;
@@ -68,7 +72,8 @@ abstract class TaskWorker implements Worker
      */
     public function isRunning(): bool
     {
-        return !$this->exitStatus;
+        // Report as running unless shutdown or crashed.
+        return !$this->started || ($this->exitStatus === null && $this->context !== null && $this->context->isRunning());
     }
 
     /**
@@ -97,11 +102,16 @@ abstract class TaskWorker implements Worker
                 }
             }
 
-            if ($this->exitStatus) {
+            if ($this->exitStatus !== null || $this->context === null) {
                 throw new WorkerException("The worker was shutdown");
             }
 
             if (!$this->context->isRunning()) {
+                if ($this->started) {
+                    throw new WorkerException("The worker crashed");
+                }
+
+                $this->started = true;
                 yield $this->context->start();
             }
 
@@ -148,12 +158,12 @@ abstract class TaskWorker implements Worker
      */
     public function shutdown(): Promise
     {
-        if ($this->exitStatus) {
+        if ($this->exitStatus !== null) {
             return $this->exitStatus;
         }
 
         if ($this->context === null || !$this->context->isRunning()) {
-            return $this->exitStatus = new Success(0);
+            return $this->exitStatus = new Success(-1); // Context crashed?
         }
 
         return $this->exitStatus = call(function (): \Generator {
@@ -182,7 +192,7 @@ abstract class TaskWorker implements Worker
      */
     public function kill(): void
     {
-        if ($this->exitStatus || $this->context === null) {
+        if ($this->exitStatus !== null || $this->context === null) {
             return;
         }
 

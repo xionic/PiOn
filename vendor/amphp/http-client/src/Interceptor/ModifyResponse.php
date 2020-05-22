@@ -19,9 +19,12 @@ class ModifyResponse implements NetworkInterceptor, ApplicationInterceptor
     use ForbidCloning;
     use ForbidSerialization;
 
-    /** @var callable */
+    /** @var callable(Response):(\Generator<mixed, mixed, mixed, Response|null>|Promise<Response>|Response|null) */
     private $mapper;
 
+    /**
+     * @psalm-param callable(Response):(\Generator<mixed, mixed, mixed, Response|null>|Promise<Response>|Response|null) $mapper
+     */
     public function __construct(callable $mapper)
     {
         $this->mapper = $mapper;
@@ -33,9 +36,12 @@ class ModifyResponse implements NetworkInterceptor, ApplicationInterceptor
         Stream $stream
     ): Promise {
         return call(function () use ($request, $cancellation, $stream) {
-            /** @var Response $response */
             $response = yield $stream->request($request, $cancellation);
-            return (yield call($this->mapper, $response)) ?? $response;
+            $mappedResponse = yield call($this->mapper, $response);
+
+            \assert($mappedResponse instanceof Response || $mappedResponse === null);
+
+            return $mappedResponse ?? $response;
         });
     }
 
@@ -47,9 +53,12 @@ class ModifyResponse implements NetworkInterceptor, ApplicationInterceptor
         return call(function () use ($request, $cancellation, $httpClient) {
             $request->interceptPush($this->mapper);
 
-            /** @var Response $response */
             $response = yield $httpClient->request($request, $cancellation);
-            return (yield call($this->mapper, $response)) ?? $response;
+            $mappedResponse = yield call($this->mapper, $response);
+
+            \assert($mappedResponse instanceof Response || $mappedResponse === null);
+
+            return $mappedResponse ?? $response;
         });
     }
 }

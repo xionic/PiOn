@@ -11,7 +11,9 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         '76cd0796156622033397994f25b0d8fc' => __DIR__ . '/..' . '/amphp/amp/lib/Internal/functions.php',
         '6cd5651c4fef5ed6b63e8d8b8ffbf3cc' => __DIR__ . '/..' . '/amphp/byte-stream/lib/functions.php',
         'bcb7d4fc55f4b1a7e10f5806723e9892' => __DIR__ . '/..' . '/amphp/sync/src/functions.php',
+        'e187e371b30897d6dc51cac6a8c94ff6' => __DIR__ . '/..' . '/amphp/sync/src/ConcurrentIterator/functions.php',
         '8dc56fe697ca93c4b40d876df1c94584' => __DIR__ . '/..' . '/amphp/process/lib/functions.php',
+        '3da389f428d8ee50333e4391c3f45046' => __DIR__ . '/..' . '/amphp/serialization/src/functions.php',
         '430de19db8b7ee88fdbe5c545d82d33d' => __DIR__ . '/..' . '/amphp/parallel/lib/Context/functions.php',
         '888e1afeed2e8d13ef5a662692091e6e' => __DIR__ . '/..' . '/amphp/parallel/lib/Sync/functions.php',
         '384cf4f2eb4d2f896db72315a76066ad' => __DIR__ . '/..' . '/amphp/parallel/lib/Worker/functions.php',
@@ -23,6 +25,7 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'd4e415514e4352172d58f02433fa50e4' => __DIR__ . '/..' . '/amphp/socket/src/functions.php',
         '1c2dcb9d6851a7abaae89f9586ddd460' => __DIR__ . '/..' . '/amphp/socket/src/Internal/functions.php',
         '5ac5dbc97af12bd847e1db9fe93e192f' => __DIR__ . '/..' . '/amphp/log/src/functions.php',
+        '77e5a577434e31d19d8dd6aeceac1ff4' => __DIR__ . '/..' . '/amphp/http-client/src/Internal/functions.php',
         '3ff3609f8c8173833eaa97521a843531' => __DIR__ . '/..' . '/amphp/http-server/src/Middleware/functions.php',
         'a56027adf84a32da155734de2d858e65' => __DIR__ . '/..' . '/amphp/http-server/src/functions.php',
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
@@ -70,6 +73,7 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
             'Amp\\Websocket\\' => 14,
             'Amp\\Sync\\' => 9,
             'Amp\\Socket\\' => 11,
+            'Amp\\Serialization\\' => 18,
             'Amp\\Process\\' => 12,
             'Amp\\Parser\\' => 11,
             'Amp\\Parallel\\' => 13,
@@ -148,6 +152,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'Amp\\Socket\\' => 
         array (
             0 => __DIR__ . '/..' . '/amphp/socket/src',
+        ),
+        'Amp\\Serialization\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/serialization/src',
         ),
         'Amp\\Process\\' => 
         array (

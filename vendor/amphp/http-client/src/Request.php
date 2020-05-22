@@ -20,6 +20,15 @@ final class Request extends Message
     public const DEFAULT_HEADER_SIZE_LIMIT = 2 * 8192;
     public const DEFAULT_BODY_SIZE_LIMIT = 10485760;
 
+    /**
+     * @template TValue
+     *
+     * @param mixed $value
+     * @psalm-param TValue $value
+     *
+     * @return mixed
+     * @psalm-return TValue
+     */
     private static function clone($value)
     {
         if ($value === null || \is_scalar($value)) {
@@ -50,6 +59,9 @@ final class Request extends Message
 
     /** @var int */
     private $transferTimeout = 10000;
+
+    /** @var int */
+    private $inactivityTimeout = 10000;
 
     /** @var int */
     private $bodySizeLimit = self::DEFAULT_BODY_SIZE_LIMIT;
@@ -289,8 +301,9 @@ final class Request extends Message
         }
 
         $onPush = $this->onPush;
+        /** @psalm-suppress MissingClosureReturnType */
         $this->onPush = static function (Request $request, Promise $response) use ($onPush, $interceptor) {
-            $response = call(static function () use ($response, $interceptor) {
+            $response = call(static function () use ($response, $interceptor): \Generator {
                 return (yield call($interceptor, yield $response)) ?? $response;
             });
 
@@ -379,6 +392,19 @@ final class Request extends Message
     public function setTransferTimeout(int $transferTimeout): void
     {
         $this->transferTimeout = $transferTimeout;
+    }
+
+    /**
+     * @return int Timeout in milliseconds since the last data was received before the request fails due to inactivity.
+     */
+    public function getInactivityTimeout(): int
+    {
+        return $this->inactivityTimeout;
+    }
+
+    public function setInactivityTimeout(int $inactivityTimeout): void
+    {
+        $this->inactivityTimeout = $inactivityTimeout;
     }
 
     public function getHeaderSizeLimit(): int
