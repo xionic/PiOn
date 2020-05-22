@@ -26,7 +26,7 @@ Scheduler::register_task("Test cal timer", "xealot_server", new WeeklyTimer([4],
 
 });*/
 
-Scheduler::register_task("Lights On", "pi1", new WeeklyTimer("*", [16], [0],[0]), function(){
+Scheduler::register_task("Lights On", "pi1", new WeeklyTimer("*", [20], [0],[0]), function(){
 	\Amp\call(function(){
 		yield get_item("TV Light")->set_value(Session::$INTERNAL, new Value(Value::ON));
 		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(Value::ON));
@@ -50,6 +50,12 @@ Scheduler::register_task("ESP8266 Light off", "pi1", new WeeklyTimer("*", [23], 
 Scheduler::register_task("Table Light off", "pi1", new WeeklyTimer("*", [23], [15],[0]), function(){
 	\Amp\call(function(){
 		yield get_item("Table Lamp")->set_value(Session::$INTERNAL, new Value(Value::OFF));
+	});
+});
+
+Scheduler::register_task("Nick Heater Off", "xealot_server", new WeeklyTimer("*", [9], [0],[0]), function(){
+	\Amp\call(function(){
+		yield get_item("Nick Thermo")->set_value(Session::$INTERNAL, new Value(Value::OFF));
 	});
 });
 ?>
