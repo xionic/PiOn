@@ -28,7 +28,10 @@ class HardwareTPLinkSwitch extends Hardware {
     }
 
    function hardware_get(Session $session, Object $item_args): Promise {
-        return new Success(1);
+       $resp = json_decode($this->tp_devices[$item_args->name]->sendCommand('{"system":{"get_sysinfo":null}}}'));
+      // var_dump($resp);
+      // var_dump($resp->system->get_sysinfo->relay_state); die;
+       return new Success($resp->system->get_sysinfo->relay_state);
    }
 
    function hardware_set(Session $session, Object $item_args, Value $value): Promise {//Value
