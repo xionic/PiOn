@@ -39,6 +39,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         array (
             'xionic\\Argh\\' => 12,
         ),
+        's' => 
+        array (
+            'slavino\\tplinkhs110\\' => 20,
+        ),
         'S' => 
         array (
             'Seld\\JsonLint\\' => 14,
@@ -94,6 +98,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'xionic\\Argh\\' => 
         array (
             0 => __DIR__ . '/..' . '/xionic/argh/src',
+        ),
+        'slavino\\tplinkhs110\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/slavino/tplinkhs110/src',
         ),
         'Seld\\JsonLint\\' => 
         array (
@@ -223,12 +231,18 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         ),
     );
 
+    public static $classMap = array (
+        'slavino\\tplinkhs110\\TPLinkHS110Command' => __DIR__ . '/..' . '/slavino/tplinkhs110/src/TPLinkHS110Command.php',
+        'slavino\\tplinkhs110\\TPLinkHS110Device' => __DIR__ . '/..' . '/slavino/tplinkhs110/src/TPLinkHS110Device.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$prefixDirsPsr4;
             $loader->prefixesPsr0 = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$classMap;
 
         }, null, ClassLoader::class);
     }

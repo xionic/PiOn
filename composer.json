@@ -10,11 +10,16 @@
         "xionic/Argh": "master",
 		"php": ">=7.3",
         "amphp/websocket-server": "v2.0.0-rc2",
-                "amphp/socket": "^1.1",
-                "amphp/websocket-client": "1.0.0rc2"
+        "amphp/socket": "^1.1",
+        "amphp/websocket-client": "1.0.0rc2",
+        "slavino/tplinkhs110": "master"
     },
     "repositories": [{
 	 "type": "vcs",
 	 "url": "https://github.com/xionic/Argh"
-    }]
+    },
+{
+    "type": "vcs",
+    "url": "https://github.com/slavino/tplink-hs110-php"
+}]
 }

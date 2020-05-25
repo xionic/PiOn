@@ -59,7 +59,7 @@ class Model {
 			], null, false);
 
 		} catch(ValidationException $ve){
-			plog("Failed to read config.json", ERROR, Session::$INTERNAL);
+			plog("Failed to validate config", ERROR, Session::$INTERNAL);
 			plog($ve->getMessage(), FATAL, Session::$INTERNAL);
 		}
 		plog("config.json validation succeeded", VERBOSE, Session::$INTERNAL);

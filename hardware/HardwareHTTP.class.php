@@ -13,7 +13,6 @@ class HardwareHTTP extends Hardware{
 	function __construct(String $name, String $node_name, array $capabilities, Object $args){
 		parent::__construct($name, $node_name, $capabilities,  $args);
 		$this->type = "HardwareHTTP";
-		$this->value_certainty = true;
 	}
 
 	function hardware_get(Session $session, Object $item_args): Promise{	

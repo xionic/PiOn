@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'xionic\\Argh\\' => array($vendorDir . '/xionic/argh/src'),
+    'slavino\\tplinkhs110\\' => array($vendorDir . '/slavino/tplinkhs110/src'),
     'Seld\\JsonLint\\' => array($vendorDir . '/seld/jsonlint/src/Seld/JsonLint'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),

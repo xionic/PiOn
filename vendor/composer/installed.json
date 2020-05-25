@@ -2093,6 +2093,54 @@
         ]
     },
     {
+        "name": "slavino/tplinkhs110",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/slavino/tplink-hs110-php.git",
+            "reference": "54f9681cd0b3fd60750b5c9da8907519cfff3c17"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/slavino/tplink-hs110-php/zipball/54f9681cd0b3fd60750b5c9da8907519cfff3c17",
+            "reference": "54f9681cd0b3fd60750b5c9da8907519cfff3c17",
+            "shasum": ""
+        },
+        "time": "2017-10-19T19:11:27+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "slavino\\tplinkhs110\\": "src/"
+            },
+            "classmap": [
+                "src"
+            ]
+        },
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Slavomir Hustaty",
+                "email": "slavomir.hustaty@gmail.com"
+            }
+        ],
+        "description": "A PHP library to control and receive information from a TP-Link HS-110 smartplug.",
+        "keywords": [
+            "HS110",
+            "PHP",
+            "SmartPlug",
+            "TPLink",
+            "Timer"
+        ],
+        "support": {
+            "source": "https://github.com/slavino/tplink-hs110-php/tree/master",
+            "issues": "https://github.com/slavino/tplink-hs110-php/issues"
+        }
+    },
+    {
         "name": "xionic/argh",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
