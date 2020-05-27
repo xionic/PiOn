@@ -1,8 +1,12 @@
 <?php
 namespace PiOn\Event;
 
-use \Amp\Loop;
+use \DateTime;
+use \DateTimeZone;
+
 use \PiOn\Session;
+
+use \Amp\Loop;
 
 class WeeklyTimer implements Timer {
 	
@@ -31,8 +35,23 @@ class WeeklyTimer implements Timer {
 	/**
 	 * Returns the current base timestamp used for relative weekly calculations
 	 */
-	private static function get_start_of_week(): int {
-		return strtotime("sunday last week");
+	private static function get_local_start_of_week(): int {
+		$local_time = localtime(time(), true);
+		$day_offset = $local_time["tm_wday"];
+		$hour_offset = $local_time["tm_hour"];
+		$min_offset = $local_time["tm_min"];
+		$sec_offset = $local_time["tm_sec"];
+
+		$total_offset = $day_offset * 86400;
+		$total_offset += $hour_offset * 3600;
+		$total_offset += $min_offset * 60;
+		$total_offset += $sec_offset;
+
+		$start_of_week = time() - $total_offset;
+		
+		echo "get_local_start_of_week returning: $start_of_week" . PHP_EOL;
+		return $start_of_week;
+		
 	}
 
 	/**
@@ -40,15 +59,17 @@ class WeeklyTimer implements Timer {
 	 */
 	private function calc_next_run_time_from_now(int $days, int $hours, int $mins, int $secs): int {
 		//echo "d $days h $hours m $mins s $secs\n";
-		$start_of_week = self::get_start_of_week();
+		$local_start_of_week = self::get_local_start_of_week();
+		var_dump("sow: " .  $local_start_of_week);
 		$secs_in_to_week = ($days * 86400) + ($hours * 3600) + ($mins * 60) + $secs;
-		$next_run_time_rel = ($start_of_week + $secs_in_to_week) - mktime() - 3600; //temp timezone hack;
-		//var_dump($next_run_time_rel);
+		var_dump("local_time: " . self::local_time());
+		$next_run_time_rel = ($local_start_of_week + $secs_in_to_week) - self::local_time(); //temp timezone hack;
+		var_dump("next_run_time_rel: " . $next_run_time_rel);
 		if($next_run_time_rel < 0){ //run time for this week is in the past, schedule for next week
 			$next_run_time_rel += 604800; // secs/week
 		}
 		//var_dump($real_next_run_time * 1000l);
-		//var_dump($next_run_time_rel);
+		var_dump("next_run_time_rel (week corrected):" . $next_run_time_rel);
 		return $next_run_time_rel;
 	}
 	
@@ -87,7 +108,7 @@ class WeeklyTimer implements Timer {
 						//just for logging
 						$ds = "+$day days $hour hours $min minutes $sec secs midnight sunday this week";
 						$ts = strtotime($ds);
-						plog("Adding weekly timer for task '{$this->task->name}' for every " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
+						plog("Adding weekly timer (day# $day) for task '{$this->task->name}' for every " . date("D H:i:s", $ts), DEBUG, Session::$INTERNAL) ;
 
 						$next_run_time_rel = $this->calc_next_run_time_from_now($day, $hour, $min, $sec);
 					/*var_dump($next_run_time_rel);
@@ -113,14 +134,24 @@ class WeeklyTimer implements Timer {
 			$delay_string .= " $m mins ";
 		}
 		$delay_string .= $m%60 . " secs";
-
-		plog("Weekly timer scheduling task '{$this->task->name}' for " . date("Y/m/d H:i:s", $next_run_time_rel + mktime()).". Delaying for $delay_string ($next_run_time_rel secs total)", VERBOSE, Session::$INTERNAL);
+// var_dump(strtotime("sunday last week"));
+// var_dump(self::local_time());
+// var_dump($next_run_time_rel + self::local_time());
+		plog("Weekly timer scheduling task '{$this->task->name}' (day#: $day) for " . date("Y/m/d H:i:s", $next_run_time_rel + self::local_time()).". Delaying for $delay_string ($next_run_time_rel secs total)", VERBOSE, Session::$INTERNAL);
 		$THIS = $this;
 		$task = $this->task;
+		plog("next_run_tim_rel: $next_run_time_rel", DEBUG, Session::$INTERNAL);
 		Loop::delay($next_run_time_rel*1000, function () use ($task, $THIS, $day, $hour, $min, $sec){
 			call_user_func($task->callback);
 			$this->fire_next(["day" => $day, "hour" => $hour, "min" => $min, "sec" => $sec]);
 		});
+	}
+
+	private static function local_time(): int {
+		/*$d = new DateTime("now", new DateTimeZone(date_default_timezone_get()));
+		var_dump("ts: " . $d->getTimestamp() . " offset:" . $d->getOffset());
+		return $d->getTimestamp() + $d->getOffset();*/
+		return time();
 	}
 	
 	
