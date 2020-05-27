@@ -93,7 +93,7 @@
 
 	Loop::run(function() use ($this_node){
 		
-		foreach (glob("{events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn being loaded
+		foreach (glob("{config/events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn model being loaded and inited
 		{
 			require_once $filename; //SECURITY
 		}
