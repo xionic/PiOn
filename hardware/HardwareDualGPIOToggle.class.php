@@ -44,8 +44,9 @@ class HardwareDualGPIOToggle extends Hardware {
 					//plog(", DEBUG);
 					foreach($THIS->states as $key => $state){
 						plog("Reasserting value of HardwareDualGPIOToggle switch #$key to $state", DEBUG, Session::$INTERNAL);
-						\Amp\call(function() use ($THIS, $key, $value){
-							$THIS->hardware_set((Object)["switch_num" => $key], new Value($value));	
+						\Amp\call(function() use ($THIS, $key, $state){
+							plog("InCall-Reasserting value of HardwareDualGPIOToggle switch #$key to $state", DEBUG, Session::$INTERNAL);
+							$THIS->hardware_set((Object)["switch_num" => $key], new Value($state));	
 						});
 					}
 				});
@@ -59,6 +60,7 @@ class HardwareDualGPIOToggle extends Hardware {
 	
 	function hardware_get(Session $session, Object $item_args): Promise{
 		return \Amp\call(function() use($session, $item_args){
+			plog("HardwareDualGPIOToggle hardware_get for switch# " . $item_args->switch_num, DEBUG, $session);
 			return $this->states[$item_args->switch_num];
 		});
 	}
@@ -66,6 +68,7 @@ class HardwareDualGPIOToggle extends Hardware {
 	function hardware_set(Session $session, Object $item_args, Value $value): Promise{
 		return \Amp\call(function() use($session, $item_args, $value){
 
+			plog("HardwareDualGPIOToggle hardware_set for switch# " . $item_args->switch_num . " with value: " . $value->data, DEBUG, $session);
 			yield $this->wait_in_line($session);		
 			$this->locked = true;
 			$switch_num = $item_args->switch_num;

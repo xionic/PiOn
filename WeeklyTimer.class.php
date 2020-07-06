@@ -123,17 +123,25 @@ class WeeklyTimer implements Timer {
 
 	private function register_delay($next_run_time_rel, $day, $hour, $min, $sec): void{
 		$delay_string = "";
+		$rem = 0;
 		//var_dump("THIS ". $next_run_time_rel % 86400);
 		if(($d = floor($next_run_time_rel / 86400)) > 0){
-			$delay_string .= "$d days";
+			$delay_string .= "$d days ";
+			
 		}
-		if(($h = floor(($next_run_time_rel % 86400) / 3600)) > 0){
-			$delay_string .= " $h hours";
+		$rem = floor($next_run_time_rel % 86400);
+
+		if(($h = floor($rem / 3600)) > 0){
+			$delay_string .= " $h hours ";
 		}
-		if(($m = floor((($next_run_time_rel % 86400) % 3600) / 60)) > 0){
+		$rem = floor($rem % 3600);
+
+		if(($m = floor($rem / 60)) > 0){
 			$delay_string .= " $m mins ";
 		}
-		$delay_string .= $m%60 . " secs";
+		$rem = floor($rem % 60);
+
+		$delay_string .= "$rem secs";
 // var_dump(strtotime("sunday last week"));
 // var_dump(self::local_time());
 // var_dump($next_run_time_rel + self::local_time());
@@ -141,7 +149,9 @@ class WeeklyTimer implements Timer {
 		$THIS = $this;
 		$task = $this->task;
 		plog("next_run_tim_rel: $next_run_time_rel", DEBUG, Session::$INTERNAL);
+		var_dump($next_run_time_rel*1000);
 		Loop::delay($next_run_time_rel*1000, function () use ($task, $THIS, $day, $hour, $min, $sec){
+			plog("in callback", DEBUG, Session::$INTERNAL);
 			call_user_func($task->callback);
 			$this->fire_next(["day" => $day, "hour" => $hour, "min" => $min, "sec" => $sec]);
 		});

@@ -40,6 +40,9 @@ class HardwareTPLinkSwitch extends Hardware {
             "ipAddr" => $item_args->host,
             "port" => $item_args->port,
         ], $this->name);*/
+        if(!array_key_exists($item_args->name, $this->tp_devices)){
+            throw new InvalidHardwareException("Unknown TPLINK hardware device: " . $item_args->name);
+        }
 		if($value->data){
             $this->tp_devices[$item_args->name]->switchOn();
         } else {
