@@ -29,13 +29,23 @@ var sitemap = {
     "type": "text"
   }, {
     "item_name": "Nick Heater",
-    "type": "switch"
+    "type": "switch",
+    "auth": true
   }, {
     "item_name": "Nick Bed Lights",
     "type": "switch"
+  }, {
+    "item_name": "Nick Fan",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 3",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 4",
+    "type": "switch"
   }],
   "Living Room": [{
-    "item_name": "ESP8266 Plug Test",
+    "item_name": "Squares Lamp",
     "type": "switch"
   }, {
     "item_name": "TV Light",
@@ -45,6 +55,9 @@ var sitemap = {
     "type": "switch"
   }, {
     "item_name": "Xico Power",
+    "type": "switch"
+  }, {
+    "item_name": "Living Room Fan",
     "type": "switch"
   }]
 };
