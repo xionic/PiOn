@@ -1,3 +1,6 @@
 [submodule "vendor/xionic/argh"]
 	path = vendor/xionic/argh
 	url = git@github.com:xionic/Argh.git
+[submodule "vendor/xionic/tplinkhs110"]
+	path = vendor/xionic/tplinkhs110
+	url = https://github.com/xionic/tplink-hs110-php.git

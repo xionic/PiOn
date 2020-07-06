@@ -68,7 +68,7 @@ interface Client
      *
      * @throws \Error Thrown if the client has not closed.
      */
-    public function didPeerInitiateClose(): bool;
+    public function isClosedByPeer(): bool;
 
     /**
      * Sends a text message to the endpoint. All data sent with this method must be valid UTF-8. Use `sendBinary()` if
@@ -76,7 +76,7 @@ interface Client
      *
      * @param string $data Payload to send.
      *
-     * @return Promise<int> Resolves with the number of bytes sent to the other endpoint.
+     * @return Promise<void> Resolves once the message has been sent to the peer.
      *
      * @throws ClosedException Thrown if sending to the client fails.
      */
@@ -87,7 +87,7 @@ interface Client
      *
      * @param string $data Payload to send.
      *
-     * @return Promise<int> Resolves with the number of bytes sent to the other endpoint.
+     * @return Promise<void> Resolves once the message has been sent to the peer.
      *
      * @throws ClosedException Thrown if sending to the client fails.
      */
@@ -99,7 +99,7 @@ interface Client
      *
      * @param InputStream $stream
      *
-     * @return Promise<int> Resolves with the number of bytes sent to the other endpoint.
+     * @return Promise<void> Resolves once the message has been sent to the peer.
      *
      * @throws ClosedException Thrown if sending to the client fails.
      */
@@ -111,7 +111,7 @@ interface Client
      *
      * @param InputStream $stream
      *
-     * @return Promise<int> Resolves with the number of bytes sent to the other endpoint.
+     * @return Promise<void> Resolves once the message has been sent to the peer.
      *
      * @throws ClosedException Thrown if sending to the client fails.
      */
@@ -142,8 +142,8 @@ interface Client
      * @param int    $code
      * @param string $reason
      *
-     * @return Promise<[int, string]> Resolves with an array containing the close code used and the close reason.
-     *                                These may differ from those provided if the connection was closed prior.
+     * @return Promise<array> Resolves with an array containing the close code at key 0 and the close reason at key 1.
+     *                        These may differ from those provided if the connection was closed prior.
      */
     public function close(int $code = Code::NORMAL_CLOSE, string $reason = ''): Promise;
 

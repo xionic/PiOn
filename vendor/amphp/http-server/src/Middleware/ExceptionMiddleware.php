@@ -19,6 +19,9 @@ final class ExceptionMiddleware implements Middleware, ServerObserver
     /** @var bool */
     private $debug = false;
 
+    /** @var bool */
+    private $requestLogContext = false;
+
     /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
@@ -41,10 +44,15 @@ final class ExceptionMiddleware implements Middleware, ServerObserver
             } catch (\Throwable $exception) {
                 $status = Status::INTERNAL_SERVER_ERROR;
 
-                $this->logger->error($exception);
+                $errorType = \get_class($exception);
 
                 // Return an HTML page with the exception in debug mode.
                 if ($this->debug) {
+                    $this->logger->error(
+                        "Unexpected {$errorType} thrown from RequestHandler::handleRequest(), falling back to stack trace response, because debug mode is enabled.",
+                        $this->createLogContext($exception, $request)
+                    );
+
                     $html = \str_replace(
                         ["{uri}", "{class}", "{message}", "{file}", "{line}", "{trace}"],
                         \array_map("htmlspecialchars", [
@@ -63,6 +71,11 @@ final class ExceptionMiddleware implements Middleware, ServerObserver
                     ], $html);
                 }
 
+                $this->logger->error(
+                    "Unexpected {$errorType} thrown from RequestHandler::handleRequest(), falling back to error handler.",
+                    $this->createLogContext($exception, $request)
+                );
+
                 return yield $this->errorHandler->handleError($status, null, $request);
             }
         });
@@ -71,6 +84,7 @@ final class ExceptionMiddleware implements Middleware, ServerObserver
     public function onStart(HttpServer $server): Promise
     {
         $this->debug = $server->getOptions()->isInDebugMode();
+        $this->requestLogContext = $server->getOptions()->isRequestLogContextEnabled();
         $this->logger = $server->getLogger();
         $this->errorHandler = $server->getErrorHandler();
         return new Success;
@@ -79,5 +93,15 @@ final class ExceptionMiddleware implements Middleware, ServerObserver
     public function onStop(HttpServer $server): Promise
     {
         return new Success;
+    }
+
+    private function createLogContext(\Throwable $exception, Request $request): array
+    {
+        $logContext = ['exception' => $exception];
+        if ($this->requestLogContext) {
+            $logContext['request'] = $request;
+        }
+
+        return $logContext;
     }
 }

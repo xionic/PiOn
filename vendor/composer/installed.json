@@ -148,21 +148,22 @@
     },
     {
         "name": "amphp/cache",
-        "version": "v1.3.0",
-        "version_normalized": "1.3.0.0",
+        "version": "v1.4.0",
+        "version_normalized": "1.4.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/cache.git",
-            "reference": "14d9fa01a2518eda31b10a421660b41a55249736"
+            "reference": "e7bccc526fc2a555d59e6ee8380eeb39a95c0835"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/cache/zipball/14d9fa01a2518eda31b10a421660b41a55249736",
-            "reference": "14d9fa01a2518eda31b10a421660b41a55249736",
+            "url": "https://api.github.com/repos/amphp/cache/zipball/e7bccc526fc2a555d59e6ee8380eeb39a95c0835",
+            "reference": "e7bccc526fc2a555d59e6ee8380eeb39a95c0835",
             "shasum": ""
         },
         "require": {
             "amphp/amp": "^2",
+            "amphp/serialization": "^1",
             "amphp/sync": "^1.2",
             "php": ">=7.1"
         },
@@ -170,12 +171,13 @@
             "amphp/file": "<0.2 || >=2"
         },
         "require-dev": {
-            "amphp/file": "^1.0",
+            "amphp/file": "^1",
             "amphp/php-cs-fixer-config": "dev-master",
-            "amphp/phpunit-util": "^1",
-            "phpunit/phpunit": "^6 | ^7 | ^8"
+            "amphp/phpunit-util": "^1.1",
+            "phpunit/phpunit": "^6 | ^7 | ^8 | ^9",
+            "vimeo/psalm": "^3.11@dev"
         },
-        "time": "2019-11-29T18:47:04+00:00",
+        "time": "2020-04-19T16:10:08+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -202,17 +204,17 @@
     },
     {
         "name": "amphp/dns",
-        "version": "v1.2.1",
-        "version_normalized": "1.2.1.0",
+        "version": "v1.2.2",
+        "version_normalized": "1.2.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/dns.git",
-            "reference": "9d7e57f37d21bfed8ff2e78db52b99d45ce0c215"
+            "reference": "8cf2ccc4fa5a97f15b0b11087b22d2b544e45ab2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/dns/zipball/9d7e57f37d21bfed8ff2e78db52b99d45ce0c215",
-            "reference": "9d7e57f37d21bfed8ff2e78db52b99d45ce0c215",
+            "url": "https://api.github.com/repos/amphp/dns/zipball/8cf2ccc4fa5a97f15b0b11087b22d2b544e45ab2",
+            "reference": "8cf2ccc4fa5a97f15b0b11087b22d2b544e45ab2",
             "shasum": ""
         },
         "require": {
@@ -229,9 +231,9 @@
         "require-dev": {
             "amphp/php-cs-fixer-config": "dev-master",
             "amphp/phpunit-util": "^1",
-            "phpunit/phpunit": "^6"
+            "phpunit/phpunit": "^6 || ^7 || ^8 || ^9"
         },
-        "time": "2019-11-28T20:10:22+00:00",
+        "time": "2020-06-19T20:28:16+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -461,17 +463,17 @@
     },
     {
         "name": "amphp/http-client",
-        "version": "v4.3.1",
-        "version_normalized": "4.3.1.0",
+        "version": "v4.4.0",
+        "version_normalized": "4.4.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-client.git",
-            "reference": "5df8c18a77806d9e4d04080cb5ec8aa16380773f"
+            "reference": "fa7925363e6d5a0d0d337e2e6eb1affb93cf226e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-client/zipball/5df8c18a77806d9e4d04080cb5ec8aa16380773f",
-            "reference": "5df8c18a77806d9e4d04080cb5ec8aa16380773f",
+            "url": "https://api.github.com/repos/amphp/http-client/zipball/fa7925363e6d5a0d0d337e2e6eb1affb93cf226e",
+            "reference": "fa7925363e6d5a0d0d337e2e6eb1affb93cf226e",
             "shasum": ""
         },
         "require": {
@@ -506,7 +508,7 @@
             "ext-json": "Required for logging HTTP archives",
             "ext-zlib": "Allows using compression for response bodies."
         },
-        "time": "2020-05-10T19:05:03+00:00",
+        "time": "2020-06-16T20:45:05+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -553,17 +555,17 @@
     },
     {
         "name": "amphp/http-server",
-        "version": "v2.0.1",
-        "version_normalized": "2.0.1.0",
+        "version": "v2.1.0",
+        "version_normalized": "2.1.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-server.git",
-            "reference": "9c38d7be6e115ce0ced9f78d2375c28de5871418"
+            "reference": "30063e245559095ff99a320b88a8a88ff719cc6e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-server/zipball/9c38d7be6e115ce0ced9f78d2375c28de5871418",
-            "reference": "9c38d7be6e115ce0ced9f78d2375c28de5871418",
+            "url": "https://api.github.com/repos/amphp/http-server/zipball/30063e245559095ff99a320b88a8a88ff719cc6e",
+            "reference": "30063e245559095ff99a320b88a8a88ff719cc6e",
             "shasum": ""
         },
         "require": {
@@ -591,8 +593,13 @@
         "suggest": {
             "ext-zlib": "Allows GZip compression of response bodies"
         },
-        "time": "2020-03-10T20:37:39+00:00",
+        "time": "2020-06-20T14:40:33+00:00",
         "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.x-dev"
+            }
+        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -1069,17 +1076,17 @@
     },
     {
         "name": "amphp/socket",
-        "version": "v1.1.1",
-        "version_normalized": "1.1.1.0",
+        "version": "v1.1.3",
+        "version_normalized": "1.1.3.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/socket.git",
-            "reference": "020b65271596f84f4b3127d2eab81ad2790f9fb6"
+            "reference": "b9064b98742d12f8f438eaf73369bdd7d8446331"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/socket/zipball/020b65271596f84f4b3127d2eab81ad2790f9fb6",
-            "reference": "020b65271596f84f4b3127d2eab81ad2790f9fb6",
+            "url": "https://api.github.com/repos/amphp/socket/zipball/b9064b98742d12f8f438eaf73369bdd7d8446331",
+            "reference": "b9064b98742d12f8f438eaf73369bdd7d8446331",
             "shasum": ""
         },
         "require": {
@@ -1094,9 +1101,10 @@
         "require-dev": {
             "amphp/php-cs-fixer-config": "dev-master",
             "amphp/phpunit-util": "^1",
-            "phpunit/phpunit": "^6"
+            "phpunit/phpunit": "^6 || ^7 || ^8",
+            "vimeo/psalm": "^3.9@dev"
         },
-        "time": "2020-02-27T21:29:37+00:00",
+        "time": "2020-06-25T18:55:28+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1205,17 +1213,17 @@
     },
     {
         "name": "amphp/websocket",
-        "version": "v1.0.0-rc2",
-        "version_normalized": "1.0.0.0-RC2",
+        "version": "v1.0.0",
+        "version_normalized": "1.0.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/websocket.git",
-            "reference": "5fbeb1ea821e50af13fc682570f26e71afd23eca"
+            "reference": "ac4e9c53b35cd19351dc99c788f563f36fec9c6e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/websocket/zipball/5fbeb1ea821e50af13fc682570f26e71afd23eca",
-            "reference": "5fbeb1ea821e50af13fc682570f26e71afd23eca",
+            "url": "https://api.github.com/repos/amphp/websocket/zipball/ac4e9c53b35cd19351dc99c788f563f36fec9c6e",
+            "reference": "ac4e9c53b35cd19351dc99c788f563f36fec9c6e",
             "shasum": ""
         },
         "require": {
@@ -1228,12 +1236,13 @@
         "require-dev": {
             "amphp/php-cs-fixer-config": "dev-master",
             "amphp/phpunit-util": "^1.1.2",
-            "phpunit/phpunit": "^8 || ^7"
+            "phpunit/phpunit": "^8 || ^7",
+            "vimeo/psalm": "^3.11@dev"
         },
         "suggest": {
             "ext-zlib": "Required for compression"
         },
-        "time": "2020-04-18T14:05:23+00:00",
+        "time": "2020-06-25T21:14:23+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -2093,21 +2102,50 @@
         ]
     },
     {
-        "name": "slavino/tplinkhs110",
+        "name": "xionic/argh",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
-            "url": "https://github.com/slavino/tplink-hs110-php.git",
-            "reference": "54f9681cd0b3fd60750b5c9da8907519cfff3c17"
+            "url": "https://github.com/xionic/Argh.git",
+            "reference": "bd65a758b186e4a5610810a6234964e0ad29b149"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/slavino/tplink-hs110-php/zipball/54f9681cd0b3fd60750b5c9da8907519cfff3c17",
-            "reference": "54f9681cd0b3fd60750b5c9da8907519cfff3c17",
+            "url": "https://api.github.com/repos/xionic/Argh/zipball/bd65a758b186e4a5610810a6234964e0ad29b149",
+            "reference": "bd65a758b186e4a5610810a6234964e0ad29b149",
             "shasum": ""
         },
-        "time": "2017-10-19T19:11:27+00:00",
+        "time": "2020-02-12T12:46:40+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "xionic\\Argh\\": "src/"
+            }
+        },
+        "description": "Object and Array validation tool",
+        "support": {
+            "source": "https://github.com/xionic/Argh/tree/master",
+            "issues": "https://github.com/xionic/Argh/issues"
+        }
+    },
+    {
+        "name": "xionic/tplinkhs110",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/xionic/tplink-hs110-php.git",
+            "reference": "a262f4b44052383babe9ced81d3bc0d8e11ff408"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/xionic/tplink-hs110-php/zipball/a262f4b44052383babe9ced81d3bc0d8e11ff408",
+            "reference": "a262f4b44052383babe9ced81d3bc0d8e11ff408",
+            "shasum": ""
+        },
+        "time": "2020-07-06T08:03:16+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {
@@ -2136,37 +2174,7 @@
             "Timer"
         ],
         "support": {
-            "source": "https://github.com/slavino/tplink-hs110-php/tree/master",
-            "issues": "https://github.com/slavino/tplink-hs110-php/issues"
-        }
-    },
-    {
-        "name": "xionic/argh",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/xionic/Argh.git",
-            "reference": "bd65a758b186e4a5610810a6234964e0ad29b149"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/xionic/Argh/zipball/bd65a758b186e4a5610810a6234964e0ad29b149",
-            "reference": "bd65a758b186e4a5610810a6234964e0ad29b149",
-            "shasum": ""
-        },
-        "time": "2020-02-12T12:46:40+00:00",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "xionic\\Argh\\": "src/"
-            }
-        },
-        "description": "Object and Array validation tool",
-        "support": {
-            "source": "https://github.com/xionic/Argh/tree/master",
-            "issues": "https://github.com/xionic/Argh/issues"
+            "source": "https://github.com/xionic/tplink-hs110-php/tree/master"
         }
     }
 ]

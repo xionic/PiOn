@@ -101,7 +101,7 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         ),
         'slavino\\tplinkhs110\\' => 
         array (
-            0 => __DIR__ . '/..' . '/slavino/tplinkhs110/src',
+            0 => __DIR__ . '/..' . '/xionic/tplinkhs110/src',
         ),
         'Seld\\JsonLint\\' => 
         array (
@@ -232,8 +232,8 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
     );
 
     public static $classMap = array (
-        'slavino\\tplinkhs110\\TPLinkHS110Command' => __DIR__ . '/..' . '/slavino/tplinkhs110/src/TPLinkHS110Command.php',
-        'slavino\\tplinkhs110\\TPLinkHS110Device' => __DIR__ . '/..' . '/slavino/tplinkhs110/src/TPLinkHS110Device.php',
+        'slavino\\tplinkhs110\\TPLinkHS110Command' => __DIR__ . '/..' . '/xionic/tplinkhs110/src/TPLinkHS110Command.php',
+        'slavino\\tplinkhs110\\TPLinkHS110Device' => __DIR__ . '/..' . '/xionic/tplinkhs110/src/TPLinkHS110Device.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

@@ -49,7 +49,8 @@ final class DatagramSocket
 
         return new self($server, $context->getChunkSize());
     }
-    /** @var resource UDP socket resource. */
+
+    /** @var resource|null UDP socket resource. */
     private $socket;
     /** @var string Watcher ID. */
     private $watcher;
@@ -90,6 +91,7 @@ final class DatagramSocket
 
             $data = @\stream_socket_recvfrom($socket, $chunkSize, 0, $address);
 
+            /** @psalm-suppress TypeDoesNotContainType */
             if ($data === false) {
                 Loop::cancel($watcher);
                 $deferred->resolve();
@@ -98,6 +100,7 @@ final class DatagramSocket
 
             $deferred->resolve([SocketAddress::fromSocketName($address), $data]);
 
+            /** @psalm-suppress RedundantCondition Resolution of the deferred above might read immediately again */
             if (!$reader) {
                 Loop::disable($watcher);
             }
@@ -119,7 +122,7 @@ final class DatagramSocket
     }
 
     /**
-     * @return Promise<[SocketAddress $address, string $data]|null> Resolves with null if the socket is closed.
+     * @return Promise<array{0: SocketAddress, 1: string}|null> Resolves with null if the socket is closed.
      *
      * @throws PendingReceiveError If a receive request is already pending.
      */
@@ -153,11 +156,22 @@ final class DatagramSocket
             return new Failure(new SocketException('The endpoint is not writable'));
         }
 
-        $result = @\stream_socket_sendto($this->socket, $data, 0, $address->toString());
+        try {
+            try {
+                \set_error_handler(static function (int $errno, string $errstr) {
+                    throw new SocketException(\sprintf('Could not send packet on endpoint: %s', $errstr));
+                });
 
-        if ($result < 0 || $result === false) {
-            $error = \error_get_last();
-            return new Failure(new SocketException('Could not send packet on endpoint: ' . $error['message']));
+                $result = \stream_socket_sendto($this->socket, $data, 0, $address->toString());
+                /** @psalm-suppress TypeDoesNotContainType */
+                if ($result < 0 || $result === false) {
+                    throw new SocketException('Could not send packet on endpoint: Unknown error');
+                }
+            } finally {
+                \restore_error_handler();
+            }
+        } catch (SocketException $e) {
+            return new Failure($e);
         }
 
         return new Success($result);
@@ -199,6 +213,7 @@ final class DatagramSocket
     public function close(): void
     {
         if ($this->socket) {
+            /** @psalm-suppress InvalidPropertyAssignmentValue */
             \fclose($this->socket);
         }
 

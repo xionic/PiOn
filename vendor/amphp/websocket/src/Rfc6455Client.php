@@ -36,7 +36,7 @@ final class Rfc6455Client implements Client
     /** @var string|null */
     private static $watcher;
 
-    /** @var LRUCache Least-recently-used cache of next ping (heartbeat) times. */
+    /** @var LRUCache&\IteratorAggregate Least-recently-used cache of next ping (heartbeat) times. */
     private static $heartbeatTimeouts;
 
     /** @var int Cached current time. */
@@ -115,6 +115,7 @@ final class Rfc6455Client implements Client
                 self::$framesReadInLastSecond = [];
 
                 if (!empty(self::$rateDeferreds)) {
+                    /** @psalm-suppress PossiblyNullArgument */
                     Loop::unreference(self::$watcher);
 
                     $rateDeferreds = self::$rateDeferreds;
@@ -131,7 +132,6 @@ final class Rfc6455Client implements Client
                     }
 
                     $client = self::$clients[$clientId];
-                    \assert($client instanceof self);
                     self::$heartbeatTimeouts->put($clientId, self::$now + $client->options->getHeartbeatPeriod());
 
                     if ($client->getUnansweredPingCount() > $client->options->getQueuedPingLimit()) {
@@ -210,7 +210,7 @@ final class Rfc6455Client implements Client
 
     public function getCloseCode(): int
     {
-        if (!$this->metadata->closedAt) {
+        if ($this->metadata->closeCode === null) {
             throw new \Error('The client has not closed');
         }
 
@@ -219,20 +219,20 @@ final class Rfc6455Client implements Client
 
     public function getCloseReason(): string
     {
-        if (!$this->metadata->closedAt) {
+        if ($this->metadata->closeReason === null) {
             throw new \Error('The client has not closed');
         }
 
         return $this->metadata->closeReason;
     }
 
-    public function didPeerInitiateClose(): bool
+    public function isClosedByPeer(): bool
     {
         if (!$this->metadata->closedAt) {
             throw new \Error('The client has not closed');
         }
 
-        return $this->metadata->peerInitiatedClose;
+        return $this->metadata->closedByPeer;
     }
 
     public function getOptions(): Options
@@ -274,6 +274,7 @@ final class Rfc6455Client implements Client
 
                 if ((self::$framesReadInLastSecond[$this->metadata->id] ?? 0) >= $maxFramesPerSecond
                     || self::$bytesReadInLastSecond[$this->metadata->id] >= $maxBytesPerSecond) {
+                    /** @psalm-suppress PossiblyNullArgument */
                     Loop::reference(self::$watcher); // Reference watcher to keep loop running until rate limit released.
                     self::$rateDeferreds[$this->metadata->id] = $deferred = new Deferred;
                     yield $deferred->promise();
@@ -294,7 +295,7 @@ final class Rfc6455Client implements Client
         }
 
         if (!$this->metadata->closedAt) {
-            $this->metadata->peerInitiatedClose = true;
+            $this->metadata->closedByPeer = true;
             $this->close(Code::ABNORMAL_CLOSE, $message ?? 'TCP connection closed unexpectedly');
         }
     }
@@ -320,7 +321,12 @@ final class Rfc6455Client implements Client
             }
 
             $this->currentMessageEmitter = new Emitter;
-            $message = new Message(new IteratorStream($this->currentMessageEmitter->iterate()), $opcode === Opcode::BIN);
+            $stream = new IteratorStream($this->currentMessageEmitter->iterate());
+            if ($opcode === Opcode::BIN) {
+                $message = Message::fromBinary($stream);
+            } else {
+                $message = Message::fromText($stream);
+            }
 
             if ($this->nextMessageDeferred) {
                 $deferred = $this->nextMessageDeferred;
@@ -376,7 +382,7 @@ final class Rfc6455Client implements Client
                     break;
                 }
 
-                $this->metadata->peerInitiatedClose = true;
+                $this->metadata->closedByPeer = true;
 
                 $length = \strlen($data);
                 if ($length === 0) {
@@ -433,7 +439,7 @@ final class Rfc6455Client implements Client
 
     public function send(string $data): Promise
     {
-        \assert(\preg_match('//u', $data), 'Text data must be UTF-8');
+        \assert((bool) \preg_match('//u', $data), 'Text data must be UTF-8');
         return $this->lastWrite = new Coroutine($this->sendData($data, Opcode::TEXT));
     }
 
@@ -479,8 +485,6 @@ final class Rfc6455Client implements Client
             $compress = true;
         }
 
-        $bytes = 0;
-
         try {
             if (\strlen($data) > $this->options->getFrameSplitThreshold()) {
                 $length = \strlen($data);
@@ -492,28 +496,28 @@ final class Rfc6455Client implements Client
                     $data = (string) \substr($data, $length);
 
                     if ($compress) {
+                        /** @psalm-suppress PossiblyNullReference */
                         $chunk = $this->compressionContext->compress($chunk, false);
                     }
 
-                    $bytes += yield $this->write($chunk, $opcode, $rsv, false);
+                    yield $this->write($chunk, $opcode, $rsv, false);
                     $opcode = Opcode::CONT;
                     $rsv = 0; // RSV must be 0 in continuation frames.
                 }
             }
 
             if ($compress) {
+                /** @psalm-suppress PossiblyNullReference */
                 $data = $this->compressionContext->compress($data, true);
             }
 
-            $bytes += yield $this->write($data, $opcode, $rsv, true);
+            yield $this->write($data, $opcode, $rsv, true);
         } catch (StreamException $exception) {
             $code = Code::ABNORMAL_CLOSE;
             $reason = 'Writing to the client failed';
             yield $this->close($code, $reason);
             throw new ClosedException('Client unexpectedly closed', $code, $reason);
         }
-
-        return $bytes;
     }
 
     private function sendStream(InputStream $stream, int $opcode): \Generator
@@ -537,7 +541,6 @@ final class Rfc6455Client implements Client
                 return yield $this->write('', $opcode, 0, true);
             }
 
-            $written = 0;
             $streamThreshold = $this->options->getStreamThreshold();
 
             while (($chunk = yield $stream->read()) !== null) {
@@ -551,10 +554,11 @@ final class Rfc6455Client implements Client
                 }
 
                 if ($compress) {
+                    /** @psalm-suppress PossiblyNullReference */
                     $buffer = $this->compressionContext->compress($buffer, false);
                 }
 
-                $written += yield $this->write($buffer, $opcode, $rsv, false);
+                yield $this->write($buffer, $opcode, $rsv, false);
                 $opcode = Opcode::CONT;
                 $rsv = 0; // RSV must be 0 in continuation frames.
 
@@ -562,10 +566,11 @@ final class Rfc6455Client implements Client
             }
 
             if ($compress) {
+                /** @psalm-suppress PossiblyNullReference */
                 $buffer = $this->compressionContext->compress($buffer, true);
             }
 
-            $written += yield $this->write($buffer, $opcode, $rsv, true);
+            yield $this->write($buffer, $opcode, $rsv, true);
         } catch (StreamException $exception) {
             $code = Code::ABNORMAL_CLOSE;
             $reason = 'Writing to the client failed';
@@ -575,8 +580,6 @@ final class Rfc6455Client implements Client
             yield $this->close(Code::UNEXPECTED_SERVER_ERROR, 'Error while reading message data');
             throw $exception;
         }
-
-        return $written;
     }
 
     private function write(string $data, int $opcode, int $rsv = 0, bool $isFinal = true): Promise
@@ -597,7 +600,7 @@ final class Rfc6455Client implements Client
     private function compile(string $data, int $opcode, int $rsv, bool $isFinal): string
     {
         $length = \strlen($data);
-        $w = \chr(($isFinal << 7) | ($rsv << 4) | $opcode);
+        $w = \chr(((int) $isFinal << 7) | ($rsv << 4) | $opcode);
 
         $maskFlag = $this->masked ? 0x80 : 0;
 
@@ -679,14 +682,17 @@ final class Rfc6455Client implements Client
             $onClose = $this->onClose;
             $this->onClose = null;
 
-            foreach ($onClose as $callback) {
-                Promise\rethrow(call($callback, $this, $code, $reason));
+            if ($onClose !== null) {
+                foreach ($onClose as $callback) {
+                    Promise\rethrow(call($callback, $this, $code, $reason));
+                }
             }
 
             unset(self::$clients[$this->metadata->id]);
             self::$heartbeatTimeouts->remove($this->metadata->id);
 
             if (empty(self::$clients)) {
+                /** @psalm-suppress PossiblyNullArgument */
                 Loop::cancel(self::$watcher);
                 self::$watcher = null;
                 self::$heartbeatTimeouts = null;
@@ -749,7 +755,7 @@ final class Rfc6455Client implements Client
             $rsv = ($firstByte & 0b01110000) >> 4;
             $opcode = $firstByte & 0b00001111;
             $isMasked = (bool) ($secondByte & 0b10000000);
-            $maskingKey = null;
+            $maskingKey = '';
             $frameLength = $secondByte & 0b01111111;
 
             if ($opcode >= 3 && $opcode <= 7) {
@@ -916,6 +922,7 @@ final class Rfc6455Client implements Client
             }
 
             if ($compressed) {
+                /** @psalm-suppress PossiblyNullReference */
                 $payload = $compressionContext->decompress($payload, $final);
 
                 if ($payload === null) { // Decompression failed.
@@ -941,6 +948,7 @@ final class Rfc6455Client implements Client
                     }
                 }
 
+                /** @psalm-suppress PossiblyUndefinedVariable Defined in either condition above. */
                 if (!$valid) {
                     $this->onError(
                         Code::INCONSISTENT_FRAME_DATA_TYPE,

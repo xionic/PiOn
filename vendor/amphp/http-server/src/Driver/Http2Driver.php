@@ -341,7 +341,9 @@ final class Http2Driver implements HttpDriver, Http2Processor
                 return;
             }
 
-            $this->releaseStream($id);
+            if ($this->streams[$id]->state & Http2Stream::REMOTE_CLOSED) {
+                $this->releaseStream($id);
+            }
         }
     }
 
@@ -484,6 +486,8 @@ final class Http2Driver implements HttpDriver, Http2Processor
 
     private function writeFrame(string $data, int $type, int $flags, int $stream = 0): Promise
     {
+        \assert(Http2Parser::logDebugFrame('send', $type, $flags, $stream, \strlen($data)));
+
         return ($this->write)(\substr(\pack("NccN", \strlen($data), $type, $flags, $stream), 1) . $data);
     }
 
@@ -1085,12 +1089,14 @@ final class Http2Driver implements HttpDriver, Http2Processor
                 }
 
                 $increment = \min(
-                    $stream->maxBodySize - $stream->received - $stream->serverWindow,
+                    $stream->maxBodySize + 1 - $stream->received - $stream->serverWindow,
                     self::MAX_INCREMENT
                 );
+
                 if ($increment <= 0) {
                     return;
                 }
+
                 $stream->serverWindow += $increment;
 
                 $this->writeFrame(
@@ -1121,17 +1127,28 @@ final class Http2Driver implements HttpDriver, Http2Processor
             );
         }
 
-        if (!isset($this->bodyEmitters[$streamId], $this->trailerDeferreds[$streamId])) {
-            return; // Stream closed after emitting body fragment.
+        try {
+            if (!isset($this->bodyEmitters[$streamId], $this->trailerDeferreds[$streamId])) {
+                return; // Stream closed after emitting body fragment.
+            }
+
+            $deferred = $this->trailerDeferreds[$streamId];
+            $emitter = $this->bodyEmitters[$streamId];
+
+            unset($this->bodyEmitters[$streamId], $this->trailerDeferreds[$streamId]);
+
+            $emitter->complete();
+            $deferred->resolve([]);
+        } finally {
+            if (!isset($this->streams[$streamId])) {
+                return; // Stream may have closed after resolving body emitter or trailers deferred.
+            }
+
+            // Close stream only if also locally closed and there is no buffer remaining to write.
+            if ($stream->state & Http2Stream::LOCAL_CLOSED && $stream->buffer === "") {
+                $this->releaseStream($streamId);
+            }
         }
-
-        $deferred = $this->trailerDeferreds[$streamId];
-        $emitter = $this->bodyEmitters[$streamId];
-
-        unset($this->bodyEmitters[$streamId], $this->trailerDeferreds[$streamId]);
-
-        $emitter->complete();
-        $deferred->resolve([]);
     }
 
     public function handlePushPromise(int $streamId, int $pushId, array $pseudo, array $headers): void

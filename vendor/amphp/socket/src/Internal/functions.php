@@ -72,7 +72,7 @@ function parseUri(string $uri): array
  * @param array             $options
  * @param CancellationToken $cancellationToken
  *
- * @return Promise
+ * @return Promise<void>
  *
  * @internal
  */
@@ -86,17 +86,26 @@ function setupTls($socket, array $options, ?CancellationToken $cancellationToken
 
     \error_clear_last();
     \stream_context_set_option($socket, $options);
-    $result = @\stream_socket_enable_crypto($socket, $enable = true);
+
+    try {
+        \set_error_handler(static function (int $errno, string $errstr) {
+            new TlsException('TLS negotiation failed: ' . $errstr);
+        });
+
+        $result = \stream_socket_enable_crypto($socket, $enable = true);
+        if ($result === false) {
+            throw new TlsException('TLS negotiation failed: Unknown error');
+        }
+    } catch (TlsException $e) {
+        return new Failure($e);
+    } finally {
+        \restore_error_handler();
+    }
 
     // Yes, that function can return true / false / 0, don't use weak comparisons.
     if ($result === true) {
-        return new Success($socket);
-    }
-
-    if ($result === false) {
-        return new Failure(new TlsException(
-            'TLS negotiation failed: ' . (\error_get_last()['message'] ?? 'Unknown error')
-        ));
+        /** @psalm-suppress InvalidReturnStatement */
+        return new Success;
     }
 
     return call(static function () use ($socket, $cancellationToken) {
@@ -115,19 +124,37 @@ function setupTls($socket, array $options, ?CancellationToken $cancellationToken
             $cancellationToken,
             $id
         ) {
-            $result = @\stream_socket_enable_crypto($socket, true);
+            try {
+                try {
+                    \set_error_handler(static function (int $errno, string $errstr) use ($socket) {
+                        if (\feof($socket)) {
+                            $errstr = 'Connection reset by peer';
+                        }
+
+                        throw new TlsException('TLS negotiation failed: ' . $errstr);
+                    });
+
+                    $result = \stream_socket_enable_crypto($socket, true);
+                    if ($result === false) {
+                        $message = \feof($socket) ? 'Connection reset by peer' : 'Unknown error';
+                        throw new TlsException('TLS negotiation failed: ' . $message);
+                    }
+                } finally {
+                    \restore_error_handler();
+                }
+            } catch (TlsException $e) {
+                Loop::cancel($watcher);
+                $cancellationToken->unsubscribe($id);
+                $deferred->fail($e);
+
+                return;
+            }
 
             // If $result is 0, just wait for the next invocation
             if ($result === true) {
                 Loop::cancel($watcher);
                 $cancellationToken->unsubscribe($id);
                 $deferred->resolve();
-            } elseif ($result === false) {
-                Loop::cancel($watcher);
-                $cancellationToken->unsubscribe($id);
-                $deferred->fail(new TlsException('TLS negotiation failed: ' . (\feof($socket)
-                        ? 'Connection reset by peer'
-                        : \error_get_last()['message'])));
             }
         }, $deferred);
 
@@ -140,9 +167,10 @@ function setupTls($socket, array $options, ?CancellationToken $cancellationToken
  *
  * @param resource $socket
  *
- * @return Promise
+ * @return Promise<void>
  *
  * @internal
+ * @psalm-suppress InvalidReturnType
  */
 function shutdownTls($socket): Promise
 {
@@ -150,6 +178,7 @@ function shutdownTls($socket): Promise
     // don't set _enabled to false, TLS can be setup only once
     @\stream_socket_enable_crypto($socket, false);
 
+    /** @psalm-suppress InvalidReturnStatement */
     return new Success;
 }
 
@@ -168,7 +197,7 @@ function normalizeBindToOption(string $bindTo = null)
         return null;
     }
 
-    if (\preg_match("/\\[(?P<ip>[0-9a-f:]+)\\](:(?P<port>\\d+))?$/", $bindTo ?? '', $match)) {
+    if (\preg_match("/\\[(?P<ip>[0-9a-f:]+)\\](:(?P<port>\\d+))?$/", $bindTo, $match)) {
         $ip = $match['ip'];
         $port = $match['port'] ?? 0;
 
@@ -183,7 +212,7 @@ function normalizeBindToOption(string $bindTo = null)
         return "[{$ip}]:{$port}";
     }
 
-    if (\preg_match("/(?P<ip>\\d+\\.\\d+\\.\\d+\\.\\d+)(:(?P<port>\\d+))?$/", $bindTo ?? '', $match)) {
+    if (\preg_match("/(?P<ip>\\d+\\.\\d+\\.\\d+\\.\\d+)(:(?P<port>\\d+))?$/", $bindTo, $match)) {
         $ip = $match['ip'];
         $port = $match['port'] ?? 0;
 

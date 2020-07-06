@@ -6,6 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'slavino\\tplinkhs110\\TPLinkHS110Command' => $vendorDir . '/slavino/tplinkhs110/src/TPLinkHS110Command.php',
-    'slavino\\tplinkhs110\\TPLinkHS110Device' => $vendorDir . '/slavino/tplinkhs110/src/TPLinkHS110Device.php',
+    'slavino\\tplinkhs110\\TPLinkHS110Command' => $vendorDir . '/xionic/tplinkhs110/src/TPLinkHS110Command.php',
+    'slavino\\tplinkhs110\\TPLinkHS110Device' => $vendorDir . '/xionic/tplinkhs110/src/TPLinkHS110Device.php',
 );

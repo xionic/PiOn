@@ -396,7 +396,12 @@ final class RemoteClient implements Client
             }
         } catch (\Throwable $exception) {
             // Parser *should not* throw an exception, but in case it does...
-            $this->logger->critical($exception);
+            $errorType = \get_class($exception);
+            $this->logger->critical(
+                "Unexpected {$errorType} while parsing request, closing connection.",
+                ['exception' => $exception]
+            );
+
             $this->close();
         }
     }
@@ -575,6 +580,9 @@ final class RemoteClient implements Client
      */
     private function respond(Request $request, string $buffer): \Generator
     {
+        $clientRequest = $request;
+        $request = clone $request;
+
         $this->pendingHandlers++;
         $this->pendingResponses++;
 
@@ -590,7 +598,7 @@ final class RemoteClient implements Client
             } elseif ($method === "OPTIONS" && $request->getUri()->getPath() === "") {
                 $response = $this->makeOptionsResponse();
             } else {
-                $response = yield $this->requestHandler->handleRequest(clone $request);
+                $response = yield $this->requestHandler->handleRequest($request);
 
                 if (!$response instanceof Response) {
                     throw new \Error(\sprintf(
@@ -605,7 +613,12 @@ final class RemoteClient implements Client
             $this->close();
             return;
         } catch (\Throwable $exception) {
-            $this->logger->error($exception);
+            $errorType = \get_class($exception);
+            $this->logger->error(
+                "Unexpected {$errorType} thrown from RequestHandler::handleRequest(), falling back to error handler.",
+                $this->createLogContext($exception, $request)
+            );
+
             $response = yield from $this->makeExceptionResponse($request);
         } finally {
             $this->pendingHandlers--;
@@ -615,7 +628,7 @@ final class RemoteClient implements Client
             return; // Client closed before response could be sent.
         }
 
-        $promise = $this->httpDriver->write($request, $response);
+        $promise = $this->httpDriver->write($clientRequest, $response);
 
         $promise->onResolve(function (): void {
             $this->pendingResponses--;
@@ -657,8 +670,12 @@ final class RemoteClient implements Client
         try {
             return yield $this->errorHandler->handleError($status, null, $request);
         } catch (\Throwable $exception) {
-            // If the error handler throws, fallback to returning the default HTML error page.
-            $this->logger->error($exception);
+            // If the error handler throws, fallback to returning the default error page.
+            $errorType = \get_class($exception);
+            $this->logger->error(
+                "Unexpected {$errorType} thrown from ErrorHandler::handleError(), falling back to default error handler.",
+                $this->createLogContext($exception, $request)
+            );
 
             // The default error handler will never throw, otherwise there's a bug
             return yield self::$defaultErrorHandler->handleError($status, null, $request);
@@ -686,12 +703,17 @@ final class RemoteClient implements Client
         $socket = ResourceSocket::fromServerSocket($this->socket, $this->options->getChunkSize());
         $socket = new UpgradedSocket($this, $socket, $buffer);
 
-        call($upgrade, $socket, $request, $response)->onResolve(function (?\Throwable $exception): void {
+        call($upgrade, $socket, $request, $response)->onResolve(function (?\Throwable $exception) use ($request): void {
             if (!$exception) {
                 return;
             }
 
-            $this->logger->error($exception);
+            $errorType = \get_class($exception);
+            $this->logger->error(
+                "Unexpected {$errorType} thrown during socket upgrade, closing connection.",
+                $this->createLogContext($exception, $request)
+            );
+
             $this->close();
         });
     }
@@ -703,5 +725,15 @@ final class RemoteClient implements Client
         $message = \str_replace('. OpenSSL Error messages', '', $message);
 
         return $message;
+    }
+
+    private function createLogContext(\Throwable $exception, Request $request): array
+    {
+        $logContext = ['exception' => $exception];
+        if ($this->options->isRequestLogContextEnabled()) {
+            $logContext['request'] = $request;
+        }
+
+        return $logContext;
     }
 }
