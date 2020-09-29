@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" type="text/css" href="style.css">
@@ -15,6 +16,17 @@
 	<script type="module" src="main.js"></script>
 	<script type="module" src="modules.js"></script>	
 	<script type="text/javascript" src="sitemap.js"></script>
+
+	<script type="text/javascript">
+		var src = '//cdn.jsdelivr.net/npm/eruda';
+		if (!/eruda=true/.test(window.location) && localStorage.getItem('active-eruda') != 'true') {
+
+		} else {
+			document.write('<scr' + 'ipt src="' + src + '"></scr' + 'ipt>');
+			document.write('<scr' + 'ipt>eruda.init();</scr' + 'ipt>');
+		}
+	
+	</script>
 
 </head>
 <body>
