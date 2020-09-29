@@ -38,7 +38,7 @@ class HardwareTPLinkSwitch extends Hardware {
    }
 
    function hardware_set(Session $session, Object $item_args, Value $value): Promise {//Value
-        return \Amp\call(function() use($session, $item_args){	
+        return \Amp\call(function() use($session, $item_args, $value){	
                 
         /* $this->tp_device = new TPLinkHS110Device([
                 "ipAddr" => $item_args->host,

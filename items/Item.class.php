@@ -34,10 +34,7 @@ abstract class Item {
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node		
 				plog("Item GET '" . $this->name . "' is local", VERBOSE, $session);
 				
-				$item_value = null;
-				if($this->name == "Nick Heater"){
-					var_dump("tets");
-				}
+				$item_value = null;				
 
 				try{
 					$item_value = yield $this->get_value_local($session);
