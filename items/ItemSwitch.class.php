@@ -3,6 +3,7 @@ namespace PiOn\Item;
 
 use \Pion\Hardware\Hardware as Hardware;
 use \PiOn\Session;
+use\PiOn\Item\Value;
 
 use \Amp\Promise;
 use \Amp\Success;
@@ -13,6 +14,7 @@ class ItemSwitch extends Item {
 	
 	protected function get_value_local(Session $session): Promise {//Value
 		return \Amp\call(function() use($session){
+		
 			if($this->hardware != null){
 				$this->state = intval(yield $this->hardware->get($session, $this->hardware_args));
 				//var_dump($this->state);
@@ -21,7 +23,7 @@ class ItemSwitch extends Item {
 					"certainty" => Value::UNCERTAIN,
 				]);
 			} else {
-				new Value($this->state);
+				return new Value($this->state);
 			}
 		});
 	}
@@ -42,8 +44,6 @@ class ItemSwitch extends Item {
 		});
 		
 	}
-
-	
 }
 
 ?>

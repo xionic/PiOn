@@ -491,7 +491,7 @@ namespace Amp\Promise
         }
 
         $pending = \count($promises);
-var_dump("pending $pending");
+
         if ($required > $pending) {
             throw new \Error("Too few promises provided");
         }

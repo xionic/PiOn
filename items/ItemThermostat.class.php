@@ -7,6 +7,7 @@ use \PiOn\Event\EventManager;
 use \PiOn\Event\Scheduler;
 use \PiOn\Event\FixedIntervalTimer;
 use \PiOn\Session;
+use \Pion\InvalidArgException;
 
 use \xionic\Argh\Argh;
 
@@ -32,12 +33,20 @@ class ItemThermostat extends Item {
 	private $temp_item;
 	private $setpoint;
 	
-	public function init(){
+	/**
+	 * @Return false on failure to init Item, otherwise true
+	 */
+	public function init(): bool{
 		
-		$this->state_switch = get_item($this->item_args->switch_item);
-		$this->heater_switch = get_item($this->item_args->heater_item);
-		$this->temp_item = get_item($this->item_args->temp_item);
-		$this->setpoint = get_item($this->item_args->setpoint_item);
+		try{
+			$this->state_switch = get_item($this->item_args->switch_item);
+			$this->heater_switch = get_item($this->item_args->heater_item);
+			$this->temp_item = get_item($this->item_args->temp_item);
+			$this->setpoint = get_item($this->item_args->setpoint_item);
+		} catch (InvalidArgException $iae){
+			plog("ItemThermostat init failure: " . $iae->getMessage(), FATAL, Session::$INTERNAL);
+			return false;
+		}
 
 		$temp_update_interval = property_exists($this->item_args, "update_interval") ? $this->item_args -> update_interval : 30;
 		
@@ -67,7 +76,7 @@ class ItemThermostat extends Item {
 				yield $this->temp_item->get_value(Session::$INTERNAL);				
 			});
 		});
-		
+		return true;
 	}
 
 	/**

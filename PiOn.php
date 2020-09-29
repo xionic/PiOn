@@ -144,6 +144,14 @@
 			}
 		}
 	}
+
+	function passert( $cond, \PiOn\Session $session, String $message = ""): void{
+		if(!$cond){
+			$d = debug_backtrace();
+			plog("passert FAILED at: " . $d[0]["file"] . ":" . $d[0]["line"] . " $message", FATAL, $session);
+		}
+	}
+
 	function get_model(): Model{
 		global $model;
 		return $model;

@@ -264,7 +264,6 @@ class NativeDriver extends Driver
     protected function activate(array $watchers)
     {
         foreach ($watchers as $watcher) {
-            var_dump(watcher);
             switch ($watcher->type) {
                 case Watcher::READABLE:
                     \assert(\is_resource($watcher->value));

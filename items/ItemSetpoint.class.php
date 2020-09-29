@@ -11,8 +11,9 @@ class ItemSetpoint extends Item{
 	private $setpoint = 22; //default
 	public const type = "Setpoint";
 	
-	function init(){
+	function init(): bool{
 		$this->last_value = new Value($this->setpoint);
+		return true;
 	}
 	
 	function get_value_local(Session $session): Promise {

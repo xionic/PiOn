@@ -98,7 +98,7 @@ class WebSocketClientHandler implements ClientHandler{
                                             $this->subscriptions[$item_name][$event_name][$client->getId()] = null;
                                         }
                                     }
-                                    var_dump($sub_message);
+                                    //var_dump($sub_message);
                                     if($sub_message->get_now == SubscribeMessage::REQUEST_ALL){
                                         plog("client requested values of all items", DEBUG, $session);
                                         $resp_rest_message = yield $this->request_all($session, $client);
@@ -172,12 +172,13 @@ class WebSocketClientHandler implements ClientHandler{
                     continue;
                 }
             }
-            var_dump($proms);
-            $results = yield \Amp\Promise\some($proms, 1);
-            $failed = $results[0];
-            $succeeded = $results[1];
-            foreach($succeeded as $item_name => $value){
-                $item_messages[] = new ItemMessage($item_name, ItemMessage::GET, $value);
+            if(count($proms)){
+                $results = yield \Amp\Promise\some($proms, 1);
+                $failed = $results[0];
+                $succeeded = $results[1];
+                foreach($succeeded as $item_name => $value){
+                    $item_messages[] = new ItemMessage($item_name, ItemMessage::GET, $value);
+                }
             }
             return new RestMessage(RestMessage::RESP, RestMessage::REST_CONTEXT_ITEMS, NODE_NAME, null, null, $item_messages);
         });

@@ -35,6 +35,9 @@ abstract class Item {
 				plog("Item GET '" . $this->name . "' is local", VERBOSE, $session);
 				
 				$item_value = null;
+				if($this->name == "Nick Heater"){
+					var_dump("tets");
+				}
 
 				try{
 					$item_value = yield $this->get_value_local($session);
@@ -50,8 +53,10 @@ abstract class Item {
 						$item_value = new Value(null, true, "GET not supported and last_value not yet set", time(), Value::CERTAIN);
 					}
 					//var_dump($resp_item_message);
-				}				
-				
+				}
+
+				passert($item_value instanceof \PiOn\Item\Value, Session::$INTERNAL);
+
 				//fire item change event if needed	
 				$newval = $item_value->data;
 				$oldval = $this->last_value->data;	
@@ -148,6 +153,10 @@ abstract class Item {
 			"item_args" => ["obj"],			
 		]);*/
 		return $item;
+	}
+
+	public function init(): bool{
+		return true;
 	}
 	
 	//abstract protected function init(): Promise;

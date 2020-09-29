@@ -104,7 +104,9 @@ class Model {
 		$init_promises = [];
 		foreach($this->items as $item){	
 			if(method_exists($item, "init")){
-				$item->init();
+				if(!$item->init()){
+					plog("Failed to init item with name: '" . $item->name . "'"  , FATAL, Session::$INTERNAL);
+				}
 			}
 		}
 		//\Amp\Promise\wait(\Amp\Promise\all($init_promises));

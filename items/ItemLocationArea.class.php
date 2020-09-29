@@ -20,7 +20,7 @@ class ItemLocationArea extends Item{
 	private $location;
 	private $find_ws;
 
-	function init(): void {
+	function init(): bool {
 		\Amp\call(function() {
 			plog("ItemLocationArea ({$this->name}) connecting websocket to {$this->item_args->websocket_url}", VERBOSE, Session::$INTERNAL);
 			$find_ws = yield connect($this->item_args->websocket_url);
@@ -44,6 +44,7 @@ class ItemLocationArea extends Item{
 				EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_VALUE_CHANGED, $this->name, new Value($this->location)));	
 			}
 		});
+		return true;
 	}
 	
 	protected function get_value_local(Session $session): Promise {
