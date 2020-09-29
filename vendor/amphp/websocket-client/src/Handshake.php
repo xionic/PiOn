@@ -2,6 +2,7 @@
 
 namespace Amp\Websocket\Client;
 
+use Amp\Http\Client\Request;
 use Amp\Http\Message;
 use Amp\Websocket\Options;
 use League\Uri;
@@ -15,6 +16,15 @@ final class Handshake extends Message
     /** @var Options */
     private $options;
 
+    /** @var int */
+    private $tcpConnectTimeout = 10000;
+
+    /** @var int */
+    private $tlsHandshakeTimeout = 10000;
+
+    /** @var int */
+    private $headerSizeLimit = Request::DEFAULT_HEADER_SIZE_LIMIT;
+
     /**
      * @param string|PsrUri       $uri target address of websocket (e.g. ws://foo.bar/bar or a
      *                                 wss://crypto.example/?secureConnection) or a PsrUri instance.
@@ -22,7 +32,6 @@ final class Handshake extends Message
      * @param string[]|string[][] $headers
      *
      * @throws \TypeError If $uri is not a string or an instance of PsrUri.
-     * @throws \Error If compression is enabled in the options but the zlib extension is not installed.
      */
     public function __construct($uri, ?Options $options = null, array $headers = [])
     {
@@ -40,7 +49,7 @@ final class Handshake extends Message
     }
 
     /**
-     * @param $uri string|PsrUri
+     * @param string|PsrUri $uri
      *
      * @return self Cloned object
      */
@@ -50,32 +59,6 @@ final class Handshake extends Message
         $clone->uri = $clone->makeUri($uri);
 
         return $clone;
-    }
-
-    private function makeUri($uri): PsrUri
-    {
-        if (\is_string($uri)) {
-            try {
-                $uri = Uri\Http::createFromString($uri);
-            } catch (\Exception $exception) {
-                throw new \Error('Invalid Websocket URI provided', 0, $exception);
-            }
-        }
-
-        if (!$uri instanceof PsrUri) {
-            throw new \TypeError(\sprintf('Must provide an instance of %s or a websocket URI as a string', PsrUri::class));
-        }
-
-        switch ($uri->getScheme()) {
-            case 'ws':
-            case 'wss':
-                break;
-
-            default:
-                throw new \Error('The URI scheme must be ws or wss');
-        }
-
-        return $uri;
     }
 
     /**
@@ -99,17 +82,49 @@ final class Handshake extends Message
         return $clone;
     }
 
-    private function checkOptions(?Options $options): Options
+    /**
+     * @return int Timeout in milliseconds for the TCP connection.
+     */
+    public function getTcpConnectTimeout(): int
     {
-        if ($options === null) {
-            return Options::createClientDefault();
-        }
+        return $this->tcpConnectTimeout;
+    }
 
-        if ($options->isCompressionEnabled() && !\extension_loaded('zlib')) {
-            throw new \Error('Compression is enabled in options, but the zlib extension is not loaded');
-        }
+    public function withTcpConnectTimeout(int $tcpConnectTimeout): self
+    {
+        $clone = clone $this;
+        $clone->tcpConnectTimeout = $tcpConnectTimeout;
 
-        return $options;
+        return $clone;
+    }
+
+    /**
+     * @return int Timeout in milliseconds for the TLS handshake.
+     */
+    public function getTlsHandshakeTimeout(): int
+    {
+        return $this->tlsHandshakeTimeout;
+    }
+
+    public function withTlsHandshakeTimeout(int $tlsHandshakeTimeout): self
+    {
+        $clone = clone $this;
+        $clone->tlsHandshakeTimeout = $tlsHandshakeTimeout;
+
+        return $clone;
+    }
+
+    public function getHeaderSizeLimit(): int
+    {
+        return $this->headerSizeLimit;
+    }
+
+    public function withHeaderSizeLimit(int $headerSizeLimit): self
+    {
+        $clone = clone $this;
+        $clone->headerSizeLimit = $headerSizeLimit;
+
+        return $clone;
     }
 
     /**
@@ -122,6 +137,11 @@ final class Handshake extends Message
     public function withHeaders(array $headers): self
     {
         $clone = clone $this;
+
+        foreach ($clone->getRawHeaders() as [$field]) {
+            $clone->removeHeader($field);
+        }
+
         $clone->setHeaders($headers);
 
         return $clone;
@@ -176,7 +196,7 @@ final class Handshake extends Message
 
     protected function setHeader(string $name, $value): void
     {
-        if (($name[0] === ':') === ':') {
+        if (($name[0] ?? ':') === ':') {
             throw new \Error("Header name cannot be empty or start with a colon (:)");
         }
 
@@ -185,10 +205,54 @@ final class Handshake extends Message
 
     protected function addHeader(string $name, $value): void
     {
-        if (($name[0] === ':') === ':') {
+        if (($name[0] ?? ':') === ':') {
             throw new \Error("Header name cannot be empty or start with a colon (:)");
         }
 
         parent::addHeader($name, $value);
+    }
+
+    /**
+     * @param string|PsrUri $uri
+     *
+     * @return PsrUri
+     */
+    private function makeUri($uri): PsrUri
+    {
+        if (\is_string($uri)) {
+            try {
+                $uri = Uri\Http::createFromString($uri);
+            } catch (\Exception $exception) {
+                throw new \Error('Invalid Websocket URI provided', 0, $exception);
+            }
+        }
+
+        /** @psalm-suppress DocblockTypeContradiction */
+        if (!$uri instanceof PsrUri) {
+            throw new \TypeError(\sprintf(
+                'Must provide an instance of %s or a websocket URI as a string',
+                PsrUri::class
+            ));
+        }
+
+        switch ($uri->getScheme()) {
+            case 'ws':
+            case 'wss':
+                break;
+
+            default:
+                throw new \Error('The URI scheme must be ws or wss: \'' . $uri->getScheme() . '\'');
+        }
+
+        return $uri;
+    }
+
+    private function checkOptions(?Options $options): Options
+    {
+        if ($options === null) {
+            return Options::createClientDefault();
+        }
+
+        return $options;
     }
 }

@@ -15,8 +15,7 @@ composer require amphp/websocket-server
 
 ## Documentation
 
-The documentation for this library is currently a work in progress. Pull Requests to improve the documentation 
-are always welcome!
+The documentation for this library is currently a work in progress. Pull Requests to improve the documentation are always welcome!
 
 ## Requirements
 
@@ -45,6 +44,8 @@ use Amp\Socket\Server as SocketServer;
 use Amp\Success;
 use Amp\Websocket\Client;
 use Amp\Websocket\Message;
+use Amp\Websocket\Server\ClientHandler;
+use Amp\Websocket\Server\Endpoint;
 use Amp\Websocket\Server\Websocket;
 use Monolog\Logger;
 use function Amp\ByteStream\getStdout;
@@ -52,26 +53,36 @@ use function Amp\call;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$websocket = new class extends Websocket {
-    public function handleHandshake(Request $request, Response $response): Promise
+$websocket = new Websocket(new class implements ClientHandler {
+    private const ALLOWED_ORIGINS = [
+        'http://localhost:1337',
+        'http://127.0.0.1:1337',
+        'http://[::1]:1337'
+    ];
+    
+    public function handleHandshake(Endpoint $endpoint, Request $request, Response $response): Promise
     {
-        if (!\in_array($request->getHeader('origin'), ['http://localhost:1337', 'http://127.0.0.1:1337', 'http://[::1]:1337'], true)) {
-            $response->setStatus(403);
+        if (!\in_array($request->getHeader('origin'), self::ALLOWED_ORIGINS, true)) {
+            return $endpoint->getErrorHandler()->handleError(403);
         }
 
         return new Success($response);
     }
 
-    public function handleClient(Client $client, Request $request, Response $response): Promise
+    public function handleClient(Endpoint $endpoint, Client $client, Request $request, Response $response): Promise
     {
-        return call(function() use ($client): \Generator {
+        return call(function () use ($endpoint, $client): \Generator {
             while ($message = yield $client->receive()) {
                 \assert($message instanceof Message);
-                $this->broadcast(\sprintf('%d: %s', $client->getId(), yield $message->buffer()));
+                $endpoint->broadcast(\sprintf(
+                    '%d: %s',
+                    $client->getId(),
+                    yield $message->buffer()
+                ));
             }
-        });  
+        });
     }
-};
+});
 
 Loop::run(function () use ($websocket): Promise {
     $sockets = [

@@ -31,9 +31,6 @@ class NativeDriver extends Driver
     /** @var Watcher[][] */
     private $signalWatchers = [];
 
-    /** @var bool */
-    private $nowUpdateNeeded = false;
-
     /** @var int Internal timestamp for now. */
     private $now;
 
@@ -71,10 +68,7 @@ class NativeDriver extends Driver
      */
     public function now(): int
     {
-        if ($this->nowUpdateNeeded) {
-            $this->now = getCurrentTime() - $this->nowOffset;
-            $this->nowUpdateNeeded = false;
-        }
+        $this->now = getCurrentTime() - $this->nowOffset;
 
         return $this->now;
     }
@@ -96,51 +90,39 @@ class NativeDriver extends Driver
      */
     protected function dispatch(bool $blocking)
     {
-        $this->nowUpdateNeeded = true;
-
         $this->selectStreams(
             $this->readStreams,
             $this->writeStreams,
             $blocking ? $this->getTimeout() : 0
         );
 
-        $scheduleQueue = [];
+        $now = $this->now();
 
-        try {
-            $now = $this->now();
-
-            while ($watcher = $this->timerQueue->extract($now)) {
-                if ($watcher->type & Watcher::REPEAT) {
-                    $expiration = $now + $watcher->value;
-                    $scheduleQueue[] = [$watcher, $expiration];
-                } else {
-                    $this->cancel($watcher->id);
-                }
-
-                try {
-                    // Execute the timer.
-                    $result = ($watcher->callback)($watcher->id, $watcher->data);
-
-                    if ($result === null) {
-                        continue;
-                    }
-
-                    if ($result instanceof \Generator) {
-                        $result = new Coroutine($result);
-                    }
-
-                    if ($result instanceof Promise || $result instanceof ReactPromise) {
-                        rethrow($result);
-                    }
-                } catch (\Throwable $exception) {
-                    $this->error($exception);
-                }
+        while ($watcher = $this->timerQueue->extract($now)) {
+            if ($watcher->type & Watcher::REPEAT) {
+                $watcher->enabled = false; // Trick base class into adding to enable queue when calling enable()
+                $this->enable($watcher->id);
+            } else {
+                $this->cancel($watcher->id);
             }
-        } finally {
-            foreach ($scheduleQueue as list($watcher, $expiration)) {
-                if ($watcher->enabled) {
-                    $this->timerQueue->insert($watcher, $expiration);
+
+            try {
+                // Execute the timer.
+                $result = ($watcher->callback)($watcher->id, $watcher->data);
+
+                if ($result === null) {
+                    continue;
                 }
+
+                if ($result instanceof \Generator) {
+                    $result = new Coroutine($result);
+                }
+
+                if ($result instanceof Promise || $result instanceof ReactPromise) {
+                    rethrow($result);
+                }
+            } catch (\Throwable $exception) {
+                $this->error($exception);
             }
         }
 
@@ -282,6 +264,7 @@ class NativeDriver extends Driver
     protected function activate(array $watchers)
     {
         foreach ($watchers as $watcher) {
+            var_dump(watcher);
             switch ($watcher->type) {
                 case Watcher::READABLE:
                     \assert(\is_resource($watcher->value));
@@ -302,9 +285,7 @@ class NativeDriver extends Driver
                 case Watcher::DELAY:
                 case Watcher::REPEAT:
                     \assert(\is_int($watcher->value));
-
-                    $expiration = $this->now() + $watcher->value;
-                    $this->timerQueue->insert($watcher, $expiration);
+                    $this->timerQueue->insert($watcher);
                     break;
 
                 case Watcher::SIGNAL:

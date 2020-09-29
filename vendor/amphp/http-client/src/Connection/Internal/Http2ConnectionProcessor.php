@@ -81,10 +81,10 @@ final class Http2ConnectionProcessor implements Http2Processor
     private $streamId = -1;
 
     /** @var int Maximum number of streams that may be opened. Initially unlimited. */
-    private $concurrentStreamLimit = \PHP_INT_MAX;
+    private $concurrentStreamLimit = 2147483647;
 
     /** @var int Currently open or reserved streams. Initially unlimited. */
-    private $remainingStreams = \PHP_INT_MAX;
+    private $remainingStreams = 2147483647;
 
     /** @var HPack */
     private $hpack;
@@ -520,6 +520,15 @@ final class Http2ConnectionProcessor implements Http2Processor
 
     public function handlePushPromise(int $parentId, int $streamId, array $pseudo, array $headers): void
     {
+        if ($streamId % 2 === 1) {
+            $this->handleConnectionException(new Http2ConnectionException(
+                "Invalid server initiated stream",
+                Http2Parser::PROTOCOL_ERROR
+            ));
+
+            return;
+        }
+
         foreach ($pseudo as $name => $value) {
             if (!isset(Http2Parser::KNOWN_REQUEST_PSEUDO_HEADERS[$name])) {
                 throw new Http2StreamException(
@@ -899,6 +908,8 @@ final class Http2ConnectionProcessor implements Http2Processor
     public function unreserveStream(): void
     {
         ++$this->remainingStreams;
+
+        \assert($this->remainingStreams <= $this->concurrentStreamLimit);
     }
 
     public function getRemainingStreams(): int
@@ -1180,7 +1191,7 @@ final class Http2ConnectionProcessor implements Http2Processor
     {
         switch ($setting) {
             case Http2Parser::INITIAL_WINDOW_SIZE:
-                if ($value > 2147483647) { // (1 << 31) - 1
+                if ($value < 0 || $value > 2147483647) { // (1 << 31) - 1
                     $this->handleConnectionException(new Http2ConnectionException(
                         "Invalid window size: {$value}",
                         Http2Parser::FLOW_CONTROL_ERROR
@@ -1230,7 +1241,7 @@ final class Http2ConnectionProcessor implements Http2Processor
                 return;
 
             case Http2Parser::MAX_CONCURRENT_STREAMS:
-                if ($value > 2147483647) { // (1 << 31) - 1
+                if ($value < 0 || $value > 2147483647) { // (1 << 31) - 1
                     $this->handleConnectionException(new Http2ConnectionException(
                         "Invalid concurrent streams value: {$value}",
                         Http2Parser::PROTOCOL_ERROR
@@ -1243,6 +1254,9 @@ final class Http2ConnectionProcessor implements Http2Processor
 
                 $this->concurrentStreamLimit = $value;
                 $this->remainingStreams = $this->concurrentStreamLimit - $priorUsedStreams;
+
+                \assert($this->remainingStreams <= $this->concurrentStreamLimit);
+
                 return;
 
             case Http2Parser::HEADER_TABLE_SIZE: // TODO Respect this setting from the server
@@ -1352,6 +1366,14 @@ final class Http2ConnectionProcessor implements Http2Processor
 
         $stream = $this->streams[$streamId];
 
+        unset($this->streams[$streamId]);
+
+        if ($streamId & 1) { // Client-initiated stream.
+            $this->remainingStreams++;
+
+            \assert($this->remainingStreams <= $this->concurrentStreamLimit);
+        }
+
         if ($stream->responsePending || $stream->body || $stream->trailers) {
             /**
              * @psalm-suppress DeprecatedClass
@@ -1400,12 +1422,6 @@ final class Http2ConnectionProcessor implements Http2Processor
                     }
                 }
             });
-        }
-
-        unset($this->streams[$streamId]);
-
-        if ($streamId & 1) { // Client-initiated stream.
-            $this->remainingStreams++;
         }
 
         if (!$this->streams && !$this->socket->isClosed()) {

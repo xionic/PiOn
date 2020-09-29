@@ -77,7 +77,7 @@
 	//model initialisation
 	$model->init();
 
-	Loop::setErrorHandler(function (\Throwable $e) {
+	/*Loop::setErrorHandler(function (\Throwable $e) {
 		try {
 			throw $e;
 		} catch (\Amp\MultiReasonException $mre){
@@ -89,7 +89,7 @@
 			echo "error handler -> " . $e->getMessage() . PHP_EOL;
 		}
 	});
-	
+	*/
 
 	Loop::run(function() use ($this_node){
 		

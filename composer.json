@@ -1,18 +1,18 @@
 { "name": "xionic/pion", "type": "project", "minimum-stability": "dev", "prefer-stable" : true, "require": {
-        "amphp/amp": "^2.4",
-        "amphp/http-server": ">=2.0.0",
-        "amphp/log": "^1.1",
         "monolog/monolog": "^2.0",
-        "amphp/http-client": "^4.0",
         "seld/jsonlint": "^1.7",
-        "amphp/http-server-static-content": "^1.0",
-        "amphp/http-server-router": "^1.0",
         "xionic/Argh": "master",
 		"php": ">=7.3",
-        "amphp/websocket-server": "v2.0.0-rc2",
-        "amphp/socket": "^1.1",
-        "amphp/websocket-client": "1.0.0rc2",
-        "xionic/tplinkhs110": "master"
+        "xionic/tplinkhs110": "master",
+                "amphp/websocket-server": "^2.0",
+                "amphp/websocket-client": "^1.0",
+                "amphp/http-client": "^4.5",
+                "amphp/amp": "^2.5",
+                "amphp/http-server": "^2.1",
+                "amphp/log": "^1.1",
+                "amphp/http-server-static-content": "^1.0",
+                "amphp/http-server-router": "^1.0",
+                "amphp/socket": "^1.1"
     },
     "repositories": [{
 	 "type": "vcs",

@@ -14,7 +14,7 @@ var sitemap = {
   }, {
     "item_name": "Nick Room Temp",
     "type": "temperature",
-    "auth": true
+    "auth": false
   }, {
     "item_name": "Nick Thermo",
     "type": "thermostat",
@@ -37,12 +37,6 @@ var sitemap = {
   }, {
     "item_name": "Nick Fan",
     "type": "switch"
-  }, {
-    "item_name": "tplink plug 3",
-    "type": "switch"
-  }, {
-    "item_name": "tplink plug 4",
-    "type": "switch"
   }],
   "Living Room": [{
     "item_name": "Squares Lamp",
@@ -58,6 +52,34 @@ var sitemap = {
     "type": "switch"
   }, {
     "item_name": "Living Room Fan",
+    "type": "switch"
+  }],
+  "TP Link Plugs": [{
+    "item_name": "tplink plug 1",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 2",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 3",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 4",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 5",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 6",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 7",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 8",
+    "type": "switch"
+  }, {
+    "item_name": "tplink plug 9",
     "type": "switch"
   }]
 };

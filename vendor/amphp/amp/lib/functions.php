@@ -491,7 +491,7 @@ namespace Amp\Promise
         }
 
         $pending = \count($promises);
-
+var_dump("pending $pending");
         if ($required > $pending) {
             throw new \Error("Too few promises provided");
         }
@@ -760,6 +760,31 @@ namespace Amp\Iterator
         });
 
         return $emitter->iterate();
+    }
+
+    /**
+     * Discards all remaining items and returns the number of discarded items.
+     *
+     * @template TValue
+     *
+     * @param Iterator $iterator
+     *
+     * @return Promise
+     *
+     * @psalm-param Iterator<TValue> $iterator
+     * @psalm-return Promise<int>
+     */
+    function discard(Iterator $iterator): Promise
+    {
+        return call(static function () use ($iterator): \Generator {
+            $count = 0;
+
+            while (yield $iterator->advance()) {
+                $count++;
+            }
+
+            return $count;
+        });
     }
 
     /**

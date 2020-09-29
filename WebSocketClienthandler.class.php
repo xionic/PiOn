@@ -9,14 +9,15 @@ use \PiOn\RestMessage;
 use \PiOn\Item\ItemMessage;
 use \PiOn\SubscribeMessage;
 
-use Amp\Http\Server\Request;
-use Amp\Http\Server\Response;
+use \Amp\Http\Server\Request;
+use \Amp\Http\Server\Response;
 use \Amp\Http\Client\Connection\UnprocessedRequestException;
 use \Amp\Promise;
 use \Amp\Success;
 use \Amp\Websocket\Server\Websocket;
 use \Amp\Websocket\Client;
 use \Amp\Websocket\Server\ClientHandler;
+use \Amp\Websocket\Server\Gateway;
 use function \Amp\call;
 
 class WebSocketClientHandler implements ClientHandler{
@@ -63,11 +64,11 @@ class WebSocketClientHandler implements ClientHandler{
         return new Success;
     }
 
-    public function handleHandshake(Request $request, Response $response): Promise{
+    public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise{
         return new Success($response);
     }
 
-    public function handleClient(Client $client, Request $request, Response $response): Promise {
+    public function handleClient(Gateway $gateway, Client $client, Request $request, Response $response): Promise {
         $session  = new Session("ws:");
         $this->subscribers[$client->getId()] = $client;
         $this->subscribers[$client->getId()]->onClose(function($client, $close_clode, $close_reason) use ($session){
@@ -171,7 +172,8 @@ class WebSocketClientHandler implements ClientHandler{
                     continue;
                 }
             }
-            $results = yield \Amp\Promise\some($proms);
+            var_dump($proms);
+            $results = yield \Amp\Promise\some($proms, 1);
             $failed = $results[0];
             $succeeded = $results[1];
             foreach($succeeded as $item_name => $value){

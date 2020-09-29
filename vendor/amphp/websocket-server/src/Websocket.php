@@ -5,12 +5,13 @@ namespace Amp\Websocket\Server;
 use Amp\Coroutine;
 use Amp\Http\Server\Driver\UpgradedSocket;
 use Amp\Http\Server\ErrorHandler;
+use Amp\Http\Server\HttpServer;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
-use Amp\Http\Server\Server;
 use Amp\Http\Server\ServerObserver;
 use Amp\Http\Status;
+use Amp\MultiReasonException;
 use Amp\Promise;
 use Amp\Websocket\Client;
 use Amp\Websocket\ClosedException;
@@ -20,20 +21,24 @@ use Amp\Websocket\CompressionContextFactory;
 use Amp\Websocket\Options;
 use Amp\Websocket\Rfc7692CompressionFactory;
 use Psr\Log\LoggerInterface as PsrLogger;
+use function Amp\call;
 use function Amp\Websocket\generateAcceptFromKey;
 
-final class Websocket implements RequestHandler, ServerObserver
+final class Websocket implements Gateway, RequestHandler, ServerObserver
 {
     /** @var ClientHandler */
     private $clientHandler;
 
-    /** @var PsrLogger */
+    /** @var \SplObjectStorage WebsocketObserver storage */
+    private $observers;
+
+    /** @var PsrLogger|null */
     private $logger;
 
     /** @var Options */
     private $options;
 
-    /** @var ErrorHandler */
+    /** @var ErrorHandler|null */
     private $errorHandler;
 
     /** @var CompressionContextFactory */
@@ -42,7 +47,7 @@ final class Websocket implements RequestHandler, ServerObserver
     /** @var ClientFactory */
     private $clientFactory;
 
-    /** @var Client[] */
+    /** @var Client[] Indexed by client ID. */
     private $clients = [];
 
     /**
@@ -57,15 +62,29 @@ final class Websocket implements RequestHandler, ServerObserver
         ?CompressionContextFactory $compressionFactory = null,
         ?ClientFactory $clientFactory = null
     ) {
+        $this->observers = new \SplObjectStorage;
+
         $this->clientHandler = $clientHandler;
         $this->options = $options ?? Options::createServerDefault();
         $this->compressionFactory = $compressionFactory ?? new Rfc7692CompressionFactory;
         $this->clientFactory = $clientFactory ?? new Rfc6455ClientFactory;
+
+        if ($this->clientHandler instanceof WebsocketServerObserver) {
+            $this->observers->attach($this->clientHandler);
+        }
+
+        if ($this->clientFactory instanceof WebsocketServerObserver) {
+            $this->observers->attach($this->clientFactory);
+        }
+
+        if ($this->compressionFactory instanceof WebsocketServerObserver) {
+            $this->observers->attach($this->compressionFactory);
+        }
     }
 
     public function handleRequest(Request $request): Promise
     {
-        \assert($this->logger !== null, \sprintf(
+        \assert($this->logger !== null && $this->errorHandler !== null, \sprintf(
             "Can't handle WebSocket handshake because %s::onStart() was not called by the server",
             self::class
         ));
@@ -75,6 +94,9 @@ final class Websocket implements RequestHandler, ServerObserver
 
     private function respond(Request $request): \Generator
     {
+        // Ensure onStart() has been invoked and For Psalm.
+        \assert($this->logger !== null && $this->errorHandler !== null);
+
         /** @var Response $response */
         if ($request->getMethod() !== 'GET') {
             $response = yield $this->errorHandler->handleError(Status::METHOD_NOT_ALLOWED, null, $request);
@@ -142,8 +164,12 @@ final class Websocket implements RequestHandler, ServerObserver
             'sec-websocket-accept' => generateAcceptFromKey($acceptKey),
         ]);
 
-        $response = yield $this->clientHandler->handleHandshake($request, $response);
+        $response = yield $this->clientHandler->handleHandshake($this, $request, $response);
 
+        /**
+         * @psalm-suppress DocblockTypeContradiction $response is set by ClientHandler::handleHandshake() resolution
+         *                 and may not be the correct type.
+         */
         if (!$response instanceof Response) {
             throw new \Error(\sprintf(
                 'The promise returned by %s::handleHandshake() must resolve to an instance of %s, %s returned',
@@ -162,10 +188,11 @@ final class Websocket implements RequestHandler, ServerObserver
 
         $compressionContext = null;
         if ($this->options->isCompressionEnabled()) {
-            $extensions = \array_map('trim', \explode(',', $request->getHeader('sec-websocket-extensions')));
+            $extensions = \array_map('trim', \explode(',', (string) $request->getHeader('sec-websocket-extensions')));
 
             foreach ($extensions as $extension) {
                 if ($compressionContext = $this->compressionFactory->fromClientHeader($extension, $headerLine)) {
+                    /** @psalm-suppress PossiblyNullArgument */
                     $response->setHeader('sec-websocket-extensions', $headerLine);
                     break;
                 }
@@ -181,11 +208,20 @@ final class Websocket implements RequestHandler, ServerObserver
 
     private function reapClient(UpgradedSocket $socket, Request $request, Response $response, ?CompressionContext $compressionContext): Promise
     {
+        \assert($this->logger !== null); // For Psalm.
+
         $client = $this->clientFactory->createClient($request, $response, $socket, $this->options, $compressionContext);
 
-        // Setting via stream API doesn't seem to work...
-        if (\function_exists('socket_import_stream') && \defined('TCP_NODELAY')) {
-            $sock = \socket_import_stream($socket->getResource());
+        $socketResource = $socket->getResource();
+
+        // Setting via stream API doesn't work and TLS streams are not supported
+        // once TLS is enabled
+        $isNodelayChangeSupported = $socketResource !== null
+            && $socket->getTlsInfo() === null
+            && \function_exists('socket_import_stream')
+            && \defined('TCP_NODELAY');
+
+        if ($isNodelayChangeSupported && ($sock = \socket_import_stream($socketResource))) {
             /** @noinspection PhpComposerExtensionStubsInspection */
             @\socket_set_option($sock, \SOL_TCP, \TCP_NODELAY, 1); // error suppression for sockets which don't support the option
         }
@@ -193,8 +229,9 @@ final class Websocket implements RequestHandler, ServerObserver
         // @formatter:off
         /** @noinspection SuspiciousBinaryOperationInspection */
         \assert($this->logger->debug(\sprintf(
-            'Upgraded %s #%d to websocket connection',
-            $client->getRemoteAddress(),
+            'Upgraded %s #%d to websocket connection #%d',
+            $socket->getRemoteAddress()->toString(),
+            (int) $socketResource,
             $client->getId()
         )) || true);
         // @formatter:on
@@ -204,6 +241,8 @@ final class Websocket implements RequestHandler, ServerObserver
 
     private function runClient(Client $client, Request $request, Response $response): \Generator
     {
+        \assert($this->logger !== null); // For Psalm.
+
         $id = $client->getId();
         $this->clients[$id] = $client;
 
@@ -211,7 +250,7 @@ final class Websocket implements RequestHandler, ServerObserver
             $id = $client->getId();
             unset($this->clients[$id]);
 
-            if (!$client->didPeerInitiateClose()) {
+            if (!$client->isClosedByPeer()) {
                 return;
             }
 
@@ -223,6 +262,7 @@ final class Websocket implements RequestHandler, ServerObserver
                 case Code::MESSAGE_TOO_LARGE:
                 case Code::EXPECTED_EXTENSION_MISSING:
                 case Code::BAD_GATEWAY:
+                    \assert($this->logger !== null); // For Psalm.
                     $this->logger->notice(\sprintf(
                         'Client initiated websocket close reporting error (code: %d): %s',
                         $code,
@@ -232,7 +272,7 @@ final class Websocket implements RequestHandler, ServerObserver
         });
 
         try {
-            yield $this->clientHandler->handleClient($client, $request, $response);
+            yield $this->clientHandler->handleClient($this, $client, $request, $response);
         } catch (ClosedException $exception) {
             // Ignore ClosedExceptions thrown from closing the client while streaming a message.
         } catch (\Throwable $exception) {
@@ -252,8 +292,8 @@ final class Websocket implements RequestHandler, ServerObserver
      * @param string $data Data to send.
      * @param int[]  $exceptIds List of IDs to exclude from the broadcast.
      *
-     * @return Promise<[\Throwable[], int[]]> Resolves once the message has been sent to all clients. Note it is
-     *     generally undesirable to yield this promise in a coroutine.
+     * @return Promise<array> Resolves once the message has been sent to all clients. Note it is
+     *                        generally undesirable to yield this promise in a coroutine.
      */
     public function broadcast(string $data, array $exceptIds = []): Promise
     {
@@ -264,6 +304,7 @@ final class Websocket implements RequestHandler, ServerObserver
     {
         $exceptIdLookup = \array_flip($exceptIds);
 
+        /** @psalm-suppress DocblockTypeContradiction array_flip() can return null. */
         if ($exceptIdLookup === null) {
             throw new \Error('Unable to array_flip() the passed IDs');
         }
@@ -285,8 +326,8 @@ final class Websocket implements RequestHandler, ServerObserver
      * @param string $data Data to send.
      * @param int[]  $exceptIds List of IDs to exclude from the broadcast.
      *
-     * @return Promise<[\Throwable[], int[]]> Resolves once the message has been sent to all clients. Note it is
-     *     generally undesirable to yield this promise in a coroutine.
+     * @return Promise<array> Resolves once the message has been sent to all clients. Note it is
+     *                        generally undesirable to yield this promise in a coroutine.
      */
     public function broadcastBinary(string $data, array $exceptIds = []): Promise
     {
@@ -299,8 +340,8 @@ final class Websocket implements RequestHandler, ServerObserver
      * @param string $data Data to send.
      * @param int[]  $clientIds Array of client IDs.
      *
-     * @return Promise<[\Throwable[], int[]]> Resolves once the message has been sent to all clients. Note it is
-     *     generally undesirable to yield this promise in a coroutine.
+     * @return Promise<array> Resolves once the message has been sent to all clients. Note it is
+     *                        generally undesirable to yield this promise in a coroutine.
      */
     public function multicast(string $data, array $clientIds): Promise
     {
@@ -326,8 +367,8 @@ final class Websocket implements RequestHandler, ServerObserver
      * @param string $data Data to send.
      * @param int[]  $clientIds Array of client IDs.
      *
-     * @return Promise<[\Throwable[], int[]]> Resolves once the message has been sent to all clients. Note it is
-     *     generally undesirable to yield this promise in a coroutine.
+     * @return Promise<array> Resolves once the message has been sent to all clients. Note it is
+     *                        generally undesirable to yield this promise in a coroutine.
      */
     public function multicastBinary(string $data, array $clientIds): Promise
     {
@@ -347,7 +388,23 @@ final class Websocket implements RequestHandler, ServerObserver
      */
     public function getLogger(): PsrLogger
     {
+        if ($this->logger === null) {
+            throw new \Error('Cannot get logger until the server has started');
+        }
+
         return $this->logger;
+    }
+
+    /**
+     * @return ErrorHandler Server error handler.
+     */
+    public function getErrorHandler(): ErrorHandler
+    {
+        if ($this->errorHandler === null) {
+            throw new \Error('Cannot get error handler until the server has started');
+        }
+
+        return $this->errorHandler;
     }
 
     /**
@@ -359,15 +416,19 @@ final class Websocket implements RequestHandler, ServerObserver
     }
 
     /**
-     * Invoked when the server is starting.
-     * Server sockets have been opened, but are not yet accepting client connections. This method should be used to set
-     * up any necessary state for responding to requests, including starting loop watchers such as timers.
+     * Attaches a WebsocketObserver that is notified when the server starts and stops.
      *
-     * @param Server $server
-     *
-     * @return Promise
+     * @param WebsocketServerObserver $observer
      */
-    public function onStart(Server $server): Promise
+    public function attach(WebsocketServerObserver $observer): void
+    {
+        $this->observers->attach($observer);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function onStart(HttpServer $server): Promise
     {
         $this->logger = $server->getLogger();
         $this->errorHandler = $server->getErrorHandler();
@@ -377,28 +438,45 @@ final class Websocket implements RequestHandler, ServerObserver
             $this->logger->warning('Message compression is enabled in websocket options, but ext-zlib is required for compression');
         }
 
-        return $this->clientHandler->onStart($this);
+        return call(function () use ($server): \Generator {
+            $onStartPromises = [];
+            foreach ($this->observers as $observer) {
+                \assert($observer instanceof WebsocketServerObserver);
+                $onStartPromises[] = $observer->onStart($server, $this);
+            }
+
+            [$exceptions] = yield Promise\any($onStartPromises);
+
+            if (!empty($exceptions)) {
+                throw new MultiReasonException($exceptions, 'Websocket initialization failed');
+            }
+        });
     }
 
     /**
-     * Invoked when the server has initiated stopping.
-     * No further requests are accepted and any connected clients should be closed gracefully and any loop watchers
-     * cancelled.
-     *
-     * @param Server $server
-     *
-     * @return Promise
+     * @inheritDoc
      */
-    public function onStop(Server $server): Promise
+    public function onStop(HttpServer $server): Promise
     {
-        $code = Code::GOING_AWAY;
-        $reason = 'Server shutting down!';
+        return call(function () use ($server): \Generator {
+            $onStopPromises = [];
+            foreach ($this->observers as $observer) {
+                \assert($observer instanceof WebsocketServerObserver);
+                $onStopPromises[] = $observer->onStop($server, $this);
+            }
 
-        $promises = [$this->clientHandler->onStop($this)];
-        foreach ($this->clients as $client) {
-            $promises[] = $client->close($code, $reason);
-        }
+            [$exceptions] = yield Promise\any($onStopPromises);
 
-        return Promise\any($promises);
+            $closePromises = [];
+            foreach ($this->clients as $client) {
+                $closePromises[] = $client->close(Code::GOING_AWAY, 'Server shutting down!');
+            }
+
+            yield Promise\any($closePromises); // Ignore client close failures since we're shutting down anyway.
+
+            if (!empty($exceptions)) {
+                throw new MultiReasonException($exceptions, 'Websocket shutdown failed');
+            }
+        });
     }
 }

@@ -3,14 +3,15 @@
 // Note that this example requires amphp/artax, amphp/http-server-router,
 // amphp/http-server-static-content and amphp/log to be installed.
 
-use Amp\Http\Client\HttpClient;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request as ClientRequest;
+use Amp\Http\Client\Response as ClientResponse;
+use Amp\Http\Server\HttpServer;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\Router;
-use Amp\Http\Server\Server as HttpServer;
 use Amp\Http\Server\StaticContent\DocumentRoot;
+use Amp\Http\Status;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
 use Amp\Loop;
@@ -19,7 +20,9 @@ use Amp\Socket\Server as SocketServer;
 use Amp\Success;
 use Amp\Websocket\Client;
 use Amp\Websocket\Server\ClientHandler;
+use Amp\Websocket\Server\Gateway;
 use Amp\Websocket\Server\Websocket;
+use Amp\Websocket\Server\WebsocketServerObserver;
 use Monolog\Logger;
 use function Amp\ByteStream\getStdout;
 use function Amp\call;
@@ -27,26 +30,19 @@ use function Amp\call;
 require __DIR__ . '/../../vendor/autoload.php';
 
 Loop::run(function (): Promise {
-    $websocket = new Websocket(new class implements ClientHandler {
-        /** @var Websocket */
-        private $endpoint;
-
+    $websocket = new Websocket(new class implements ClientHandler, WebsocketServerObserver {
         /** @var string|null */
         private $watcher;
-
-        /** @var HttpClient */
-        private $http;
 
         /** @var int|null */
         private $newestQuestion;
 
-        public function onStart(Websocket $endpoint): Promise
+        public function onStart(HttpServer $server, Gateway $gateway): Promise
         {
-            $this->endpoint = $endpoint;
-            $this->http = HttpClientBuilder::buildDefault();
-            $this->watcher = Loop::repeat(10000, function () {
-                /** @var Response $response */
-                $response = yield $this->http->request(
+            $client = HttpClientBuilder::buildDefault();
+            $this->watcher = Loop::repeat(10000, function () use ($client, $gateway): \Generator {
+                /** @var ClientResponse $response */
+                $response = yield $client->request(
                     new ClientRequest('https://api.stackexchange.com/2.2/questions?order=desc&sort=activity&site=stackoverflow')
                 );
                 $json = yield $response->getBody()->buffer();
@@ -60,7 +56,7 @@ Loop::run(function (): Promise {
                 foreach (\array_reverse($data['items']) as $question) {
                     if ($this->newestQuestion === null || $question['question_id'] > $this->newestQuestion) {
                         $this->newestQuestion = $question['question_id'];
-                        $this->endpoint->broadcast(\json_encode($question));
+                        $gateway->broadcast(\json_encode($question));
                     }
                 }
             });
@@ -68,24 +64,22 @@ Loop::run(function (): Promise {
             return new Success;
         }
 
-        public function onStop(Websocket $endpoint): Promise
+        public function onStop(HttpServer $server, Gateway $gateway): Promise
         {
             Loop::cancel($this->watcher);
-            $this->endpoint = null;
-
             return new Success;
         }
 
-        public function handleHandshake(Request $request, Response $response): Promise
+        public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise
         {
             if (!\in_array($request->getHeader('origin'), ['http://localhost:1337', 'http://127.0.0.1:1337', 'http://[::1]:1337'], true)) {
-                $response->setStatus(403);
+                return $gateway->getErrorHandler()->handleError(Status::FORBIDDEN, 'Origin forbidden', $request);
             }
 
             return new Success($response);
         }
 
-        public function handleClient(Client $client, Request $request, Response $response): Promise
+        public function handleClient(Gateway $gateway, Client $client, Request $request, Response $response): Promise
         {
             return call(function () use ($client) {
                 while ($message = yield $client->receive()) {
