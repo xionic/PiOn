@@ -14,11 +14,13 @@ use \Amp\Http\Server\Response;
 use \Amp\Http\Client\Connection\UnprocessedRequestException;
 use \Amp\Promise;
 use \Amp\Success;
+use \Amp\Failure;
 use \Amp\Websocket\Server\Websocket;
 use \Amp\Websocket\Client;
 use \Amp\Websocket\Server\ClientHandler;
 use \Amp\Websocket\Server\Gateway;
 use function \Amp\call;
+use \Amp\Websocket\ClosedException;
 
 class WebSocketClientHandler implements ClientHandler{
     private $websocket;
@@ -49,7 +51,9 @@ class WebSocketClientHandler implements ClientHandler{
                 $item_message = new ItemMessage($item_name, ItemMessage::GET, $value);
                 $rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, "client", null, $item_message);
                 plog("Websocket sending update for item: '$item_name' to client_id: $client_id", DEBUG, Session::$INTERNAL);
-                $this->subscribers[$client_id]->send($rest_message->to_json());
+                \Amp\call(function() use($rest_message, $client_id){
+                    yield $this->send(Session::$INTERNAL, $this->subscribers[$client_id], $rest_message->to_json());
+                });
 
              }
         });
@@ -186,7 +190,20 @@ class WebSocketClientHandler implements ClientHandler{
 
     private function send(Session $session, $client, string $data): Promise{
         plog("↑WS↑ Sending $data", DEBUG, $session);
-        return $client->send($data);
+        if(!array_key_exists($client->getId(), $this->subscribers)){
+            plog("Trying to send message to invalid client with id: " . $client->getId(), ERROR, $session);
+        }
+        return \Amp\call(function() use($session, $client, $data) {
+            try{
+                yield $client->send($data);
+            } catch (ClosedException $ce){
+                plog("Websocket connection unexpectedly closed from client at: " . $client->getRemoteAddress(), DEBUG, $session);
+               // var_dump($client);
+               // var_dump($ce);
+               $this->remove_client($client);
+                return  new Success;
+            }
+        });
     }
 
     private function send_error(Session $session, $client, string $err_msg): Promise {

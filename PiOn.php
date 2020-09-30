@@ -90,7 +90,7 @@
 		}
 	});
 	*/
-
+try{
 	Loop::run(function() use ($this_node){
 		
 		foreach (glob("{config/events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn model being loaded and inited
@@ -127,7 +127,9 @@
 	
 	});
 	echo "MAIN LOOP ENDED!!!\n";
-	
+} catch(Amp\Websocket\ClosedException $ce){
+	var_dump($ce);
+}
 	function plog(string $text, int $level, \PiOn\Session $session): void {
 		$logger = get_logger("main");	
 		$text = $session->get_req_num() . ": $text";
