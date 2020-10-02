@@ -127,8 +127,8 @@ try{
 	
 	});
 	echo "MAIN LOOP ENDED!!!\n";
-} catch(Amp\Websocket\ClosedException $ce){
-	var_dump($ce);
+} catch(Amp\MultiReasonException $me){
+	var_dump($me);
 }
 	function plog(string $text, int $level, \PiOn\Session $session): void {
 		$logger = get_logger("main");	
