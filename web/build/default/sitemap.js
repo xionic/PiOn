@@ -6,9 +6,6 @@ var sitemap = {
     "item_name": "date test",
     "type": "text"
   }, {
-    "item_name": "GPIO test",
-    "type": "switch"
-  }, {
     "item_name": "Text test",
     "type": "text"
   }, {
@@ -24,9 +21,6 @@ var sitemap = {
       }
     },
     "auth": true
-  }, {
-    "item_name": "Nick Location",
-    "type": "text"
   }, {
     "item_name": "Nick Heater",
     "type": "switch",

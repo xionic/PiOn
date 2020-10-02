@@ -99,7 +99,7 @@ export class pion_base extends LitElement {
         this.set_value(value);
       }
 
-      this._requestUpdate();
+      this.requestUpdate();
     }
   } //should return a value from the actual DOM if possible
 
