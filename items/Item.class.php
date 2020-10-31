@@ -40,7 +40,7 @@ abstract class Item {
 					$item_value = yield $this->get_value_local($session);
 					//transform the value if configured
 					if(property_exists($this->item_args, "transform")){
-						$item_value->data = TransformManager::transform($this->item_args->transform, $item_value->data);
+						$item_value = TransformManager::transform($this->item_args->transform, $item_value->data);
 					}
 					
 				} catch(OperationNotSupportedException $e){ //GET not supported. return sucess:	
