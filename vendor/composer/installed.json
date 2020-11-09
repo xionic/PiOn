@@ -1,17 +1,17 @@
 [
     {
         "name": "amphp/amp",
-        "version": "v2.5.0",
-        "version_normalized": "2.5.0.0",
+        "version": "v2.5.1",
+        "version_normalized": "2.5.1.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/amp.git",
-            "reference": "f220a51458bf4dd0dedebb171ac3457813c72bbc"
+            "reference": "ecdc3c476b3ccff02f8e5d5bcc04f7ccfd18751c"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/amp/zipball/f220a51458bf4dd0dedebb171ac3457813c72bbc",
-            "reference": "f220a51458bf4dd0dedebb171ac3457813c72bbc",
+            "url": "https://api.github.com/repos/amphp/amp/zipball/ecdc3c476b3ccff02f8e5d5bcc04f7ccfd18751c",
+            "reference": "ecdc3c476b3ccff02f8e5d5bcc04f7ccfd18751c",
             "shasum": ""
         },
         "require": {
@@ -26,7 +26,7 @@
             "psalm/phar": "^3.11@dev",
             "react/promise": "^2"
         },
-        "time": "2020-07-14T21:47:18+00:00",
+        "time": "2020-11-03T16:23:45+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -471,17 +471,17 @@
     },
     {
         "name": "amphp/http-client",
-        "version": "v4.5.0",
-        "version_normalized": "4.5.0.0",
+        "version": "v4.5.2",
+        "version_normalized": "4.5.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-client.git",
-            "reference": "39099a5ad69379eb90f2ca83c082b276539328b9"
+            "reference": "2af4024062abded1d529ca5712866bfcb12ad5a9"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-client/zipball/39099a5ad69379eb90f2ca83c082b276539328b9",
-            "reference": "39099a5ad69379eb90f2ca83c082b276539328b9",
+            "url": "https://api.github.com/repos/amphp/http-client/zipball/2af4024062abded1d529ca5712866bfcb12ad5a9",
+            "reference": "2af4024062abded1d529ca5712866bfcb12ad5a9",
             "shasum": ""
         },
         "require": {
@@ -516,7 +516,7 @@
             "ext-json": "Required for logging HTTP archives",
             "ext-zlib": "Allows using compression for response bodies."
         },
-        "time": "2020-07-21T19:18:31+00:00",
+        "time": "2020-11-03T07:54:59+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1704,31 +1704,30 @@
     },
     {
         "name": "league/uri-interfaces",
-        "version": "2.1.0",
-        "version_normalized": "2.1.0.0",
+        "version": "2.2.0",
+        "version_normalized": "2.2.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/thephpleague/uri-interfaces.git",
-            "reference": "0068a469958895ceaf3afcb489c0258adfa1e406"
+            "reference": "667f150e589d65d79c89ffe662e426704f84224f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/uri-interfaces/zipball/0068a469958895ceaf3afcb489c0258adfa1e406",
-            "reference": "0068a469958895ceaf3afcb489c0258adfa1e406",
+            "url": "https://api.github.com/repos/thephpleague/uri-interfaces/zipball/667f150e589d65d79c89ffe662e426704f84224f",
+            "reference": "667f150e589d65d79c89ffe662e426704f84224f",
             "shasum": ""
         },
         "require": {
             "ext-json": "*",
-            "php": "^7.1"
+            "php": "^7.1 || ^8.0"
         },
         "require-dev": {
             "friendsofphp/php-cs-fixer": "^2.0",
             "phpstan/phpstan": "^0.12",
             "phpstan/phpstan-phpunit": "^0.12",
-            "phpstan/phpstan-strict-rules": "^0.12",
-            "phpunit/phpunit": "^7.0|^8.0"
+            "phpstan/phpstan-strict-rules": "^0.12"
         },
-        "time": "2020-02-08T12:10:37+00:00",
+        "time": "2020-10-31T13:45:51+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
