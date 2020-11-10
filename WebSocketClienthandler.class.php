@@ -9,21 +9,11 @@ use \PiOn\RestMessage;
 use \PiOn\Item\ItemMessage;
 use \PiOn\SubscribeMessage;
 
-use \Amp\Http\Server\Request;
-use \Amp\Http\Server\Response;
-use \Amp\Http\Client\Connection\UnprocessedRequestException;
-use \Amp\Promise;
-use \Amp\Success;
-use \Amp\Failure;
-use \Amp\Websocket\Server\Websocket;
-use \Amp\Websocket\Client;
-use \Amp\Websocket\Server\ClientHandler;
-use \Amp\Websocket\Server\Gateway;
-use function \Amp\call;
-use \Amp\Websocket\ClosedException;
+use Ratchet\MessageComponentInterface;
+use Ratchet\ConnectionInterface;
 
-class WebSocketClientHandler implements ClientHandler{
-    private $websocket;
+class WebSocketClientHandler implements MessageComponentInterface {
+
     /**
      * @var [Client::id => [item_name => [event_name]]] $subscriptions
      */
@@ -59,20 +49,15 @@ class WebSocketClientHandler implements ClientHandler{
         });
     }
 
-    public function onStart(Websocket $ws): Promise {
-        $this->websocket = $ws;
-            return new Success;
+    public function onOpen(ConnectionInterface $ws) {
+        plog("Websocket opened", DEBUG, Session::$INTERNAL);
     }
 
-    public function onStop(Websocket $ws): Promise {
-        return new Success;
+    public function onClose(ConnectionInterface $ws) {
+        plog("Websocket closed", DEBUG, Session::$INTERNAL);
     }
-
-    public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise{
-        return new Success($response);
-    }
-
-    public function handleClient(Gateway $gateway, Client $client, Request $request, Response $response): Promise {
+   
+    public function onMessage(ConnectionInterface $ws, $msg) {
         $session  = new Session("ws:");
         $this->subscribers[$client->getId()] = $client;
         $this->subscribers[$client->getId()]->onClose(function($client, $close_clode, $close_reason) use ($session){

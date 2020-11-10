@@ -1,4 +1,5 @@
 <?php
+/*
 namespace PiOn;
 //namespace Amp\Http\Server;
 
@@ -16,6 +17,8 @@ class HTTPErrorHandler implements \Amp\Http\Server\ErrorHandler
      *
      * @return Promise
      */
+
+     /*
     public function handleError(int $statusCode, string $reason = null, Request $request = null): Promise{
 		$req_path = $request->getUri()->getScheme() . "://" . $request->getUri()->getHost() . ":" . $request->getUri()->getPort(). $request->getUri()->getPath();
 		plog("RETURNING HTTP SERVER ERROR CODE: $statusCode, reason: $reason Requested URI: $req_path" , INFO, Session::$INTERNAL);
@@ -28,5 +31,7 @@ class HTTPErrorHandler implements \Amp\Http\Server\ErrorHandler
         return new Success($response);
 	}
 }
+
+*/
 
 ?>

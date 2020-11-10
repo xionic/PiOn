@@ -6,6 +6,10 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
+    'Stringable' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
+    'UnhandledMatchError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
+    'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     'slavino\\tplinkhs110\\TPLinkHS110Command' => $vendorDir . '/xionic/tplinkhs110/src/TPLinkHS110Command.php',
     'slavino\\tplinkhs110\\TPLinkHS110Device' => $vendorDir . '/xionic/tplinkhs110/src/TPLinkHS110Device.php',
 );

@@ -20,24 +20,23 @@
 	use \PiOn\Event\Scheduler;
 	use \PiOn\WebSocketManager;
 
-	use Amp\Loop;
-	use Amp\ByteStream\ResourceOutputStream;
-	use Amp\Http\Server\HttpServer;
-	use \Amp\Http\Client\HttpClientBuilder;
-	use Amp\Http\Server\RequestHandler\CallableRequestHandler;
-	use Amp\Http\Server\Request;
-	use Amp\Http\Server\Response;
-	use Amp\Http\Status;
-	use Amp\Socket;
-	use Amp\Log\ConsoleFormatter;
-	use Amp\Log\StreamHandler;
-	use Psr\Log\NullLogger;
-	use Monolog\Logger;
-	use Monolog\Handler\RotatingFileHandler;
-	use Seld\JsonLint\JsonParser;
-	use \Amp\Promise;
-	use \Amp\Http\Server\Router;
-	use \Amp\Http\Server\StaticContent\DocumentRoot;
+	use \Psr\Log\NullLogger;
+	use \Monolog\Logger;
+	use \Monolog\Handler\RotatingFileHandler;
+	use \Monolog\Handler\StreamHandler;
+	use \Seld\JsonLint\JsonParser;
+
+	use \FastRoute\simpleDispatcher;
+	use \FastRoute\Dispatcher;
+	use \FastRoute\RouteCollector ;
+
+	use \Psr\Http\Message\ServerRequestInterface;
+	use \React\EventLoop\Factory;
+	use \React\Http\Message\Response;
+	use \React\Http\Server;
+
+	use Ratchet\MessageComponentInterface;
+	use Ratchet\ConnectionInterface;
 	
 	//Session init
 	Session::init();
@@ -77,26 +76,56 @@
 	//model initialisation
 	$model->init();
 
-	/*Loop::setErrorHandler(function (\Throwable $e) {
-		try {
-			throw $e;
-		} catch (\Amp\MultiReasonException $mre){
-			echo "Loop Exception\n";
-			foreach($mre->getReasons() as $reason){
-				echo "$reason\n";
-			}
-		} catch (\Throwable $e){
-			echo "error handler -> " . $e->getMessage() . PHP_EOL;
-		}
-	});
-	*/
-try{
-	Loop::run(function() use ($this_node){
-		
-		foreach (glob("{config/events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn model being loaded and inited
+	foreach (glob("{config/events,transforms}/*.php", GLOB_BRACE) as $filename) // events rely on PiOn model being loaded and inited
 		{
 			require_once $filename; //SECURITY
 		}
+
+	$loop = Factory::create();
+
+	$dispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $routes) use ($listTasks, $addTask) {
+		$routes->addRoute('GET', '/api/', function(ServerRequestInterface $request): Response{
+			return handle_rest_request($request);
+		
+		});
+	});
+
+	$server = new Server($loop, function (ServerRequestInterface $request) {
+
+		$routeInfo = $dispatcher->dispatch($request->getMethod(), $request->getUri()->getPath());
+
+		switch ($routeInfo[0]) {
+			case FastRoute\Dispatcher::NOT_FOUND:
+				return new Response(404, ['Content-Type' => 'text/plain'],  'Not found');
+			case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+				return new Response(405, ['Content-Type' => 'text/plain'], 'Method not allowed');              
+			case FastRoute\Dispatcher::FOUND:
+				return $routeInfo[1]($request);
+		}
+
+		throw new LogicException('Something went wrong in routing.');
+	/*
+		return new Response(
+			200,
+			array(
+				'Content-Type' => 'text/plain'
+			),
+			"Hello world\n"
+		);*/
+	});
+
+	//$socket = new \React\Socket\Server("0.0.0.0:" . $this_node->port, $loop);
+	$socket = new \React\Socket\Server("0.0.0.0:28080", $loop);
+	$server->listen($socket);
+
+	$loop->run();
+/*
+try{
+	Loop::run(function() use ($this_node){
+		
+		
+
+
 			
 		$sockets[]  = Socket\Server::listen("0.0.0.0:" . $this_node->port);
 
@@ -127,9 +156,11 @@ try{
 	
 	});
 	echo "MAIN LOOP ENDED!!!\n";
-} catch(Amp\MultiReasonException $me){
-	var_dump($me);
-}
+	} catch(Amp\MultiReasonException $me){
+		var_dump($me);
+	}
+*/
+
 	function plog(string $text, int $level, \PiOn\Session $session): void {
 		$logger = get_logger("main");	
 		$text = $session->get_req_num() . ": $text";
@@ -180,8 +211,8 @@ try{
 		global $loggers;
 		$log_file_path = "log/PiOn.log";
 		$loggers[$name] = new Logger($name);
-		$logHandlerConsole = new StreamHandler(new ResourceOutputStream(STDOUT));
-		$logHandlerConsole->setFormatter(new ConsoleFormatter);
+		$logHandlerConsole = new StreamHandler(STDOUT);
+		//$logHandlerConsole->setFormatter(new ConsoleFormatter);
 		$loggers[$name]->pushHandler($logHandlerConsole);
 		
 		$logHandler = new RotatingFileHandler($log_file_path, 28);
