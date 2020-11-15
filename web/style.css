@@ -35,6 +35,11 @@ li.roomrow {
 	box-shadow: 0 0 10px 5px #232227;
 	/*border: solid 10px #b3a3ee;*/
 }
+
+ul.item_dialog li{
+	list-style: square;
+}
+
 h3.roomname {
 	/*border-bottom: solid 5px #b3a3ee;*/
 	

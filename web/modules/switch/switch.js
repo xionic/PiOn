@@ -10,13 +10,13 @@ import {Value} from '../../Value.js';
 export class module_switch extends pion_base {
 	static get properties() {
 		return { 
-			val: { type: Boolean}
+			state: { type: Boolean}
 		};
 	}
 
 	constructor() {
 		super();
-		this.val = false //default
+		this.state = false //default
 		//console.log("--------type_args:", this.type_args, this);
 	}
 	
@@ -27,7 +27,7 @@ export class module_switch extends pion_base {
 
 	set_value(value){
 		//console.log(data, this.val);
-		this.val = value.data ? true : false;
+		this.state = value.data ? true : false;
 		//console.log(data, this.val);
 	}
 
@@ -36,16 +36,16 @@ export class module_switch extends pion_base {
 		let off_img = this.getAttribute("off_img");*/
 
 		let disabled = this.getAttribute("disabled") === null ? false : true
-		this.val = this.val ? true : false;
+		this.state = this.state ? true : false;
 
 	
 		if(this.type_args.hasOwnProperty("type")){
 			if (this.type_args.type == "simple_toggle"){
-				return html`<simple-toggle ?disabled='${disabled}' @change="${this.on_change}" .value="${this.val}" ></simple-toggle>`;
+				return html`<simple-toggle ?disabled='${disabled}' @change="${this.on_change}" .value="${this.state}" ></simple-toggle>`;
 			}
 		}
 		
-		return html`<paper-toggle-button ?disabled='${disabled}' @change="${this.on_change}" ?checked="${this.val}"></paper-toggle-button>`;		
+		return html`<paper-toggle-button ?disabled='${disabled}' @change="${this.on_change}" ?checked="${this.state}"></paper-toggle-button>`;		
 	}
 }
 

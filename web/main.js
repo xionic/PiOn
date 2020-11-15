@@ -58,7 +58,7 @@ export function shadow_selector(root, selector_str){
 		selected = selected.shadowRoot.querySelector(selector);
 	}
 	return selected;
-}
+}	
 	
 var module_id_counter = 0; //hack, to give each module element it's own id because I can't work out how to reference the object from the element.
 function get_module_html(name, item_name){
@@ -273,7 +273,12 @@ export class Main extends LitElement {
 
 				var itemli = $("<li>");
 				$(itemli).addClass("item");
-				itemli.append($("<span>",{class: "itemname", text: item.item_name}));
+				let item_name_span = $("<span>", { class: "itemname", text: item.item_name });
+				item_name_span.click(function(){
+					this.parentElement.querySelector("span.itemvalue .itemmodule").open_dialog();
+				})
+				itemli.append(item_name_span);
+
 				var item_value_span = $("<span>",{class: "itemvalue", "data-item_name":item.item_name, "data-type": item.type});
 
 				let type_args = {};

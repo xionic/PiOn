@@ -19,12 +19,13 @@
 	 
 	 //can take an array of values with same arg names instead as first arg
 	 function __construct($data = null, bool $has_error = false, ?String $error_message = null, ?int $timestamp = null, ?String $certainty = Value::CERTAIN){
+		$arr_data = null;
 		if(is_array($data)){
 			$d = $data;
 			foreach($d as $key => $value){
 				switch($key){
 					case "data":
-						$data = $value;
+						$arr_data = $value;
 						break;
 					case "has_error":
 						$has_error = $value;
@@ -42,7 +43,10 @@
 						throw new \Exception("Invalid argument to Value contrsuctor array: $key");
 				}
 			}
-		}	 
+		}
+		if(is_array($data) && $arr_data == null){ //data was not set in array - we need to set $data accordingly
+			$data = null;
+		}
 		if($timestamp == null){
 		 $timestamp = time();
 		}

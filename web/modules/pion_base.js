@@ -60,8 +60,50 @@ export class pion_base extends LitElement {
 
 	open_dialog(){
 		let div = document.createElement("DIV");
-		div.innerText = this.val.error_message;
-		$(div).dialog();
+		let msg = "";
+
+		if (typeof (this.val) !== "undefined"){
+
+			var val_timestamp = new Date(this.val.timestamp * 1000);
+			let year = "" + val_timestamp.getFullYear();
+			let month = ("" + (val_timestamp.getMonth() + 1)).padStart(2, '0');
+			let day = ("" + val_timestamp.getDate()).padStart(2, '0');
+			let hours = ("" + val_timestamp.getHours()).padStart(2, '0');
+			let mins = ("" + val_timestamp.getMinutes()).padStart(2, '0');
+			let secs = ("" + val_timestamp.getSeconds()).padStart(2, '0');
+			let ts_string = hours + ":" + mins + ":" + secs + " " + year + "/" + month + "/" + day;
+
+			msg += "<ul class='item_dialog'><li>Name: " + this.getAttribute("item_name") + "</li>";
+			msg += "<li>Value data: " + this.val.data + "</li>";
+			msg += "<li>Value has_error: " + this.val.has_error + "</li>";
+			msg += "<li>Value error_message: " + this.val.error_message + "</li>";
+			msg += "<li>Value timestamp: " + ts_string + "</li>";
+			msg += "<li>Value certainty: " + this.val.certainty + "</li></ul>";
+		} else {
+			msg = "No value yet";
+		}
+		div.innerHTML = msg;
+		$(div).dialog({ 
+			modal: true,
+			width: "80%", 
+			open: function (event, ui) {
+				$('.ui-widget-overlay').bind('click', function () {
+					$(div).dialog('close');
+				});
+			},
+			buttons: [
+				{
+					text: "OK",
+					click: function () {
+						$(this).dialog("close");
+					},
+
+					// Uncommenting the following line would hide the text,
+					// resulting in the label being used as a tooltip
+					showText: false
+				}
+			]
+		});
 	}
 
 	/*
