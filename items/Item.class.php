@@ -8,7 +8,6 @@ use \PiOn\RestMessage;
 use \PiOn\Hardware\OperationNotSupportedException;
 use \PiOn\Event\EventManager;
 use \PiOn\Event\ItemEvent;
-use \PiOn\Transform\TransformManager;
 use \PiOn\Session;
 
 use \xionic\Argh\Argh;
@@ -37,11 +36,7 @@ abstract class Item {
 				$item_value = null;				
 
 				try{
-					$item_value = yield $this->get_value_local($session);
-					//transform the value if configured
-					if(property_exists($this->item_args, "transform")){
-						$item_value = TransformManager::transform($this->item_args->transform, $item_value->data);
-					}
+					$item_value = yield $this->get_value_local($session);					
 					
 				} catch(OperationNotSupportedException $e){ //GET not supported. return sucess:	
 					if($this->last_value == null){						
@@ -88,7 +83,7 @@ abstract class Item {
 				
 				
 				if(!$item_value instanceof Value){
-					throw new Exception("Promise resolved to nvalid type");
+					throw new \Exception("Promise resolved to invalid type");
 				}
 			}
 			return $item_value;
@@ -131,6 +126,30 @@ abstract class Item {
 			}
 		});
 	}
+
+	/**
+	 * Value updated by hardware callback
+	 */
+	public function value_updated(Value $item_value): Promise { // Resolves to Value
+		return \Amp\Call(function () use ($item_value) {
+
+			plog("Hardware value update for item: '{$this->name}' with value '" . json_encode($item_value->data) . "'", DEBUG, Session::$INTERNAL);
+
+			//fire item change event if needed	
+			$newval = $item_value->data;
+			$oldval = $this->last_value->data;
+			$this->last_value = $item_value;
+			if (
+				(is_object($newval) && is_object($oldval) && $newval != $oldval)
+				|| ($oldval != $newval)
+			) {
+				EventManager::trigger_event(Session::$INTERNAL, new ItemEvent(ITEM_VALUE_CHANGED, $this->name, $item_value));
+			}
+
+			return $item_value;
+		
+		});
+	}
 	
 	public static function create_item(String $item_type, String $name, String $node, Object $item_args, ?Hardware $hw, ?Object $hw_args): Item {
 		
@@ -152,7 +171,19 @@ abstract class Item {
 		return $item;
 	}
 
+
+
 	public function init(): bool{
+
+		if($this->hardware instanceof Hardware && in_array(Hardware::HW_REGISTER, $this->hardware->capabilities)){
+			$this->hardware->register(Session::$INTERNAL, $this->hardware_args, function(Value $value) {
+				$this->value_updated($value);
+			});
+		}
+
+		if(method_exists($this, "_init")){
+			return $this->_init();
+		}
 		return true;
 	}
 	

@@ -1,25 +1,32 @@
-{ "name": "xionic/pion", "type": "project", "minimum-stability": "dev", "prefer-stable" : true, "require": {
+{
+    "name": "xionic/pion",
+    "type": "project",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
         "monolog/monolog": "^2.0",
         "seld/jsonlint": "^1.7",
         "xionic/Argh": "master",
-		"php": ">=7.3",
-        "xionic/tplinkhs110": "master",
-                "amphp/websocket-server": "^2.0",
-                "amphp/websocket-client": "^1.0",
-                "amphp/http-client": "^4.5",
-                "amphp/amp": "^2.5",
-                "amphp/http-server": "^2.1",
-                "amphp/log": "^1.1",
-                "amphp/http-server-static-content": "^1.0",
-                "amphp/http-server-router": "^1.0",
-                "amphp/socket": "^1.1"
+        "php": ">=7.3",
+        "xionic/amphp-mqtt": "master",
+        "amphp/websocket-server": "^2.0",
+        "amphp/websocket-client": "^1.0",
+        "amphp/http-client": "^4.5",
+        "amphp/amp": "^2.5",
+        "amphp/http-server": "^2.1",
+        "amphp/log": "^1.1",
+        "amphp/http-server-static-content": "^1.0",
+        "amphp/http-server-router": "^1.0",
+        "amphp/socket": "^1.1"
     },
-    "repositories": [{
-	 "type": "vcs",
-	 "url": "https://github.com/xionic/Argh"
-    },
-    {
-        "type": "vcs",
-        "url": "https://github.com/xionic/tplink-hs110-php"
-    }]
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/xionic/Argh"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/xionic/amphp-mqtt"
+        }
+    ]
 }

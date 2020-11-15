@@ -36,7 +36,7 @@ class ItemThermostat extends Item {
 	/**
 	 * @Return false on failure to init Item, otherwise true
 	 */
-	public function init(): bool{
+	public function _init(): bool{
 		
 		try{
 			$this->state_switch = get_item($this->item_args->switch_item);

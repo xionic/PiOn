@@ -1220,18 +1220,64 @@
         ]
     },
     {
-        "name": "amphp/websocket",
-        "version": "v1.0.0",
-        "version_normalized": "1.0.0.0",
+        "name": "amphp/uri",
+        "version": "v0.1.4",
+        "version_normalized": "0.1.4.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/amphp/websocket.git",
-            "reference": "ac4e9c53b35cd19351dc99c788f563f36fec9c6e"
+            "url": "https://github.com/amphp/uri.git",
+            "reference": "30065946d5c69f44c8a47bf8838244029984ff61"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/websocket/zipball/ac4e9c53b35cd19351dc99c788f563f36fec9c6e",
-            "reference": "ac4e9c53b35cd19351dc99c788f563f36fec9c6e",
+            "url": "https://api.github.com/repos/amphp/uri/zipball/30065946d5c69f44c8a47bf8838244029984ff61",
+            "reference": "30065946d5c69f44c8a47bf8838244029984ff61",
+            "shasum": ""
+        },
+        "require-dev": {
+            "friendsofphp/php-cs-fixer": "^2.3",
+            "phpunit/phpunit": "^6"
+        },
+        "time": "2019-05-13T18:25:34+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Amp\\Uri\\": "src"
+            },
+            "files": [
+                "src/functions.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Niklas Keller",
+                "email": "me@kelunik.com"
+            },
+            {
+                "name": "Daniel Lowrey"
+            }
+        ],
+        "description": "Uri Parser and Resolver.",
+        "homepage": "https://github.com/amphp/uri"
+    },
+    {
+        "name": "amphp/websocket",
+        "version": "v1.0.1",
+        "version_normalized": "1.0.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/amphp/websocket.git",
+            "reference": "6752ecfcb4deba23b95ab3fbd0d427326fcac564"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/amphp/websocket/zipball/6752ecfcb4deba23b95ab3fbd0d427326fcac564",
+            "reference": "6752ecfcb4deba23b95ab3fbd0d427326fcac564",
             "shasum": ""
         },
         "require": {
@@ -1250,7 +1296,7 @@
         "suggest": {
             "ext-zlib": "Required for compression"
         },
-        "time": "2020-06-25T21:14:23+00:00",
+        "time": "2020-11-13T05:54:54+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -1565,6 +1611,51 @@
         "description": "DNS protocol implementation written in pure PHP",
         "keywords": [
             "dns"
+        ]
+    },
+    {
+        "name": "evenement/evenement",
+        "version": "v3.0.1",
+        "version_normalized": "3.0.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/igorw/evenement.git",
+            "reference": "531bfb9d15f8aa57454f5f0285b18bec903b8fb7"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/igorw/evenement/zipball/531bfb9d15f8aa57454f5f0285b18bec903b8fb7",
+            "reference": "531bfb9d15f8aa57454f5f0285b18bec903b8fb7",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=7.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^6.0"
+        },
+        "time": "2017-07-23T21:35:13+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Evenement": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Igor Wiedler",
+                "email": "igor@wiedler.ch"
+            }
+        ],
+        "description": "Événement is a very simple event dispatching library for PHP",
+        "keywords": [
+            "event-dispatcher",
+            "event-emitter"
         ]
     },
     {
@@ -2061,17 +2152,17 @@
     },
     {
         "name": "seld/jsonlint",
-        "version": "1.8.2",
-        "version_normalized": "1.8.2.0",
+        "version": "1.8.3",
+        "version_normalized": "1.8.3.0",
         "source": {
             "type": "git",
             "url": "https://github.com/Seldaek/jsonlint.git",
-            "reference": "590cfec960b77fd55e39b7d9246659e95dd6d337"
+            "reference": "9ad6ce79c342fbd44df10ea95511a1b24dee5b57"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Seldaek/jsonlint/zipball/590cfec960b77fd55e39b7d9246659e95dd6d337",
-            "reference": "590cfec960b77fd55e39b7d9246659e95dd6d337",
+            "url": "https://api.github.com/repos/Seldaek/jsonlint/zipball/9ad6ce79c342fbd44df10ea95511a1b24dee5b57",
+            "reference": "9ad6ce79c342fbd44df10ea95511a1b24dee5b57",
             "shasum": ""
         },
         "require": {
@@ -2080,7 +2171,7 @@
         "require-dev": {
             "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.0"
         },
-        "time": "2020-08-25T06:56:57+00:00",
+        "time": "2020-11-11T09:19:24+00:00",
         "bin": [
             "bin/jsonlint"
         ],
@@ -2111,6 +2202,51 @@
         ]
     },
     {
+        "name": "xionic/amphp-mqtt",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/xionic/amphp-mqtt.git",
+            "reference": "d9d7be500c77c8656ee3073aec06e336373aa397"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/xionic/amphp-mqtt/zipball/d9d7be500c77c8656ee3073aec06e336373aa397",
+            "reference": "d9d7be500c77c8656ee3073aec06e336373aa397",
+            "shasum": ""
+        },
+        "require": {
+            "amphp/amp": "^2",
+            "amphp/socket": ">=0.10",
+            "amphp/uri": ">=0.1",
+            "evenement/evenement": "~3.0"
+        },
+        "time": "2020-11-14T13:55:14+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "MarkKimsal\\Mqtt\\": "src"
+            },
+            "files": [
+                "src/functions.php"
+            ]
+        },
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Mark Kimsal"
+            }
+        ],
+        "description": "Async MQTT client for Amp.",
+        "support": {
+            "source": "https://github.com/xionic/amphp-mqtt/tree/master"
+        }
+    },
+    {
         "name": "xionic/argh",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
@@ -2137,53 +2273,6 @@
         "support": {
             "source": "https://github.com/xionic/Argh/tree/master",
             "issues": "https://github.com/xionic/Argh/issues"
-        }
-    },
-    {
-        "name": "xionic/tplinkhs110",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/xionic/tplink-hs110-php.git",
-            "reference": "a262f4b44052383babe9ced81d3bc0d8e11ff408"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/xionic/tplink-hs110-php/zipball/a262f4b44052383babe9ced81d3bc0d8e11ff408",
-            "reference": "a262f4b44052383babe9ced81d3bc0d8e11ff408",
-            "shasum": ""
-        },
-        "time": "2020-07-06T08:03:16+00:00",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "slavino\\tplinkhs110\\": "src/"
-            },
-            "classmap": [
-                "src"
-            ]
-        },
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Slavomir Hustaty",
-                "email": "slavomir.hustaty@gmail.com"
-            }
-        ],
-        "description": "A PHP library to control and receive information from a TP-Link HS-110 smartplug.",
-        "keywords": [
-            "HS110",
-            "PHP",
-            "SmartPlug",
-            "TPLink",
-            "Timer"
-        ],
-        "support": {
-            "source": "https://github.com/xionic/tplink-hs110-php/tree/master"
         }
     }
 ]

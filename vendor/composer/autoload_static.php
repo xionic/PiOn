@@ -31,17 +31,15 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         '3d05d4f147c95ba663000bd908d45656' => __DIR__ . '/..' . '/amphp/websocket/src/functions.php',
         '33c308296b07af966b5bf768a0113f1e' => __DIR__ . '/..' . '/amphp/http-server-static-content/src/functions.php',
+        '7863f327e247feb05e3be59a4fe77a6b' => __DIR__ . '/..' . '/amphp/uri/src/functions.php',
         '4be4fbd9f5a89207b1fd1c85ae339dd7' => __DIR__ . '/..' . '/amphp/websocket-client/src/functions.php',
+        '884b99b531a311db04eae3b77f8346f7' => __DIR__ . '/..' . '/xionic/amphp-mqtt/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'x' => 
         array (
             'xionic\\Argh\\' => 12,
-        ),
-        's' => 
-        array (
-            'slavino\\tplinkhs110\\' => 20,
         ),
         'S' => 
         array (
@@ -55,6 +53,7 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'M' => 
         array (
             'Monolog\\' => 8,
+            'MarkKimsal\\Mqtt\\' => 16,
         ),
         'L' => 
         array (
@@ -75,6 +74,7 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
             'Amp\\Websocket\\Server\\' => 21,
             'Amp\\Websocket\\Client\\' => 21,
             'Amp\\Websocket\\' => 14,
+            'Amp\\Uri\\' => 8,
             'Amp\\Sync\\' => 9,
             'Amp\\Socket\\' => 11,
             'Amp\\Serialization\\' => 18,
@@ -99,10 +99,6 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         array (
             0 => __DIR__ . '/..' . '/xionic/argh/src',
         ),
-        'slavino\\tplinkhs110\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/xionic/tplinkhs110/src',
-        ),
         'Seld\\JsonLint\\' => 
         array (
             0 => __DIR__ . '/..' . '/seld/jsonlint/src/Seld/JsonLint',
@@ -118,6 +114,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'MarkKimsal\\Mqtt\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/xionic/amphp-mqtt/src',
         ),
         'LibDNS\\' => 
         array (
@@ -152,6 +152,10 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
         'Amp\\Websocket\\' => 
         array (
             0 => __DIR__ . '/..' . '/amphp/websocket/src',
+        ),
+        'Amp\\Uri\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/amphp/uri/src',
         ),
         'Amp\\Sync\\' => 
         array (
@@ -229,11 +233,13 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
                 0 => __DIR__ . '/..' . '/cash/lrucache/src',
             ),
         ),
-    );
-
-    public static $classMap = array (
-        'slavino\\tplinkhs110\\TPLinkHS110Command' => __DIR__ . '/..' . '/xionic/tplinkhs110/src/TPLinkHS110Command.php',
-        'slavino\\tplinkhs110\\TPLinkHS110Device' => __DIR__ . '/..' . '/xionic/tplinkhs110/src/TPLinkHS110Device.php',
+        'E' => 
+        array (
+            'Evenement' => 
+            array (
+                0 => __DIR__ . '/..' . '/evenement/evenement/src',
+            ),
+        ),
     );
 
     public static function getInitializer(ClassLoader $loader)
@@ -242,7 +248,6 @@ class ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64
             $loader->prefixLengthsPsr4 = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$prefixDirsPsr4;
             $loader->prefixesPsr0 = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit6ba9b8d0e59f5e1ad162132032a73a64::$classMap;
 
         }, null, ClassLoader::class);
     }

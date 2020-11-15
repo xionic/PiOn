@@ -49,7 +49,7 @@ class WeeklyTimer implements Timer {
 
 		$start_of_week = time() - $total_offset;
 		
-		echo "get_local_start_of_week returning: $start_of_week" . PHP_EOL;
+		//echo "get_local_start_of_week returning: $start_of_week" . PHP_EOL;
 		return $start_of_week;
 		
 	}
@@ -60,16 +60,16 @@ class WeeklyTimer implements Timer {
 	private function calc_next_run_time_from_now(int $days, int $hours, int $mins, int $secs): int {
 		//echo "d $days h $hours m $mins s $secs\n";
 		$local_start_of_week = self::get_local_start_of_week();
-		var_dump("sow: " .  $local_start_of_week);
+		//var_dump("sow: " .  $local_start_of_week);
 		$secs_in_to_week = ($days * 86400) + ($hours * 3600) + ($mins * 60) + $secs;
-		var_dump("local_time: " . self::local_time());
+		//var_dump("local_time: " . self::local_time());
 		$next_run_time_rel = ($local_start_of_week + $secs_in_to_week) - self::local_time(); //temp timezone hack;
-		var_dump("next_run_time_rel: " . $next_run_time_rel);
+		//var_dump("next_run_time_rel: " . $next_run_time_rel);
 		if($next_run_time_rel < 0){ //run time for this week is in the past, schedule for next week
 			$next_run_time_rel += 604800; // secs/week
 		}
 		//var_dump($real_next_run_time * 1000l);
-		var_dump("next_run_time_rel (week corrected):" . $next_run_time_rel);
+		//var_dump("next_run_time_rel (week corrected):" . $next_run_time_rel);
 		return $next_run_time_rel;
 	}
 	
@@ -148,8 +148,8 @@ class WeeklyTimer implements Timer {
 		plog("Weekly timer scheduling task '{$this->task->name}' (day#: $day) for " . date("Y/m/d H:i:s", $next_run_time_rel + self::local_time()).". Delaying for $delay_string ($next_run_time_rel secs total)", VERBOSE, Session::$INTERNAL);
 		$THIS = $this;
 		$task = $this->task;
-		plog("next_run_tim_rel: $next_run_time_rel", DEBUG, Session::$INTERNAL);
-		var_dump($next_run_time_rel*1000);
+	//	plog("next_run_tim_rel: $next_run_time_rel", DEBUG, Session::$INTERNAL);
+		//var_dump($next_run_time_rel*1000);
 		Loop::delay($next_run_time_rel*1000, function () use ($task, $THIS, $day, $hour, $min, $sec){
 			plog("in callback", DEBUG, Session::$INTERNAL);
 			call_user_func($task->callback);

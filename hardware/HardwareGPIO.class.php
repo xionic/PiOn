@@ -31,7 +31,11 @@ class HardwareGPIO extends Hardware {
 			}
 		});
 	}
-	
+
+	function hardware_register(Session $session, Object $item_args, callable $callback): Promise {
+		throw new OperationNotSupportedException("REGISTER not supported by Hardware '{$this->name}'");
+	}
+
 	public static function get_pin(Session $session, $board_pin){
 		return trim(`gpio -1 read $board_pin`);
 	}
@@ -43,13 +47,13 @@ class HardwareGPIO extends Hardware {
 		plog("HardwareGPIO running command: '$cmd'", DEBUG, $session);
 		$result = trim(exec($cmd)); //TODO do this with process functions instead for error feedback etc.
 		if($result != "")
-			throw new Exception("GPIO error: $result");
+			throw new \Exception("GPIO error: $result");
 		
 		$cmd = "gpio -1 write $board_pin $pin_state" ;
 		plog("HardwareGPIO running command: '$cmd'", DEBUG, $session);
 		$result = trim(shell_exec($cmd));
 		if($result != "")
-			throw new Exception("GPIO error: $result");
+			throw new \Exception("GPIO error: $result");
 		return true;
 	}
 	

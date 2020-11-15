@@ -46,7 +46,7 @@ class HardwareDualGPIOToggle extends Hardware {
 						plog("Reasserting value of HardwareDualGPIOToggle switch #$key to $state", DEBUG, Session::$INTERNAL);
 						\Amp\call(function() use ($THIS, $key, $state){
 							plog("InCall-Reasserting value of HardwareDualGPIOToggle switch #$key to $state", DEBUG, Session::$INTERNAL);
-							$THIS->hardware_set((Object)["switch_num" => $key], new Value($state));	
+							$THIS->hardware_set(Session::$INTERNAL, (Object)["switch_num" => $key], new Value($state));	
 						});
 					}
 				});
@@ -121,6 +121,9 @@ class HardwareDualGPIOToggle extends Hardware {
 			}
 		}
 	
+		function hardware_register(Session $session, Object $item_args, Callable $callback): Promise {
+			throw new OperationNotSupportedException("REGISTER not supported by Hardware '{$this->name}'");
+		}
 	
 }
 

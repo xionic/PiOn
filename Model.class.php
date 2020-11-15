@@ -39,7 +39,7 @@ class Model {
 					return true;
 				}],
 				"/hardware/*/capabilities" => ["array"],
-				"/hardware/*/capabilities/*/" => ["regex /(^get$|^set$)/"],
+				"/hardware/*/capabilities/*/" => ["regex /(^get$|^set$|^register$)/"],
 
 				"items" => ["obj"],
 				"/items/*/" => ['obj'],

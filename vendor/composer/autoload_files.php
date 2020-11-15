@@ -30,5 +30,7 @@ return array(
     '253c157292f75eb38082b5acb06f3f01' => $vendorDir . '/nikic/fast-route/src/functions.php',
     '3d05d4f147c95ba663000bd908d45656' => $vendorDir . '/amphp/websocket/src/functions.php',
     '33c308296b07af966b5bf768a0113f1e' => $vendorDir . '/amphp/http-server-static-content/src/functions.php',
+    '7863f327e247feb05e3be59a4fe77a6b' => $vendorDir . '/amphp/uri/src/functions.php',
     '4be4fbd9f5a89207b1fd1c85ae339dd7' => $vendorDir . '/amphp/websocket-client/src/functions.php',
+    '884b99b531a311db04eae3b77f8346f7' => $vendorDir . '/xionic/amphp-mqtt/src/functions.php',
 );

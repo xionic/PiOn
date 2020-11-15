@@ -39,7 +39,7 @@
 						$certainty = $value;
 						break;
 					default:
-						throw new Exception("Invalid argument to Value contrsuctor array: $key");
+						throw new \Exception("Invalid argument to Value contrsuctor array: $key");
 				}
 			}
 		}	 

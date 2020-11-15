@@ -27,6 +27,10 @@ class HardwareHTTP extends Hardware{
 		});
 	}
 
+	function hardware_register(Session $session, Object $item_args, callable $callback): Promise {
+		throw new OperationNotSupportedException("REGISTER not supported by Hardware '{$this->name}'");
+	}
+
 	//value will be appended to URL
 	function hardware_set(Session $session, Object $item_args, $value): Promise{
 		return \Amp\call(function() use ($session, $item_args, $value){

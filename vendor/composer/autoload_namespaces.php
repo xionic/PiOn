@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'cash' => array($vendorDir . '/cash/lrucache/src'),
+    'Evenement' => array($vendorDir . '/evenement/evenement/src'),
 );

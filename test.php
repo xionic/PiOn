@@ -1,6 +1,6 @@
 <?php 
 
-
+return;
 
 require_once("vendor/autoload.php");
 	use Amp\Loop;	

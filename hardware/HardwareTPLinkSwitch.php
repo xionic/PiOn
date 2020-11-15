@@ -1,5 +1,5 @@
 <?php
-
+/*
 namespace PiOn\Hardware;
 
 use \PiOn\Session;
@@ -43,7 +43,7 @@ class HardwareTPLinkSwitch extends Hardware {
         /* $this->tp_device = new TPLinkHS110Device([
                 "ipAddr" => $item_args->host,
                 "port" => $item_args->port,
-            ], $this->name);*/
+            ], $this->name);
             if(!array_key_exists($item_args->name, $this->tp_devices)){
                 throw new InvalidHardwareException("Unknown TPLINK hardware device: " . $item_args->name);
             }
@@ -55,9 +55,13 @@ class HardwareTPLinkSwitch extends Hardware {
 
             return new Success($value->data);
         });
-	}
+    }
+
+    function hardware_register(Session $session, Object $item_args, callable $callback): Promise {
+        throw new OperationNotSupportedException("REGISTER not supported by Hardware '{$this->name}'");
+    }
 
 }
-
+*/
 
 ?>

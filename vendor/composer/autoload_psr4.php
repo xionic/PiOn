@@ -7,11 +7,11 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'xionic\\Argh\\' => array($vendorDir . '/xionic/argh/src'),
-    'slavino\\tplinkhs110\\' => array($vendorDir . '/xionic/tplinkhs110/src'),
     'Seld\\JsonLint\\' => array($vendorDir . '/seld/jsonlint/src/Seld/JsonLint'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
+    'MarkKimsal\\Mqtt\\' => array($vendorDir . '/xionic/amphp-mqtt/src'),
     'LibDNS\\' => array($vendorDir . '/daverandom/libdns/src'),
     'League\\Uri\\' => array($vendorDir . '/league/uri/src', $vendorDir . '/league/uri-interfaces/src', $vendorDir . '/league/uri-parser/src'),
     'Kelunik\\Certificate\\' => array($vendorDir . '/kelunik/certificate/lib'),
@@ -20,6 +20,7 @@ return array(
     'Amp\\Websocket\\Server\\' => array($vendorDir . '/amphp/websocket-server/src'),
     'Amp\\Websocket\\Client\\' => array($vendorDir . '/amphp/websocket-client/src'),
     'Amp\\Websocket\\' => array($vendorDir . '/amphp/websocket/src'),
+    'Amp\\Uri\\' => array($vendorDir . '/amphp/uri/src'),
     'Amp\\Sync\\' => array($vendorDir . '/amphp/sync/src'),
     'Amp\\Socket\\' => array($vendorDir . '/amphp/socket/src'),
     'Amp\\Serialization\\' => array($vendorDir . '/amphp/serialization/src'),

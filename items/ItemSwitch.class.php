@@ -16,34 +16,27 @@ class ItemSwitch extends Item {
 		return \Amp\call(function() use($session){
 		
 			if($this->hardware != null){
-				$this->state = intval(yield $this->hardware->get($session, $this->hardware_args));
+				$new_value =  yield $this->hardware->get($session, $this->hardware_args);
+				$this->state = intval($new_value->data);
 				//var_dump($this->state);
-				return new Value([
-					"data" => $this->state,
-					"certainty" => Value::UNCERTAIN,
-				]);
+				return $new_value;
 			} else {
 				return new Value($this->state);
 			}
 		});
 	}
 	function set_value_local(Session $session, Value $set_val): Promise {//Value
-			return \Amp\call(function() use($session, $set_val){
+		return \Amp\call(function() use($session, $set_val){
 			$this->state = intval($set_val->data);
 			if($this->hardware != null){
-				return new Value([
-					"data" => intval( yield $this->hardware->set($session, $this->hardware_args, $set_val)) ,
-					"certainty" => Value::UNCERTAIN,
-				]);
+				return  yield $this->hardware->set($session, $this->hardware_args, $set_val);
 			} else {			
 				return new Value([
 					"data" => $this->state,
-					"certainty" => Value::UNCERTAIN,
+					"certainty" => Value::CERTAIN,
 				]);
 			}
 		});
 		
 	}
 }
-
-?>
