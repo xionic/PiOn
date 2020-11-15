@@ -29,7 +29,8 @@ abstract class Item {
 	public $last_value; 
 		
 	public function get_value(Session $session): Promise { // Resolves to Value
-		return \Amp\Call(function() use($session) {
+		
+		return \Amp\Promise\timeout( \Amp\Call(function() use($session) {
 			if(get_node($this->node_name)->name == NODE_NAME){ //item is local to this node		
 				plog("Item GET '" . $this->name . "' is local", VERBOSE, $session);
 				
@@ -88,7 +89,7 @@ abstract class Item {
 			}
 			return $item_value;
 
-		});
+		}), conf_get("default_get_timeout"));
 	}
 	
 	public function set_value(Session $session, Value $value): Promise { // Resolves to Value

@@ -1,4 +1,5 @@
 <?php
+
 namespace Pion;
 
 use \PiOn\Item;
@@ -22,7 +23,7 @@ use \Amp\Websocket\Server\Gateway;
 use function \Amp\call;
 use \Amp\Websocket\ClosedException;
 
-class WebSocketClientHandler implements ClientHandler{
+class WebSocketClientHandler implements ClientHandler {
     private $websocket;
     /**
      * @var [Client::id => [item_name => [event_name]]] $subscriptions
@@ -30,121 +31,117 @@ class WebSocketClientHandler implements ClientHandler{
     private $subscriptions = [];
     private $subscribers = [];
 
-    function __construct(){
+    function __construct() {
         //init subscriptions
-        foreach(get_items() as $item){
-             $this->subscriptions[$item->name] = [];
-            foreach(Event::events as $ev_name){
+        foreach (get_items() as $item) {
+            $this->subscriptions[$item->name] = [];
+            foreach (Event::events as $ev_name) {
                 $this->subscriptions[$item->name][$ev_name] = [];
             }
         }
 
-        EventManager::register_all_item_events_handler(function (string $event_name, string $item_name, Value $value){
+        EventManager::register_all_item_events_handler(function (string $event_name, string $item_name, Value $value) {
             $count = 0;
-            if(array_key_exists($item_name, $this->subscriptions) && array_key_exists($event_name, $this->subscriptions[$item_name])){
+            if (array_key_exists($item_name, $this->subscriptions) && array_key_exists($event_name, $this->subscriptions[$item_name])) {
                 $count = count($this->subscriptions[$item_name][$event_name]);
             }
             plog("Websocket received event for item: '$item_name', event: '$event_name', # subscriptions: $count", DEBUG, Session::$INTERNAL);
 
             //var_dump($this->subscriptions);
-            foreach(array_keys($this->subscriptions[$item_name][$event_name]) as $client_id){
+            foreach (array_keys($this->subscriptions[$item_name][$event_name]) as $client_id) {
                 $item_message = new ItemMessage($item_name, ItemMessage::GET, $value);
                 $rest_message = new RestMessage(RestMessage::REQ, RestMessage::REST_CONTEXT_ITEM, NODE_NAME, "client", null, $item_message);
                 plog("Websocket sending update for item: '$item_name' to client_id: $client_id", DEBUG, Session::$INTERNAL);
-                \Amp\call(function() use($rest_message, $client_id){
+                \Amp\call(function () use ($rest_message, $client_id) {
                     yield $this->send(Session::$INTERNAL, $this->subscribers[$client_id], $rest_message->to_json());
                 });
-
-             }
+            }
         });
     }
 
     public function onStart(Websocket $ws): Promise {
         $this->websocket = $ws;
-            return new Success;
+        return new Success;
     }
 
     public function onStop(Websocket $ws): Promise {
         return new Success;
     }
 
-    public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise{
+    public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise {
         return new Success($response);
     }
 
     public function handleClient(Gateway $gateway, Client $client, Request $request, Response $response): Promise {
         $session  = new Session("ws:");
         $this->subscribers[$client->getId()] = $client;
-        $this->subscribers[$client->getId()]->onClose(function($client, $close_clode, $close_reason) use ($session){
-             plog("- - - WS Closed. Client Id: " . $client->getId(), DEBUG, $session);
+        $this->subscribers[$client->getId()]->onClose(function ($client, $close_clode, $close_reason) use ($session) {
+            plog("- - - WS Closed. Client Id: " . $client->getId(), DEBUG, $session);
             $this->remove_client($client);
         });
         plog("+ + + WS New Connection from '{$client->getRemoteAddress()->toString()}' Client Id: " . $client->getId() . " Assigned session_id " . $session->get_id(), DEBUG, $session);
 
-        return call(function() use($session, $client) { 
+        return call(function () use ($session, $client) {
             while ($message = yield $client->receive()) {
                 \assert($message instanceof Message);
                 $msg = yield $message->buffer();
                 plog("↓WS↓ Received WebSocket message: $msg", DEBUG, $session);
                 $rest_message = RestMessage::from_json($msg);
-                \Amp\asyncCall(function() use ($rest_message, $session, $client){
-                    switch($rest_message->context){
+                \Amp\asyncCall(function () use ($rest_message, $session, $client) {
+                    switch ($rest_message->context) {
                         case RestMessage::REST_CONTEXT_SUBSCRIBE:
                             $sub_message = SubscribeMessage::from_obj($rest_message->payload);
                             plog("SUBSCRIBE message for type: {$sub_message->type}, get_now: {$sub_message->get_now}", DEBUG, $session);
-                            switch($sub_message->type){
+                            switch ($sub_message->type) {
                                 case SubscribeMessage::SUBSCRIBE:
-                                    foreach($sub_message->subscriptions as $item_name => $events){
-                                        foreach($events as $event_name){
-                                           
-                                        // $this->subscriptions[$client->getId()][$item_name][] = $event_name;
-                                        //null because all info is in the keys
+                                    foreach ($sub_message->subscriptions as $item_name => $events) {
+                                        foreach ($events as $event_name) {
+
+                                            // $this->subscriptions[$client->getId()][$item_name][] = $event_name;
+                                            //null because all info is in the keys
                                             $this->subscriptions[$item_name][$event_name][$client->getId()] = null;
                                         }
                                     }
                                     //var_dump($sub_message);
-                                    if($sub_message->get_now == SubscribeMessage::REQUEST_ALL){
+                                    if ($sub_message->get_now == SubscribeMessage::REQUEST_ALL) {
                                         plog("client requested values of all items", DEBUG, $session);
                                         $resp_rest_message = yield $this->request_all($session, $client);
                                         yield $this->send($session, $client, $resp_rest_message->to_json());
-
-                                    } else if($sub_message->get_now == SubscribeMessage::REQUEST_VALUES){
+                                    } else if ($sub_message->get_now == SubscribeMessage::REQUEST_VALUES) {
                                         plog("client requested values of just subscribed items", DEBUG, $session);
                                         $resp_rest_message = yield $this->request_values($session, $client, get_object_vars($sub_message->subscriptions));
                                         yield $this->send($session, $client, $resp_rest_message->to_json());
                                     }
                                     break;
 
-                                case SubscribeMessage::REQUEST_ALL:                                
+                                case SubscribeMessage::REQUEST_ALL:
                                     $resp_rest_message = yield $this->request_all($session, $client);
                                     yield $this->send($session, $client, $resp_rest_message->to_json());
                                     break;
 
                                 default:
                                     yield $this->send_error($session, $client, "Invalid SubscribeMeessage type: {$sub_message->type}");
-                            }   
+                            }
                             break;
                         default:
                             $msg = "Invalid RestMessage context: {$rest_message->context}";
                             yield $this->send_error($session, $client, $msg);
-                            
                     }
                 });
 
-            /*  $resp_rest_message = yield handle_RestMessage(Session::$INTERNAL, $rest_message);
+                /*  $resp_rest_message = yield handle_RestMessage(Session::$INTERNAL, $rest_message);
                 yield $client->send($resp_rest_message->to_json());*/
-
             }
-        }); 
+        });
     }
 
     /**
      * returns assoc array item_name => $event[]
      */
-    private function get_client_subscriptions(String $client_id): array{
+    private function get_client_subscriptions(String $client_id): array {
         $subs = [];
-        foreach($this->subscriptions as $item_name => $event_names){
-            foreach ($event_names as $event_name){
+        foreach ($this->subscriptions as $item_name => $event_names) {
+            foreach ($event_names as $event_name) {
                 $subs[$item_name][] = $event_name;
             }
         }
@@ -152,55 +149,69 @@ class WebSocketClientHandler implements ClientHandler{
     }
 
     private function request_all(Session $session, Client $client): Promise {
-        return $this->request_values($this->get_client_subscriptions($client->getId()));           
+        return $this->request_values($session, $client, $this->get_client_subscriptions($client->getId()));
     }
 
     private function request_values(Session $session, Client $client, array $item_names): Promise {
-        return \Amp\call(function() use($session, $client, $item_names){
+        return \Amp\call(function () use ($session, $client, $item_names) {
             $item_messages = [];
             $proms  = [];
-            foreach($item_names as $item_name => $event_array){
-                try {                    
+            foreach ($item_names as $item_name => $event_array) {
+                try {
                     $item = get_item($item_name);
-                } catch(InvalidArgException $ie) {
+                } catch (InvalidArgException $ie) {
                     $this->send_error($session, $client, "Invalid item requested: $item_name");
                     continue;
                 }
 
-                plog("WS request_values requesting value for item: '$item_name'", DEBUG, $session);                
+                plog("WS request_values requesting value for item: '$item_name'", DEBUG, $session);
                 try {
+
                     $proms[$item_name] =  $item->get_value($session);
-                } catch (UnprocessedRequestException $e){
+                } catch (UnprocessedRequestException $e) {
                     plog("Cound not connect to node '{$target_node->name}'", ERROR, $session);
                     $this->send_error($session, $client, "Cound not connect to node '{$target_node->name}'");
                     continue;
                 }
             }
-            if(count($proms)){
-                $results = yield \Amp\Promise\some($proms, 1);
-                $failed = $results[0];
-                $succeeded = $results[1];
-                foreach($succeeded as $item_name => $value){
+            if (count($proms)) {
+                $succeeded = [];
+                $failed = [];
+                foreach ($proms as $item_name => $prom) {
+                    try {
+                        $succeeded[$item_name] = yield $prom;
+                    } catch (\Amp\TimeoutException $te) {
+                        $failed[$item_name] = $prom;
+                    }
+                }
+                foreach ($succeeded as $item_name => $value) {
                     $item_messages[] = new ItemMessage($item_name, ItemMessage::GET, $value);
+                }
+
+                foreach ($failed as $item_name => $value) {
+                    $item_messages[] = new ItemMessage($item_name, ItemMessage::GET, new Value([
+                        "has_error" => true,
+                        "error_message" => "Timed out attempting to retrieve value"
+                    ]));
                 }
             }
             return new RestMessage(RestMessage::RESP, RestMessage::REST_CONTEXT_ITEMS, NODE_NAME, null, null, $item_messages);
         });
     }
 
-    private function send(Session $session, $client, string $data): Promise{
+    private function send(Session $session, $client, string $data): Promise {
         plog("↑WS↑ Sending $data", DEBUG, $session);
-        if(!array_key_exists($client->getId(), $this->subscribers)){
+        if (!array_key_exists($client->getId(), $this->subscribers)) {
             plog("Trying to send message to invalid client with id: " . $client->getId(), ERROR, $session);
         }
-        return \Amp\call(function() use($session, $client, $data) {
-            try{
+        return \Amp\call(function () use ($session, $client, $data) {
+            try {
                 yield $client->send($data);
-            } catch (ClosedException $ce){
+            } catch (ClosedException $ce) {
                 plog("Websocket connection unexpectedly closed from client at: " . $client->getRemoteAddress(), DEBUG, $session);
-               // var_dump($client);
-               // var_dump($ce);
-               $this->remove_client($client);
+                // var_dump($client);
+                // var_dump($ce);
+                $this->remove_client($client);
                 return  new Success;
             }
         });
@@ -213,10 +224,10 @@ class WebSocketClientHandler implements ClientHandler{
 
     private function remove_client(Client $client): void {
         unset($this->subscribers[$client->getId()]);
-        foreach($this->subscriptions as $item_name => $event_name_arr){
-            foreach($event_name_arr as $event_name => $client_arr){
-                foreach(array_keys($client_arr) as $client_id){
-                    if($client_id == $client->getId()){
+        foreach ($this->subscriptions as $item_name => $event_name_arr) {
+            foreach ($event_name_arr as $event_name => $client_arr) {
+                foreach (array_keys($client_arr) as $client_id) {
+                    if ($client_id == $client->getId()) {
                         unset($this->subscriptions[$item_name][$event_name][$client_id]);
                     }
                 }
@@ -224,5 +235,3 @@ class WebSocketClientHandler implements ClientHandler{
         }
     }
 }
-
-?>

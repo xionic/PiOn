@@ -30,6 +30,7 @@ class HardwareMQTT extends Hardware{
     private $url;
     private $registrations = [];
     private $connected = false;
+    private $connected_deferred = null;
 
 	 
 	 function __construct(String $name, String $node_name, array $capabilities, Object $args){
@@ -48,7 +49,7 @@ class HardwareMQTT extends Hardware{
                         return $reg->cur_value;
                     } else {
                         //We need to prompt the device to give us it's value, then wait for the response
-                        plog("HardwareMQTT sending to uypdate topic: " . $item_args->update_topic, DEBUG, $session);
+                        plog("HardwareMQTT sending to update topic: " . $item_args->update_topic, DEBUG, $session);
                         $this->client->publish("", $item_args->update_topic, 2);
                         $reg->deferred = new Deferred();
                         yield $reg->deferred->promise();
@@ -106,10 +107,14 @@ class HardwareMQTT extends Hardware{
      */
     function check_connected(): Promise{
         return \Amp\call(function(){
-            if(!$this->connected){           
+            if($this->connected_deferred != null){ // we're already connecting, just wait
+                yield $this->connected_deferred->promise();
+            } else if(!$this->connected){
+                $this->connected_deferred = new Deferred;
                 yield $this->client->connect();
-                $this->connected = true;
                 plog("MQTT connection established to " . $this->url, VERBOSE, Session::$INTERNAL);
+                $this->connected = true;
+                $this->connected_deferred->resolve();
                 $this->client->on('message', function(Publish $publish_packet){
                     $this->on_message($publish_packet);
                 });
