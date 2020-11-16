@@ -3,9 +3,9 @@
 	require_once("vendor/autoload.php");
 	
 	require_once("constants.php"); // load first
-	require_once("Timer.class.php"); //fix(hack) load order
+	require_once("timers/Timer.class.php"); //fix(hack) load order
 	require_once("vendor/xionic/argh/src/Argh.class.php"); // cannot get to work with composer
-	foreach (glob("{.,hardware,items,nodes}/*.php", GLOB_BRACE) as $filename)
+	foreach (glob("{.,hardware,items,nodes,timers}/*.php", GLOB_BRACE) as $filename)
 	{
 		require_once $filename; //SECURITY
 	}
@@ -17,7 +17,7 @@
 	use \PiOn\Item\Item;
 	use \PiOn\Item\ItemMessage;
 	use \PiOn\RestMessage;
-	use \PiOn\Event\Scheduler;
+	use \PiOn\Timer\Scheduler;
 	use \PiOn\WebSocketManager;
 
 	use Amp\Loop;

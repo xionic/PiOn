@@ -1,7 +1,6 @@
 <?php
-namespace PiOn\Event;
+namespace PiOn\Timer;
 
-use \PiOn\Event\Task;
 
 interface Timer {
 	

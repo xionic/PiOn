@@ -1,7 +1,6 @@
 <?php
-namespace PiOn\Event;
+namespace PiOn\Timer;
 
-use \Amp\Loop;
 use \PiOn\Session;
 
 class Task {

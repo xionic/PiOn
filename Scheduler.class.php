@@ -1,5 +1,5 @@
 <?php
-namespace PiOn\Event;
+namespace PiOn\Timer;
 
 use \PiOn\Session;
 

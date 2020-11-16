@@ -1,5 +1,5 @@
 <?php
-namespace PiOn\Event;
+namespace PiOn\Timer;
 
 use \Amp\Loop;
 use \PiOn\Session;
@@ -29,7 +29,7 @@ class FixedIntervalTimer implements Timer{
 	function init_schedule(): void {}
 	
 	function cancel(): void {
-		\Amp\cancel($this->interval_id);
+		Loop::cancel($this->interval_id);
 	}
 }
 

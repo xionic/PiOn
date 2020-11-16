@@ -1,8 +1,6 @@
 <?php
-namespace PiOn\Event;
+namespace PiOn\Timer;
 
-use \DateTime;
-use \DateTimeZone;
 
 use \PiOn\Session;
 
@@ -10,7 +8,7 @@ use \Amp\Loop;
 
 class WeeklyTimer implements Timer {
 	
-	private $sec, $min, $hour, $days;
+	private $secs, $mins, $hours, $days;
 	private $week_fire_times = []; // fire times in seconds into the week. i.e. max value is 7*24*60*60
 	private $interval_id;
 	private $running = false;
@@ -182,7 +180,7 @@ class WeeklyTimer implements Timer {
 	
 	function cancel(): void {
 		$this->running = false;
-		\Amp\cancel($this->interval_id);
+		Loop::cancel($this->interval_id);
 	}
 }
 
