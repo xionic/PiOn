@@ -1,0 +1,92 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+body {
+  background-color: #3f3f4e;
+  color: #ddddee;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif, sans-serif;
+  width: 92%;
+  float: left;
+}
+
+ul {
+  float: left;
+  width: 98%;
+  padding: 0px;
+  margin: 0px;
+}
+
+li {
+  list-style: none;
+  float: left;
+  width: 98%;
+}
+
+li.roomrow ul {
+  padding-bottom: 10px;
+}
+
+li.item {
+  background: #555566;
+  margin: 2px 4px;
+}
+
+li.roomrow {
+  margin: 3px;
+  padding: 5px;
+  margin-bottom: 20px;
+  background: #3b3941;
+  box-shadow: 0 0 10px 5px #232227;
+  /*border: solid 10px #b3a3ee;*/
+}
+
+span.itemname {
+  float: left;
+  margin: 5px;
+}
+
+span.itemvalue {
+  float: right;
+  margin: 5px;
+}
+
+h3.roomname {
+  /*border-bottom: solid 5px #b3a3ee;*/
+  margin: 5px;
+}

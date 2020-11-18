@@ -1,2 +1,0 @@
-#!/bin/bash
-polymer serve -H xealot --port 8081
