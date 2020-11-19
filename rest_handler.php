@@ -51,7 +51,7 @@ function handle_rest_request(Request $request): Promise{
  * Resolves to RestMessage
  */
 function handle_RestMessage(Session $session, RestMessage $rest_message): Promise {
-	return \Amp\Call(function() use ($rest_message, $session) {		
+	return \Amp\Call(function() use ($rest_message, $session) {
 		
 		$json_str = null;
 		$response_obj = null;

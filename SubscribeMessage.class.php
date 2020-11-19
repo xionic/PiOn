@@ -2,6 +2,7 @@
 namespace PiOn;
 
 use \xionic\Argh\Argh;
+use \xionic\Argh\ValidationException;
 
 class SubscribeMessage {
 
@@ -34,13 +35,17 @@ class SubscribeMessage {
     }
 
     static function from_obj($obj): SubscribeMessage{
-        Argh::validate($obj, [
-            "get_now" => ["optional", "boolean"],
-			"subscriptions" => ["obj"],
-			"type" => ["notblank"],
-			"/subscriptions/*" => ["array"],
-			"/subscriptions/*/*" => ["notblank"]
-        ]);
+        try{
+            Argh::validate($obj, [
+                "get_now" => ["optional", "boolean"],
+                "subscriptions" => ["obj"],
+                "type" => ["notblank"],
+                "/subscriptions/*" => ["array"],
+                "/subscriptions/*/*" => ["notblank"]
+            ]);
+        } catch (ValidationException $ve){
+            plog("SubscribeMessage::from_obj Validation error: " . $ve->getMessage(), ERROR, Session::$INTERNAL);
+        }
 
         $get_now = property_exists($obj, "get_now") ? $obj->get_now : null;
         

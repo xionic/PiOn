@@ -1,43 +1,56 @@
 
 import React, { Component } from 'react';
-import config from './config.js';
 import Value from './Value.js';
 import RestMessage from './RestMessage.js';
 import ItemMessage from './ItemMessage.js';
 import SubscribeMessage from './SubscribeMessage.js';
 import ItemEvent from './ItemEvent.js';
-import ToggleSwitch from './modules/ToggleSwitch/ToggleSwitch';
+
+import ModuleToggleSwitch from './modules/ModuleToggleSwitch/ModuleToggleSwitch.js';
+import ModuleText from './modules/ModuleText/ModuleText.js';
+import ModuleTemperature from './modules/ModuleTemperature/ModuleTemperature.js';
+import ModuleHumidity from './modules/ModuleHumidity/ModuleHumidity.js';
+import ModuleThermostat from './modules/ModuleThermostat/ModuleThermostat.js';
+import ModuleSetpoint from './modules/ModuleSetpoint/ModuleSetpoint.js';
+
 import './App.css';
 
 
 var websocket;
-var config;
 
 class App extends Component {
 
   constructor(props) {
     super(props);
     this.state = { sitemap: [], module_values: {} };
+    window.config = {};
 
     //bind this
     this.handleModuleValueChange = this.handleModuleValueChange.bind(this);
+
+    //defined map of PiOn modules to local component names
+    this.modules = {
+      "switch": ModuleToggleSwitch,
+      "text": ModuleText,
+      "temperature": ModuleTemperature,
+      "humidity": ModuleHumidity,
+      "thermostat": ModuleThermostat,
+      "setpoint": ModuleSetpoint
+    }
 
     //load condig
     this.config_load_prom = fetch("config.json")
       .then(res => res.json())
       .then(resjson => { //sitemap loaded
-        config = resjson;
-        console.debug("config.json loaded");
-        if (config.host === null) {
-          config.host = window.location.hostname; //default to current hostname - for config simplicity
+        window.config = resjson;
+        console.debug("config.json loaded", window.config);
+        if (window.config.host === null) {
+          window.config.host = window.location.hostname; //default to current hostname - for config simplicity
         }
+        window.config.websocket_url = "ws://" + window.config.host + ":" + window.config.port + window.config.websocket_path;
+        window.config.api_url = "http://" + window.config.host + ":" + window.config.port + "/api/";
       }
       );
-
-    //defined map of PiOn modules to local component names
-    this.modules = {
-      "switch": ToggleSwitch
-    }
 
     //load sitemap
     this.sitemap_loaded = false;
@@ -47,7 +60,7 @@ class App extends Component {
 
         this.setState({ sitemap: resjson }, () => {
           this.sitemap_loaded = true;
-          console.debug("sitemap.json loaded");
+          console.debug("sitemap.json loaded", this.state.sitemap);
           //init state for each item
           for (const room in this.state.sitemap) {
             this.state.sitemap[room].forEach((item) => {
@@ -63,43 +76,47 @@ class App extends Component {
             });
           } //end setState callback
         }); //end setState
-
-        
-
       }
       );
 
-    //defined map of PiOn modules to local component names
-    this.modules = {
-      "switch": ToggleSwitch
-    }
+
   } //end constructor
 
   handleModuleValueChange(item_name, value) {
+    if(value.constructor.name !== "Value"){
+      throw Error("value passed is not an instance of Value");
+    }
     this.sendValueUpdate(item_name, value);
 
-    this.setState((prev_state) => {     
+    this.setState((prev_state) => {
       let new_state = Object.assign({}, prev_state);
       new_state.module_values[item_name] = value;
       return new_state;
     });
   } //end handleModuleValueChange
 
-  sendValueUpdate(item_name, value){
+  sendValueUpdate(item_name, value) {
     let item_message = new ItemMessage(item_name, ItemMessage.SET, value);
     let rest_message = RestMessage.withSendDefaults(RestMessage.REQ, RestMessage.REST_CONTEXT_ITEM, item_message);
-    console.log(rest_message);
+    // console.log(rest_message);
+    console.debug(`Sending update to server for item '${item_name}' and item_message:`, item_message);
+    let full_url = window.config.api_url + "?data=" + encodeURIComponent(rest_message.to_json());
+    console.debug(`Full URL: ${full_url}`);
+    fetch(full_url)
+      .then((retval) => {
+        console.log(retval);
+      });
+
   } //end sendValueUpdate
 
   ws_connect() {
     let ws_prom = new Promise((resolve, reject) => {
-      let ws_url = "ws://" + config.host + ":" + config.port + config.websocket_path;
 
       if (typeof (websocket) !== 'undefined') return // avoid reconnecting on React Render cycle
 
-      websocket = new WebSocket(ws_url);
+      websocket = new WebSocket(window.config.websocket_url);
       websocket.onopen = () => {
-        console.log("Websocket connection established to:", ws_url);
+        console.log("Websocket connection established to:", window.config.websocket_url);
         resolve(websocket);
 
         //subscribe to items
@@ -130,7 +147,7 @@ class App extends Component {
         switch (rest_message.context) {
           case RestMessage.REST_CONTEXT_ITEM:
             rest_message.payload = [rest_message.payload];
-            // eslint-disable-next-line no-fallthrough
+          // eslint-disable-next-line no-fallthrough
           case RestMessage.REST_CONTEXT_ITEMS:
             rest_message.payload.forEach(function (item) {
               let item_message = ItemMessage.from_obj(item);
@@ -140,7 +157,7 @@ class App extends Component {
                 prev_state.module_values[item_message.item_name] = item_message.value;
                 return prev_state
               });
-              
+
             }, this);
             break;
           case RestMessage.REST_CONTEXT_ERROR:
@@ -161,18 +178,16 @@ class App extends Component {
       let rooms = [];
       for (const room in this.state.sitemap) {
         // console.log(room, this.state.sitemap[room]);
-        let items = []
+        let items = [];
         this.state.sitemap[room].forEach((item) => {
 
-          //
-          if (item.type !== "switch") { return }; //temp dev hack
           //console.log("MODULES", item, this.modules[item.type]);
           const CustomTag = this.modules[item.type];
           items.push(
             <li className="item" key={item.item_name}>
               <span className="itemname">{item.item_name}</span>
               <span className="itemvalue">
-                <CustomTag item_name={item.item_name} value={this.state.module_values[item.item_name]} onValueChange={this.handleModuleValueChange}></CustomTag>
+                <CustomTag item_name={item.item_name} value={this.state.module_values[item.item_name]} onValueChange={this.handleModuleValueChange} all_values={this.state.module_values}></CustomTag>
               </span>
             </li>
           );

@@ -1,4 +1,3 @@
-import App from './App.js';
 
 export default class RestMessage {
 /*
@@ -66,7 +65,7 @@ export default class RestMessage {
 	}
 
 	static withSendDefaults(type, context, payload){
-		return new RestMessage(type, context, "client", App.config.host, App.config.port, payload);
+		return new RestMessage(type, context, "client", window.config.host, window.config.port, payload);
 	}
 	
 	to_json(){
