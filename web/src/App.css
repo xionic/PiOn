@@ -41,8 +41,26 @@ body {
   background-color: #3f3f4e;
   color: #ddddee;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif, sans-serif;
-  width: 92%;
+  width: 100%;
   float: left;
+}
+
+div#root {
+  float:left;
+}
+
+div#outercont {
+  float:left;
+}
+
+div#tablecont {
+  margin: 10px 20px 20px 20px;
+  float:left;
+}
+
+div#websocketstatus {
+  float: right;
+  padding:5px 10px 0 0 ;
 }
 
 ul {

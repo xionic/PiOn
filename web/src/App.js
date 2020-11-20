@@ -6,6 +6,7 @@ import ItemMessage from './ItemMessage.js';
 import SubscribeMessage from './SubscribeMessage.js';
 import ItemEvent from './ItemEvent.js';
 
+import WebSocketStatus from './WebSocketStatus.js';
 import ModuleToggleSwitch from './modules/ModuleToggleSwitch/ModuleToggleSwitch.js';
 import ModuleText from './modules/ModuleText/ModuleText.js';
 import ModuleTemperature from './modules/ModuleTemperature/ModuleTemperature.js';
@@ -110,7 +111,7 @@ class App extends Component {
   } //end sendValueUpdate
 
   ws_connect() {
-    let ws_prom = new Promise((resolve, reject) => {
+    new Promise((resolve, reject) => {
 
       if (typeof (websocket) !== 'undefined') return // avoid reconnecting on React Render cycle
 
@@ -199,7 +200,16 @@ class App extends Component {
           </li>)
 
       }
-      return <div><ul>{rooms}</ul></div>;
+      return (
+        <div id="outercont">
+          <div>
+            <WebSocketStatus websocket={websocket}></WebSocketStatus>
+          </div>
+          <div id="tablecont">
+            <ul>{rooms}</ul>
+          </div>
+        </div>
+      );
 
     } else { //sitemap not loaded yet
       return <span>Loading sitemap...</span>
