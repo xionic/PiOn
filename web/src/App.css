@@ -46,21 +46,25 @@ body {
 }
 
 div#root {
-  float:left;
+  float: left;
 }
 
 div#outercont {
-  float:left;
+  float: left;
 }
 
 div#tablecont {
   margin: 10px 20px 20px 20px;
-  float:left;
+  float: left;
 }
 
 div#websocketstatus {
   float: right;
-  padding:5px 10px 0 0 ;
+  padding: 5px 10px 0 0;
+}
+
+div.rest_errorMsg {
+  background: rgba(200, 50, 50, 0.5);
 }
 
 ul {

@@ -43,10 +43,10 @@ class ModuleSetpoint extends ModuleBase {
 
     pionRender() {
         return <span>
-            <TextField onChange={this.handleChange} size="small" type="number" value={this.props.value.data} classes={{ root: "pion-modulesetpoint" }} inputProps={{ step: this.increment }} />
-            <Button onClick={this.handlePlus}>+</Button>
-            <Button onClick={this.handleMinus}>-</Button>
-        </span>;
+            <TextField onChange={this.handleChange} size="small" type="number" value={this.props.value.data} classes={{ root: "pion-modulesetpointinput" }} inputProps={{ step: this.increment, size: 2 }} />
+            <Button classes={{ root: "pion-modulesetpointbutton" }} onClick={this.handlePlus}>+</Button>
+            <Button classes={{ root: "pion-modulesetpointbutton" }} onClick={this.handleMinus}>-</Button>
+        </span >;
     }
 }
 

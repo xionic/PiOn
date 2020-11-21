@@ -65,7 +65,7 @@ export default class RestMessage {
 	}
 
 	static withSendDefaults(type, context, payload){
-		return new RestMessage(type, context, "client", window.config.host, window.config.port, payload);
+		return new RestMessage(type, context, "client", config.host, config.port, payload);
 	}
 	
 	to_json(){

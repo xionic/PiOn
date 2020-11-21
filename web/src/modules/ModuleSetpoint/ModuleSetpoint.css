@@ -1,7 +1,24 @@
-.pion-modulesetpoint input {
+.pion-modulesetpointinput input {
     color: white;
 }
 
-.pion-modulesetpoint {
-    width: 50px;
+.pion-modulesetpointinput {
+    width: 35px;
+}
+
+.pion-modulesetpointinput input::-webkit-outer-spin-button, .pion-modulesetpointinput input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.pion-modulesetpointinput input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.pion-modulesetpointbutton {
+    width:35px;
+    min-width:auto !important;
+    font-size:35px !important;
+    padding:0 !important;
+    line-height:1 !important;
 }
