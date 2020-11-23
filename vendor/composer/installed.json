@@ -420,17 +420,17 @@
     },
     {
         "name": "amphp/http",
-        "version": "v1.6.1",
-        "version_normalized": "1.6.1.0",
+        "version": "v1.6.2",
+        "version_normalized": "1.6.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http.git",
-            "reference": "dfd33554b82a7d8f18cced56352bcc8270318dfe"
+            "reference": "06d3b914cbe79b7c66b0efbae4a6aca81a718429"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http/zipball/dfd33554b82a7d8f18cced56352bcc8270318dfe",
-            "reference": "dfd33554b82a7d8f18cced56352bcc8270318dfe",
+            "url": "https://api.github.com/repos/amphp/http/zipball/06d3b914cbe79b7c66b0efbae4a6aca81a718429",
+            "reference": "06d3b914cbe79b7c66b0efbae4a6aca81a718429",
             "shasum": ""
         },
         "require": {
@@ -441,7 +441,7 @@
             "amphp/php-cs-fixer-config": "dev-master",
             "phpunit/phpunit": "^7 || ^6.5"
         },
-        "time": "2020-09-11T18:23:42+00:00",
+        "time": "2020-11-22T17:31:37+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -471,17 +471,17 @@
     },
     {
         "name": "amphp/http-client",
-        "version": "v4.5.2",
-        "version_normalized": "4.5.2.0",
+        "version": "v4.5.3",
+        "version_normalized": "4.5.3.0",
         "source": {
             "type": "git",
             "url": "https://github.com/amphp/http-client.git",
-            "reference": "2af4024062abded1d529ca5712866bfcb12ad5a9"
+            "reference": "5f34c35e194b0f7b7fe07a3097f794e24f49cb0f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/amphp/http-client/zipball/2af4024062abded1d529ca5712866bfcb12ad5a9",
-            "reference": "2af4024062abded1d529ca5712866bfcb12ad5a9",
+            "url": "https://api.github.com/repos/amphp/http-client/zipball/5f34c35e194b0f7b7fe07a3097f794e24f49cb0f",
+            "reference": "5f34c35e194b0f7b7fe07a3097f794e24f49cb0f",
             "shasum": ""
         },
         "require": {
@@ -516,7 +516,7 @@
             "ext-json": "Required for logging HTTP archives",
             "ext-zlib": "Allows using compression for response bodies."
         },
-        "time": "2020-11-03T07:54:59+00:00",
+        "time": "2020-11-22T20:45:00+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -1711,17 +1711,17 @@
     },
     {
         "name": "league/uri",
-        "version": "6.3.0",
-        "version_normalized": "6.3.0.0",
+        "version": "6.4.0",
+        "version_normalized": "6.4.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/thephpleague/uri.git",
-            "reference": "aa3babf16e9d7535544bd94e3def026ac56640f3"
+            "reference": "09da64118eaf4c5d52f9923a1e6a5be1da52fd9a"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/thephpleague/uri/zipball/aa3babf16e9d7535544bd94e3def026ac56640f3",
-            "reference": "aa3babf16e9d7535544bd94e3def026ac56640f3",
+            "url": "https://api.github.com/repos/thephpleague/uri/zipball/09da64118eaf4c5d52f9923a1e6a5be1da52fd9a",
+            "reference": "09da64118eaf4c5d52f9923a1e6a5be1da52fd9a",
             "shasum": ""
         },
         "require": {
@@ -1738,14 +1738,16 @@
             "phpstan/phpstan": "^0.12",
             "phpstan/phpstan-phpunit": "^0.12",
             "phpstan/phpstan-strict-rules": "^0.12",
-            "phpunit/phpunit": "^8.0"
+            "phpunit/phpunit": "^8.0 || ^9.0",
+            "psr/http-factory": "^1.0"
         },
         "suggest": {
             "ext-fileinfo": "Needed to create Data URI from a filepath",
             "ext-intl": "Needed to improve host validation",
-            "league/uri-components": "Needed to easily manipulate URI objects"
+            "league/uri-components": "Needed to easily manipulate URI objects",
+            "psr/http-factory": "Needed to use the URI factory"
         },
-        "time": "2020-08-13T17:18:44+00:00",
+        "time": "2020-11-22T14:29:11+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -2208,12 +2210,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/xionic/amphp-mqtt.git",
-            "reference": "d9d7be500c77c8656ee3073aec06e336373aa397"
+            "reference": "19c0539a65c0de8b48f13573d85e010c52e39572"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/xionic/amphp-mqtt/zipball/d9d7be500c77c8656ee3073aec06e336373aa397",
-            "reference": "d9d7be500c77c8656ee3073aec06e336373aa397",
+            "url": "https://api.github.com/repos/xionic/amphp-mqtt/zipball/19c0539a65c0de8b48f13573d85e010c52e39572",
+            "reference": "19c0539a65c0de8b48f13573d85e010c52e39572",
             "shasum": ""
         },
         "require": {
@@ -2222,7 +2224,7 @@
             "amphp/uri": ">=0.1",
             "evenement/evenement": "~3.0"
         },
-        "time": "2020-11-14T13:55:14+00:00",
+        "time": "2020-11-23T17:09:51+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {

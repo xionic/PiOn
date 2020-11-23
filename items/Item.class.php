@@ -9,6 +9,7 @@ use \PiOn\Hardware\OperationNotSupportedException;
 use \PiOn\Event\EventManager;
 use \PiOn\Event\ItemEvent;
 use \PiOn\Session;
+use \PiOn\Config;
 
 use \xionic\Argh\Argh;
 
@@ -89,7 +90,7 @@ abstract class Item {
 			}
 			return $item_value;
 
-		}), conf_get("default_get_timeout"));
+		}), Config::get("default_get_timeout"));
 	}
 	
 	public function set_value(Session $session, Value $value): Promise { // Resolves to Value

@@ -33,6 +33,7 @@ use Amp\Http\Http2\Http2Processor;
 use Amp\Http\Http2\Http2StreamException;
 use Amp\Http\InvalidHeaderException;
 use Amp\Http\Status;
+use Amp\Iterator;
 use Amp\Loop;
 use Amp\Promise;
 use Amp\Socket\EncryptableSocket;
@@ -122,10 +123,18 @@ final class Http2ConnectionProcessor implements Http2Processor
     /** @var int|null */
     private $shutdown;
 
+    /** @var Emitter */
+    private $frameQueueEmitter;
+
+    /** @var Iterator */
+    private $frameQueue;
+
     public function __construct(EncryptableSocket $socket)
     {
         $this->socket = $socket;
         $this->hpack = new HPack;
+        $this->frameQueueEmitter = new Emitter;
+        $this->frameQueue = $this->frameQueueEmitter->iterate();
     }
 
     public function isInitialized(): bool
@@ -173,7 +182,7 @@ final class Http2ConnectionProcessor implements Http2Processor
 
     public function close(): Promise
     {
-        $this->shutdown(new SocketException('Socket to ' . $this->socket->getRemoteAddress() . ' closed'));
+        $this->shutdown(new SocketException('Socket from \'' . $this->socket->getLocalAddress() . '\' to \'' . $this->socket->getRemoteAddress() . '\' closed'));
 
         $this->socket->close();
 
@@ -215,7 +224,8 @@ final class Http2ConnectionProcessor implements Http2Processor
     public function handleShutdown(int $lastId, int $error): void
     {
         $message = \sprintf(
-            "Received GOAWAY frame from %s with error code %d",
+            "Received GOAWAY frame on '%s' from '%s' with error code %d",
+            (string) $this->socket->getLocalAddress(),
             (string) $this->socket->getRemoteAddress(),
             $error
         );
@@ -798,6 +808,12 @@ final class Http2ConnectionProcessor implements Http2Processor
 
     public function handleData(int $streamId, string $data): void
     {
+        $length = \strlen($data);
+
+        $this->serverWindow -= $length;
+
+        $this->increaseConnectionWindow();
+
         if (!isset($this->streams[$streamId])) {
             return;
         }
@@ -815,9 +831,6 @@ final class Http2ConnectionProcessor implements Http2Processor
             return;
         }
 
-        $length = \strlen($data);
-
-        $this->serverWindow -= $length;
         $stream->serverWindow -= $length;
         $stream->received += $length;
 
@@ -841,15 +854,20 @@ final class Http2ConnectionProcessor implements Http2Processor
             return;
         }
 
-        $this->increaseConnectionWindow();
-
         $promise = $stream->body->emit($data);
         $promise->onResolve(function (?\Throwable $exception) use ($streamId): void {
             if ($exception || !isset($this->streams[$streamId])) {
                 return;
             }
 
-            $this->increaseStreamWindow($this->streams[$streamId]);
+            // Defer prevents sending increments for already closed streams
+            Loop::defer(function () use ($streamId) {
+                if (!isset($this->streams[$streamId])) {
+                    return;
+                }
+
+                $this->increaseStreamWindow($this->streams[$streamId]);
+            });
         });
     }
 
@@ -891,7 +909,6 @@ final class Http2ConnectionProcessor implements Http2Processor
         $stream->body = null;
 
         \assert($body !== null);
-
 
         $trailers = $stream->trailers;
         $stream->trailers = null;
@@ -954,6 +971,20 @@ final class Http2ConnectionProcessor implements Http2Processor
     public function request(Request $request, CancellationToken $cancellationToken, Stream $stream): Promise
     {
         return call(function () use ($request, $cancellationToken, $stream): \Generator {
+            if ($this->shutdown !== null) {
+                $exception = new UnprocessedRequestException(new SocketException(\sprintf(
+                    "Connection from '%s' to '%s' has already been shut down",
+                    (string) $this->socket->getLocalAddress(),
+                    (string) $this->socket->getRemoteAddress()
+                )));
+
+                foreach ($request->getEventListeners() as $eventListener) {
+                    yield $eventListener->abort($request, $exception);
+                }
+
+                throw $exception;
+            }
+
             if ($this->hasTimeout && !yield $this->ping()) {
                 $exception = new UnprocessedRequestException(
                     new SocketException(\sprintf(
@@ -1016,55 +1047,8 @@ final class Http2ConnectionProcessor implements Http2Processor
                 );
             }
 
-            $streamId = $this->streamId += 2; // Client streams should be odd-numbered, starting at 1.
-
-            $this->streams[$streamId] = $http2stream = new Http2Stream(
-                $streamId,
-                $request,
-                $stream,
-                $cancellationToken,
-                $originalCancellation,
-                $this->createStreamInactivityWatcher($streamId, $request->getInactivityTimeout()),
-                self::DEFAULT_WINDOW_SIZE,
-                $this->initialWindowSize
-            );
-
-            $this->socket->reference();
-
-            $transferTimeout = $request->getTransferTimeout();
-            $cancellationId = $cancellationToken->subscribe(function (CancelledException $exception) use (
-                $streamId,
-                $originalCancellation,
-                $transferTimeout
-            ): void {
-                if (!isset($this->streams[$streamId])) {
-                    return;
-                }
-
-                $this->writeFrame(
-                    Http2Parser::RST_STREAM,
-                    Http2Parser::NO_FLAG,
-                    $streamId,
-                    \pack("N", Http2Parser::CANCEL)
-                );
-
-                if (!$originalCancellation->isRequested()) {
-                    $this->hasTimeout = true;
-                    $this->ping(); // async ping, if other requests occur, they wait for it
-
-                    $exception = new TimeoutException(
-                        'Allowed transfer timeout exceeded, took longer than ' . $transferTimeout . ' ms',
-                        0,
-                        $exception
-                    );
-                }
-
-                $this->releaseStream($streamId, $exception);
-            });
-
             try {
                 $headers = $this->generateHeaders($request);
-                $headers = $this->hpack->encode($headers);
                 $body = $request->getBody()->createBodyStream();
 
                 foreach ($request->getEventListeners() as $eventListener) {
@@ -1072,6 +1056,52 @@ final class Http2ConnectionProcessor implements Http2Processor
                 }
 
                 $chunk = yield $body->read();
+
+                $streamId = $this->streamId += 2; // Client streams should be odd-numbered, starting at 1.
+
+                $this->streams[$streamId] = $http2stream = new Http2Stream(
+                    $streamId,
+                    $request,
+                    $stream,
+                    $cancellationToken,
+                    $originalCancellation,
+                    $this->createStreamInactivityWatcher($streamId, $request->getInactivityTimeout()),
+                    self::DEFAULT_WINDOW_SIZE,
+                    $this->initialWindowSize
+                );
+
+                $this->socket->reference();
+
+                $transferTimeout = $request->getTransferTimeout();
+                $cancellationId = $cancellationToken->subscribe(function (CancelledException $exception) use (
+                    $streamId,
+                    $originalCancellation,
+                    $transferTimeout
+                ): void {
+                    if (!isset($this->streams[$streamId])) {
+                        return;
+                    }
+
+                    $this->writeFrame(
+                        Http2Parser::RST_STREAM,
+                        Http2Parser::NO_FLAG,
+                        $streamId,
+                        \pack("N", Http2Parser::CANCEL)
+                    );
+
+                    if (!$originalCancellation->isRequested()) {
+                        $this->hasTimeout = true;
+                        $this->ping(); // async ping, if other requests occur, they wait for it
+
+                        $exception = new TimeoutException(
+                            'Allowed transfer timeout exceeded, took longer than ' . $transferTimeout . ' ms',
+                            0,
+                            $exception
+                        );
+                    }
+
+                    $this->releaseStream($streamId, $exception);
+                });
 
                 if (!isset($this->streams[$streamId])) {
                     foreach ($request->getEventListeners() as $eventListener) {
@@ -1085,6 +1115,7 @@ final class Http2ConnectionProcessor implements Http2Processor
 
                 $flag = Http2Parser::END_HEADERS | ($chunk === null ? Http2Parser::END_STREAM : Http2Parser::NO_FLAG);
 
+                $headers = $this->hpack->encode($headers);
                 if (\strlen($headers) > $this->frameSizeLimit) {
                     $split = \str_split($headers, $this->frameSizeLimit);
 
@@ -1159,7 +1190,9 @@ final class Http2ConnectionProcessor implements Http2Processor
 
                 return yield $responsePromise;
             } catch (\Throwable $exception) {
-                if (isset($this->streams[$streamId])) {
+                if (isset($streamId) && isset($this->streams[$streamId])) {
+                    \assert(isset($http2stream));
+
                     if (!$http2stream->requestBodyComplete) {
                         $http2stream->requestBodyCompletion->fail($exception);
                     }
@@ -1168,12 +1201,16 @@ final class Http2ConnectionProcessor implements Http2Processor
                 }
 
                 if ($exception instanceof StreamException) {
-                    $exception = new SocketException('Failed to write request (stream ' . $streamId . ') to socket: ' . $exception->getMessage(), 0, $exception);
+                    $message = 'Failed to write request (stream ' . ($streamId ?? 'not assigned') . ') to socket: ' . $exception->getMessage();
+
+                    $exception = new SocketException($message, 0, $exception);
                 }
 
                 throw $exception;
             } finally {
-                $cancellationToken->unsubscribe($cancellationId);
+                if (isset($cancellationId)) {
+                    $cancellationToken->unsubscribe($cancellationId);
+                }
             }
         });
     }
@@ -1187,6 +1224,8 @@ final class Http2ConnectionProcessor implements Http2Processor
     {
         try {
             yield $this->socket->write(Http2Parser::PREFACE);
+
+            Promise\rethrow(new Coroutine($this->runWriteThread()));
 
             yield $this->writeFrame(
                 Http2Parser::SETTINGS,
@@ -1204,7 +1243,22 @@ final class Http2ConnectionProcessor implements Http2Processor
                     self::DEFAULT_MAX_FRAME_SIZE
                 )
             );
+        } catch (\Throwable $e) {
+            /**
+             * @psalm-suppress DeprecatedClass
+             * @noinspection PhpDeprecationInspection
+             */
+            $this->shutdown(new ClientHttp2ConnectionException(
+                'The HTTP/2 connection closed' . ($this->shutdown !== null ? ' unexpectedly' : ''),
+                $this->shutdown ?? Http2Parser::INTERNAL_ERROR
+            ));
 
+            $this->close();
+
+            return;
+        }
+
+        try {
             $parser = (new Http2Parser($this))->parse();
 
             while (null !== $chunk = yield $this->socket->read()) {
@@ -1218,8 +1272,8 @@ final class Http2ConnectionProcessor implements Http2Processor
              * @noinspection PhpDeprecationInspection
              */
             $this->shutdown(new ClientHttp2ConnectionException(
-                "The HTTP/2 connection closed" . ($this->shutdown !== null ? ' unexpectedly' : ''),
-                $this->shutdown ?? Http2Parser::GRACEFUL_SHUTDOWN
+                "The HTTP/2 connection from '" . $this->socket->getLocalAddress() . "' to '" . $this->socket->getRemoteAddress() . "' closed" . ($this->shutdown === null ? ' unexpectedly' : ''),
+                $this->shutdown ?? Http2Parser::INTERNAL_ERROR
             ));
 
             $this->close();
@@ -1229,7 +1283,7 @@ final class Http2ConnectionProcessor implements Http2Processor
              * @noinspection PhpDeprecationInspection
              */
             $this->shutdown(new ClientHttp2ConnectionException(
-                "The HTTP/2 connection closed unexpectedly: " . $exception->getMessage(),
+                "The HTTP/2 connection from '" . $this->socket->getLocalAddress() . "' to '" . $this->socket->getRemoteAddress() . "' closed unexpectedly: " . $exception->getMessage(),
                 Http2Parser::INTERNAL_ERROR,
                 $exception
             ));
@@ -1246,15 +1300,7 @@ final class Http2ConnectionProcessor implements Http2Processor
     ): Promise {
         \assert(Http2Parser::logDebugFrame('send', $type, $flags, $stream, \strlen($data)));
 
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $promise = $this->socket->write(\substr(\pack("NccN", \strlen($data), $type, $flags, $stream), 1) . $data);
-        $promise->onResolve(function ($error) {
-            if ($error) {
-                $this->hasWriteError = true;
-            }
-        });
-
-        return $promise;
+        return $this->frameQueueEmitter->emit(\substr(\pack("NccN", \strlen($data), $type, $flags, $stream), 1) . $data);
     }
 
     private function applySetting(int $setting, int $value): void
@@ -1719,5 +1765,26 @@ final class Http2ConnectionProcessor implements Http2Processor
         Loop::unreference($watcher);
 
         return $watcher;
+    }
+
+    private function runWriteThread(): \Generator
+    {
+        try {
+            while (yield $this->frameQueue->advance()) {
+                yield $this->socket->write($this->frameQueue->getCurrent());
+            }
+        } catch (\Throwable $exception) {
+            $this->hasWriteError = true;
+
+            /**
+             * @psalm-suppress DeprecatedClass
+             * @noinspection PhpDeprecationInspection
+             */
+            $this->shutdown(new ClientHttp2ConnectionException(
+                "The HTTP/2 connection closed unexpectedly: " . $exception->getMessage(),
+                Http2Parser::INTERNAL_ERROR,
+                $exception
+            ), \max(0, $this->streamId));
+        }
     }
 }

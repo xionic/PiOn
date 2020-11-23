@@ -25,12 +25,9 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      moduleValues: {},
-      webSocket: null,
+      moduleValues: {},      
       errorMsg: {},
-      sitemap: {},
-      configLoadProm: null,
-      sitemapLoadProm: null
+      sitemap: {}      
     };
 
     //bind this to methods
@@ -49,6 +46,9 @@ class App extends Component {
       "setpoint": ModuleSetpoint
     }
 
+    //declare WS
+    this.websocket = null;
+
     this.modules_inited = false;
 
     //has the App mmounted yet?
@@ -59,8 +59,8 @@ class App extends Component {
     this.errorMsgCounter = 0;
 
     //has websocket connected yet?
-    this.websocketProm = new Promise((resolve) => {
-      this.websocketPromResolver = resolve;
+    this.websocketConnectedProm = new Promise((resolve) => {
+      this.websocketConnectedPromResolver = resolve;
     });
 
     //fetch config
@@ -125,7 +125,7 @@ class App extends Component {
     }
     return new Promise(function (item_name, resolve) {
       this.mountedProm.then(function (item_name, resolve) {
-        this.websocketProm.then(function (item_name, resolve, res_websocket) {
+        this.websocketConnectedProm.then(function (item_name, resolve) {
 
           //add item to list
           this.setState((prev) => {
@@ -146,7 +146,7 @@ class App extends Component {
           let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', window.config.host, window.config.port, sub_message);
 
           console.log("WS: Sending SUBSCRIBE RestMessage: ", rest_message);
-          res_websocket.send(rest_message.to_json());
+          this.websocket.send(rest_message.to_json());
         }.bind(this, item_name, resolve));
       }.bind(this, item_name, resolve));
     }.bind(this, item_name));
@@ -186,6 +186,7 @@ class App extends Component {
         newState.moduleValues[item] = Value.getUninitialised();
       }
     }, function () {
+      this.websocket = null;
       this.connectWebsocket();
     }.bind(this));
 
@@ -201,14 +202,19 @@ class App extends Component {
 
   //connect websocket
   connectWebsocket() {
+    if(this.websocket !== null){
+      console.error("Websocket already exists");
+      return;
+    }
     //after config and sitemap are loaded, setup websocket
     this.websocket_prom = new Promise(function (resolve) {
-      const res_websocket = new WebSocket(window.config.websocket_url);
-      res_websocket.onopen = function () {
+      console.debug("Websocket connecting...");
+      this.websocket = new WebSocket(window.config.websocket_url);
+      this.websocket.onopen = function () {
         console.log("Websocket connection established to:", window.config.websocket_url);
-        this.setState({ webSocket: res_websocket }, () => {
-          resolve(res_websocket);
-          this.websocketPromResolver(res_websocket);
+        this.setState({ webSocket: this.websocket }, () => {
+          resolve(this.websocket);
+          this.websocketConnectedPromResolver(this.websocket);
         })
 
         //subscribe to items
@@ -226,12 +232,12 @@ class App extends Component {
         let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', window.config.host, window.config.port, sub_message);
 
         console.log("WS: Sending SUBSCRIBE RestMessage: ", rest_message);
-        res_websocket.send(rest_message.to_json());
+        this.websocket.send(rest_message.to_json());
 
       }.bind(this) // end onopen
 
       // Listen for messages
-      res_websocket.onmessage = function (event) {
+      this.websocket.onmessage = function (event) {
         let rest_message = RestMessage.from_json(event.data);
         console.log('Message from WebSocket ', rest_message);
 
@@ -272,14 +278,20 @@ class App extends Component {
         }
       }.bind(this) //end onmessage
 
-      res_websocket.onerror = function () {
-        this.reconnectWebsocket();
+      this.websocket.onerror = function () {
+        console.debug("Websocket error - pausing before reconn attempt");
+        //back off on error to avoid spam
+        setTimeout(function(){
+          this.reconnectWebsocket();
+        }.bind(this),
+        2000);
       }.bind(this);
-      res_websocket.onclose = function () {
+
+      this.websocket.onclose = function () {
+        console.debug("Websocket error - reconnecting");
         this.reconnectWebsocket();
       }.bind(this);
 
-      this.setState({ websocket: res_websocket });
     }.bind(this));
   }
 

@@ -4,7 +4,7 @@ namespace PiOn\Item;
 use \Pion\Hardware\Hardware;
 use \Pion\Hardware\OperationNotSupportedException;
 use \PiOn\Event\EventManager;
-use \PiOn\Timer\Scheduler;
+use \PiOn\Scheduler\Scheduler;
 use \PiOn\Timer\FixedIntervalTimer;
 use \PiOn\Session;
 use \Pion\InvalidArgException;

@@ -62,7 +62,7 @@ class Model {
 			plog("Failed to validate config", ERROR, Session::$INTERNAL);
 			plog($ve->getMessage(), FATAL, Session::$INTERNAL);
 		}
-		plog("config.json validation succeeded", VERBOSE, Session::$INTERNAL);
+		plog("config validation succeeded", VERBOSE, Session::$INTERNAL);
 
 		//load nodes
 		foreach($model_conf->nodes as $node_name => $node){

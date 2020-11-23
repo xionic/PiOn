@@ -20,6 +20,7 @@ use \Amp\Websocket\Server\Websocket;
 use \Amp\Websocket\Client;
 use \Amp\Websocket\Server\ClientHandler;
 use \Amp\Websocket\Server\Gateway;
+use \Amp\Websocket\Message;
 use function \Amp\call;
 use \Amp\Websocket\ClosedException;
 
