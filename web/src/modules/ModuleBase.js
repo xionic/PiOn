@@ -1,5 +1,6 @@
 
 import React, { Component } from 'react';
+import Value from '../Value.js';
 
 /* 
 *    Abstract base class
@@ -8,7 +9,7 @@ class ModuleBase extends Component {
 
     constructor(props){
         super(props);
-        if (!props.hasOwnProperty("value") || props.value.constructor.name !== "Value"){
+        if (!props.hasOwnProperty("value") || !Value.checkValid(props.value)){
             throw Error("No or invalid value given to module");
         }
     }

@@ -105,7 +105,7 @@ try{
 		$ws = $ws_manager->get_websocket();
 
 		//static content handler
-		$documentRoot = new DocumentRoot(__DIR__ . '/web/public');
+		$documentRoot = new DocumentRoot(__DIR__ . '/web/build');
 		$router = new Amp\Http\Server\Router;
 		$router->addRoute('GET', '/api/', new CallableRequestHandler(function (Request $request) {	
 			return yield handle_rest_request($request);
