@@ -59,6 +59,7 @@ export default class PiOnModule extends Component {
                     value={this.props.value}
                     onValueChange={this.props.onValueChange}
                     all_values={this.props.all_values}
+                    subscribeItem={this.props.subscribeItem}
                 ></CustomTag>
             </span>
         </span >;

@@ -6,6 +6,7 @@
 /php-conf/
 /linecount.sh
 /.vscode/
+*.swp
 
 !/keys/.gitkeep
 !/log/.gitkeep

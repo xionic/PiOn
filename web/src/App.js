@@ -37,6 +37,7 @@ class App extends Component {
     this.handleModuleValueChange = this.handleModuleValueChange.bind(this);
     this.sendValueUpdate = this.sendValueUpdate.bind(this);
     this.connectWebsocket = this.connectWebsocket.bind(this);
+    this.subscribeItem = this.subscribeItem.bind(this);
 
     //defined map of PiOn modules to local component names
     this.modules = {
@@ -49,14 +50,22 @@ class App extends Component {
     }
 
     this.modules_inited = false;
+
+    //has the App mmounted yet?
     this.mountedProm = new Promise((resolve) => {
       this.mountedPromResolver = resolve;
     });
+
     this.errorMsgCounter = 0;
+
+    //has websocket connected yet?
+    this.websocketProm = new Promise((resolve) => {
+      this.websocketPromResolver = resolve;
+    });
 
     //fetch config
     this.configLoadProm = new Promise((resolve) => {
-      fetch("config.json")
+      fetch("webconfig.json")
         .then(res => res.json())
         .then(res_json => { //config loaded
           window.config = res_json;
@@ -104,6 +113,45 @@ class App extends Component {
     });
   }
 
+  /**
+   * 
+   * register an item to be subscribed to over the websocket for value updates
+   */
+  subscribeItem(item_name) {
+    //don't subscribe if we already have
+    if (this.state.moduleValues.hasOwnProperty(item_name)) {
+      return Promise.resolve(true);
+
+    }
+    return new Promise(function (item_name, resolve) {
+      this.mountedProm.then(function (item_name, resolve) {
+        this.websocketProm.then(function (item_name, resolve, res_websocket) {
+
+          //add item to list
+          this.setState((prev) => {
+            const new_state = { ...prev };
+            new_state.moduleValues[item_name] = Value.getUninitialised();
+            return new_state;
+          });
+          resolve(true);
+
+          //subscribe to items
+          let subscribe_items = {};
+          subscribe_items[item_name] = [ItemEvent.ITEM_VALUE_CHANGED];
+
+          //build subscribe message with all items and events we're subing to
+          let sub_message = new SubscribeMessage(subscribe_items, SubscribeMessage.SUBSCRIBE, SubscribeMessage.REQUEST_VALUES);
+
+          //build the rest message to be sent over the WS
+          let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', window.config.host, window.config.port, sub_message);
+
+          console.log("WS: Sending SUBSCRIBE RestMessage: ", rest_message);
+          res_websocket.send(rest_message.to_json());
+        }.bind(this, item_name, resolve));
+      }.bind(this, item_name, resolve));
+    }.bind(this, item_name));
+  }
+
   handleModuleValueChange(item_name, value) {
     if (value.constructor.name !== "Value") {
       throw Error("value passed is not an instance of Value");
@@ -132,21 +180,21 @@ class App extends Component {
 
   reconnectWebsocket() {
     //reset item values to uninitialised
-    this.setState(function(prev){
-      let newState = {...prev};
-      for (const item in newState.moduleValues){
+    this.setState(function (prev) {
+      let newState = { ...prev };
+      for (const item in newState.moduleValues) {
         newState.moduleValues[item] = Value.getUninitialised();
       }
-    }, function(){
+    }, function () {
       this.connectWebsocket();
     }.bind(this));
 
   }
 
-  removeErrorMsg(id){
-    this.setState( (prev) => {
-      let newState = {...prev};
-      delete  newState.errorMsg[id];
+  removeErrorMsg(id) {
+    this.setState((prev) => {
+      let newState = { ...prev };
+      delete newState.errorMsg[id];
       return newState;
     });
   }
@@ -154,12 +202,13 @@ class App extends Component {
   //connect websocket
   connectWebsocket() {
     //after config and sitemap are loaded, setup websocket
-    new Promise(function (resolve) {
+    this.websocket_prom = new Promise(function (resolve) {
       const res_websocket = new WebSocket(window.config.websocket_url);
       res_websocket.onopen = function () {
         console.log("Websocket connection established to:", window.config.websocket_url);
         this.setState({ webSocket: res_websocket }, () => {
           resolve(res_websocket);
+          this.websocketPromResolver(res_websocket);
         })
 
         //subscribe to items
@@ -176,7 +225,7 @@ class App extends Component {
         //build the rest message to be sent over the WS
         let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', window.config.host, window.config.port, sub_message);
 
-        console.log("WS: Sending RestMessage: ", rest_message);
+        console.log("WS: Sending SUBSCRIBE RestMessage: ", rest_message);
         res_websocket.send(rest_message.to_json());
 
       }.bind(this) // end onopen
@@ -206,10 +255,10 @@ class App extends Component {
           case RestMessage.REST_CONTEXT_ERROR:
             console.log("WS: Received ERROR message: " + rest_message.payload);
             const errMsgId = this.errorMsgCounter++;
-            this.setState(function(prev) {
+            this.setState(function (prev) {
               let new_state = { ...prev };
               new_state.errorMsg[errMsgId] = rest_message.payload;
-              setTimeout(function(){
+              setTimeout(function () {
                 this.removeErrorMsg(errMsgId);
               }.bind(this), 5000);
               return new_state;
@@ -247,16 +296,17 @@ class App extends Component {
 
           const CustomTag = this.modules[item.type];
           const cur_value = this.state.moduleValues[item.item_name];
-          
+
           items.push(
             <li className="item" key={item.item_name}>
-              <PiOnModule 
+              <PiOnModule
                 type={CustomTag}
                 item_name={item.item_name}
                 value={cur_value}
                 onValueChange={this.handleModuleValueChange}
                 all_values={this.state.moduleValues}
-                ></PiOnModule>
+                subscribeItem={this.subscribeItem}
+              ></PiOnModule>
             </li>
           );
         });
@@ -271,7 +321,7 @@ class App extends Component {
       let errorElem = [];
       if (this.state.errorMsg !== "") {
         for (const msgId in this.state.errorMsg) {
-          errorElem.push(<div key={msgId} class="rest_errorMsg">{this.state.errorMsg[msgId]}</div>);
+          errorElem.push(<div key={msgId} className="rest_errorMsg">{this.state.errorMsg[msgId]}</div>);
         }
       }
 

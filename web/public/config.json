@@ -1,9 +1,0 @@
-{
-	
-	"host": null,
-	"port": "28080",
-	
-	"websocket_path": "/websocket/",
-	"api_path": "/api/"
-	
-}
