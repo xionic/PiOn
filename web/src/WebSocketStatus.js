@@ -29,7 +29,7 @@ export default function WebSocketStatus(props){
                 const mins = "" + current_date.getMinutes();
                 const secs = "" + current_date.getSeconds();
                 setText_state_str("Websocket is " + text_state + "@" + hours.padStart(2, "0") + ":" + mins.padStart(2, "0") + ":" + secs.padStart(2, "0"));                
-            }, 1000);
+            }, 500);
 
             return () => {
                 clearInterval(interval);

@@ -32,6 +32,17 @@ class Value {
 		v.initialised = false;
 		return v;
 	}
+
+	static checkValid(value){
+		return (
+			value.hasOwnProperty("data")
+			&& value.hasOwnProperty("has_error")
+			&& value.hasOwnProperty("error_message")
+			&& value.hasOwnProperty("timestamp")
+			&& value.hasOwnProperty("certainty")
+			&& value.hasOwnProperty("initialised")
+		)
+	}
 	
 	static get CERTAIN() {
 		return "CERTAIN";

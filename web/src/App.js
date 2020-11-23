@@ -49,7 +49,10 @@ class App extends Component {
     //declare WS
     this.websocket = null;
 
-    this.modules_inited = false;
+    this.modulesInited = false;
+    this.modulesInitedProm = new Promise(function (resolve) {
+      this.modulesInitedPromResolver = resolve;
+    }.bind(this));
 
     //has the App mmounted yet?
     this.mountedProm = new Promise((resolve) => {
@@ -94,7 +97,8 @@ class App extends Component {
           }
           this.mountedProm.then(function () {
             this.setState({ moduleValues: init_mod_vals, sitemap: res_sitemap }, () => {
-              this.modules_inited = true;
+              this.modulesInited = true;
+              this.modulesInitedPromResolver(true);
               resolve();
             });
           }.bind(this));
@@ -152,7 +156,7 @@ class App extends Component {
   }
 
   handleModuleValueChange(item_name, value) {
-    if (value.constructor.name !== "Value") {
+    if (Value.checkValid(value)) {
       throw Error("value passed is not an instance of Value");
     }
     this.sendValueUpdate(item_name, value);
@@ -179,12 +183,18 @@ class App extends Component {
 
   reconnectWebsocket() {
     //reset item values to uninitialised
+    this.modulesInited = false;
+    this.modulesInitedProm = new Promise(function (resolve) {
+      this.modulesInitedPromResolver = resolve;
+    }.bind(this));
     this.setState(function (prev) {
       let newState = { ...prev };
       for (const item in newState.moduleValues) {
         newState.moduleValues[item] = Value.getUninitialised();
       }
-    }, function () {
+    }, function () { //done resetting module values
+      this.modulesInited = true;
+      this.modulesInitedPromResolver();
       this.websocket.close(); //make sure
       this.websocket = null;
       this.connectWebsocket();
@@ -206,99 +216,104 @@ class App extends Component {
       console.error("Websocket already exists");
       return;
     }
-    //after config and sitemap are loaded, setup websocket
-    this.websocket_prom = new Promise(function (resolve) {
-      console.debug("Websocket connecting...");
-      this.websocket = new WebSocket(window.config.websocket_url);
-      this.websocket.onopen = function () {
-        console.log("Websocket connection established to:", window.config.websocket_url);
-        this.setState({ webSocket: this.websocket }, () => {
-          resolve(this.websocket);
-          this.websocketConnectedPromResolver(this.websocket);
-        })
 
-        //subscribe to items
-        let subscribe_items = {};
-        for (const room in this.state.sitemap) {
-          this.state.sitemap[room].forEach(item => {
-            subscribe_items[item.item_name] = [ItemEvent.ITEM_VALUE_CHANGED];
+    //ensure modules are inited before we subscribe, since we need the complete list
+    this.modulesInitedProm.then(function () {
+
+      //after config and sitemap are loaded, setup websocket
+      this.websocket_prom = new Promise(function (resolve) {
+        console.debug("Websocket connecting...");
+        this.websocket = new WebSocket(window.config.websocket_url);
+        this.websocket.onopen = function () {
+          console.log("Websocket connection established to:", window.config.websocket_url);
+          this.setState({ webSocket: this.websocket }, () => {
+            resolve(this.websocket);
+            this.websocketConnectedPromResolver(this.websocket);
           })
-        }
 
-        //build subscribe message with all items and events we're subing to
-        let sub_message = new SubscribeMessage(subscribe_items, SubscribeMessage.SUBSCRIBE, SubscribeMessage.REQUEST_VALUES);
+          //subscribe to items
+          let subscribe_items = {};
 
-        //build the rest message to be sent over the WS
-        let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', window.config.host, window.config.port, sub_message);
+          for (const item_name in this.state.moduleValues)  {
+            subscribe_items[item_name] = [ItemEvent.ITEM_VALUE_CHANGED];
+          };
 
-        console.log("WS: Sending SUBSCRIBE RestMessage: ", rest_message);
-        this.websocket.send(rest_message.to_json());
+          //build subscribe message with all items and events we're subing to
+          let sub_message = new SubscribeMessage(subscribe_items, SubscribeMessage.SUBSCRIBE, SubscribeMessage.REQUEST_VALUES);
 
-      }.bind(this) // end onopen
+          //build the rest message to be sent over the WS
+          let rest_message = new RestMessage(RestMessage.REQ, RestMessage.REST_CONTEXT_SUBSCRIBE, 'client', window.config.host, window.config.port, sub_message);
 
-      // Listen for messages
-      this.websocket.onmessage = function (event) {
-        let rest_message = RestMessage.from_json(event.data);
-        console.log('Message from WebSocket ', rest_message);
+          console.log("WS: Sending SUBSCRIBE RestMessage: ", rest_message);
+          this.websocket.send(rest_message.to_json());
 
-        switch (rest_message.context) {
-          case RestMessage.REST_CONTEXT_ITEM:
-            rest_message.payload = [rest_message.payload];
-          // eslint-disable-next-line no-fallthrough
-          case RestMessage.REST_CONTEXT_ITEMS:
-            rest_message.payload.forEach(function (item) {
-              let item_message = ItemMessage.from_obj(item);
-              console.debug("WS: Received value for item: ", item_message.item_name, " with data: ", item_message.value.data);
-              this.setState((prev) => {
-                const new_state = { ...prev };
-                new_state.moduleValues[item_message.item_name] = item_message.value;
+        }.bind(this) // end onopen
+
+        // Listen for messages
+        this.websocket.onmessage = function (event) {
+          let rest_message = RestMessage.from_json(event.data);
+          console.log('Message from WebSocket ', rest_message);
+
+          switch (rest_message.context) {
+            case RestMessage.REST_CONTEXT_ITEM:
+              rest_message.payload = [rest_message.payload];
+            // eslint-disable-next-line no-fallthrough
+            case RestMessage.REST_CONTEXT_ITEMS:
+              rest_message.payload.forEach(function (item) {
+                let item_message = ItemMessage.from_obj(item);
+                console.debug("WS: Received value for item: ", item_message.item_name, " with data: ", item_message.value.data);
+                this.setState((prev) => {
+                  const new_state = { ...prev };
+                  new_state.moduleValues[item_message.item_name] = item_message.value;
+                  return new_state;
+                });
+              }.bind(this));
+
+              break;
+
+            case RestMessage.REST_CONTEXT_ERROR:
+              console.log("WS: Received ERROR message: " + rest_message.payload);
+              const errMsgId = this.errorMsgCounter++;
+              this.setState(function (prev) {
+                let new_state = { ...prev };
+                new_state.errorMsg[errMsgId] = rest_message.payload;
+                setTimeout(function () {
+                  this.removeErrorMsg(errMsgId);
+                }.bind(this), 5000);
                 return new_state;
-              });
-            }.bind(this));
+              }.bind(this));
+              break;
 
-            break;
+            default:
+              console.log("WS: Received unknown rest message context: " + rest_message.context);
 
-          case RestMessage.REST_CONTEXT_ERROR:
-            console.log("WS: Received ERROR message: " + rest_message.payload);
-            const errMsgId = this.errorMsgCounter++;
-            this.setState(function (prev) {
-              let new_state = { ...prev };
-              new_state.errorMsg[errMsgId] = rest_message.payload;
-              setTimeout(function () {
-                this.removeErrorMsg(errMsgId);
-              }.bind(this), 5000);
-              return new_state;
-            }.bind(this));
-            break;
+            //alert("ERROR: " + rest_message.payload);
+          }
+        }.bind(this) //end onmessage
 
-          default:
-            console.log("WS: Received unknown rest message context: " + rest_message.context);
+        this.websocket.onerror = function () {
+          console.debug("Websocket error");
+          //don't reconnect here as onclosed will also be called        
+        }.bind(this);
 
-          //alert("ERROR: " + rest_message.payload);
-        }
-      }.bind(this) //end onmessage
+        this.websocket.onclose = function () {
+          console.debug("Websocket closed - reconnecting");
+          //back off on error to avoid spam
+          setTimeout(function () {
+            this.reconnectWebsocket();
+          }.bind(this),
+            1000);
 
-      this.websocket.onerror = function () {
-        console.debug("Websocket error");
-        //don't reconnect here as onclosed will also be called        
-      }.bind(this);
+        }.bind(this);
 
-      this.websocket.onclose = function () {
-        console.debug("Websocket closed - reconnecting");
-        //back off on error to avoid spam
-        setTimeout(function () {
-          this.reconnectWebsocket();
-        }.bind(this),
-          1000);
+      }.bind(this));
 
-      }.bind(this);
-
-    }.bind(this));
+    }.bind(this)); //end modulesInitedProm
   }
 
   render() {
     //render
-    if (window.config !== null && this.state.sitemap !== null && this.modules_inited !== false) {
+    if (window.config !== null && this.state.sitemap !== null && this.modulesInited !== false) {
       let rooms = [];
       for (const room in this.state.sitemap) {
         let items = [];

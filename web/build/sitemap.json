@@ -1,0 +1,84 @@
+{
+    "Living Room": [
+        {
+            "item_name": "Squares Lamp",
+            "type": "switch"
+        },
+        {
+            "item_name": "TV Lamp",
+            "type": "switch"
+        }
+        ,{
+            "item_name": "Table Lamp",
+            "type": "switch"
+        }
+    ],
+
+    "Nick Room": [
+        {
+            "item_name": "Nick Bed Lights",
+            "type": "switch",
+            "auth": true
+        },
+        {
+            "item_name": "Nick setpoint",
+            "type": "setpoint",
+            "auth": true
+        },
+        {
+            "item_name": "Nick Thermo",
+            "type": "thermostat",
+            "auth": true
+        },
+        {
+            "item_name": "plug-2Nice6",
+            "type": "switch"
+        },
+        {
+            "item_name": "Nick Room Temp",
+            "type": "temperature"
+        },
+        {
+            "item_name": "Nick Room Hum",
+            "type": "humidity"
+        }
+    ],
+
+    "3D Printer": [
+        {
+            "item_name": "FilamentBox1Temp",
+            "type": "temperature"
+        },
+        {
+            "item_name": "FilamentBox1Hum",
+            "type": "humidity"
+        }
+    ],
+
+    "Spare 2Nnice": [       
+        {
+            "item_name": "plug-2Nice7",
+            "type": "switch"
+        },
+        {
+            "item_name": "plug-2Nice8",
+            "type": "switch"
+        },
+        {
+            "item_name": "plug-2Nice9",
+            "type": "switch"
+        },
+        {
+            "item_name": "plug-2Nice10",
+            "type": "switch"
+        },
+        {
+            "item_name": "plug-2Nice11",
+            "type": "switch"
+        },
+        {
+            "item_name": "plug-2Nice12",
+            "type": "switch"
+        }
+    ]
+}
