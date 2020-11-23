@@ -4,16 +4,11 @@ import ModuleText from '../ModuleText/ModuleText.js';
 
 class ModuleHumidity extends ModuleText {
 
-    constructor(props){
-        super(props);
-        
-    }
-
-    updatePostfix() {
+  updatePostfix() {
         let date = new Date(this.props.value.timestamp * 1000);
 
         let ts = date.getTime();
-        let cur_ts = (new Date).getTime();
+        let cur_ts = (new Date()).getTime();
         let num_days = Math.floor((cur_ts - ts) / 86400000);
         let day_str = ""
         if (num_days > 0) {

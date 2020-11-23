@@ -3,13 +3,7 @@ import ModuleText from '../ModuleText/ModuleText.js';
 
 
 class ModuleTemperature extends ModuleText {
-
-    constructor(props){
-        super(props);
-
-        
-    }
-
+    
     updatePostfix(){
         let date = new Date(this.props.value.timestamp * 1000);
 
