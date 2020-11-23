@@ -25,9 +25,9 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      moduleValues: {},      
+      moduleValues: {},
       errorMsg: {},
-      sitemap: {}      
+      sitemap: {}
     };
 
     //bind this to methods
@@ -121,7 +121,6 @@ class App extends Component {
     //don't subscribe if we already have
     if (this.state.moduleValues.hasOwnProperty(item_name)) {
       return Promise.resolve(true);
-
     }
     return new Promise(function (item_name, resolve) {
       this.mountedProm.then(function (item_name, resolve) {
@@ -186,6 +185,7 @@ class App extends Component {
         newState.moduleValues[item] = Value.getUninitialised();
       }
     }, function () {
+      this.websocket.close(); //make sure
       this.websocket = null;
       this.connectWebsocket();
     }.bind(this));
@@ -202,7 +202,7 @@ class App extends Component {
 
   //connect websocket
   connectWebsocket() {
-    if(this.websocket !== null){
+    if (this.websocket !== null) {
       console.error("Websocket already exists");
       return;
     }
@@ -279,17 +279,18 @@ class App extends Component {
       }.bind(this) //end onmessage
 
       this.websocket.onerror = function () {
-        console.debug("Websocket error - pausing before reconn attempt");
-        //back off on error to avoid spam
-        setTimeout(function(){
-          this.reconnectWebsocket();
-        }.bind(this),
-        2000);
+        console.debug("Websocket error");
+        //don't reconnect here as onclosed will also be called        
       }.bind(this);
 
       this.websocket.onclose = function () {
-        console.debug("Websocket error - reconnecting");
-        this.reconnectWebsocket();
+        console.debug("Websocket closed - reconnecting");
+        //back off on error to avoid spam
+        setTimeout(function () {
+          this.reconnectWebsocket();
+        }.bind(this),
+          1000);
+
       }.bind(this);
 
     }.bind(this));
