@@ -156,7 +156,7 @@ class App extends Component {
   }
 
   handleModuleValueChange(item_name, value) {
-    if (Value.checkValid(value)) {
+    if (!Value.checkValid(value)) {
       throw Error("value passed is not an instance of Value");
     }
     this.sendValueUpdate(item_name, value);
