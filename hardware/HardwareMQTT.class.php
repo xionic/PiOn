@@ -57,7 +57,7 @@ class HardwareMQTT extends Hardware{
                     }
                 } 
             }
-            throw new \Exception("topic not registered");
+            throw new \Exception("topic '" . $item_args->get_topic . "' not registered in config");
         });
 	 }
 	 
